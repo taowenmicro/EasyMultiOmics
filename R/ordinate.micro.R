@@ -215,7 +215,7 @@ n = sample_data(ps)$Group%>% length()
 o = n/g
 
 if (o >= 3) {
-  title1 = MicroTest(ps = ps1_rela, Micromet = Micromet, dist = dist)
+  title1 = MicroTest.micro(ps = ps1_rela, Micromet = Micromet, dist = dist)
   title1
 } else{
   title1 = NULL
@@ -225,7 +225,7 @@ if (o >= 3) {
 
 if (pair==TRUE) {
   #----两两比较#----
-  pairResult = pairMicroTest(ps = ps1_rela, Micromet = Micromet, dist = dist)
+  pairResult = pairMicroTest.micro(ps = ps1_rela, Micromet = Micromet, dist = dist)
 
 } else {
   pairResult = "no result"
@@ -293,4 +293,3 @@ if (method %in% c("t-sne")) {
 # 返回结果：标准图，数据，标签图，成对比较结果，整体结果
 return(list(p2,points,p3,pairResult,title1,eig))
 }
-

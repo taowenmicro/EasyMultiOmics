@@ -43,15 +43,15 @@
 #' @export
 
 
-MicroTest = function(otu = NULL,tax = NULL,map = NULL,ps = NULL,
+MicroTest.micro = function(otu = NULL,tax = NULL,map = NULL,ps = NULL,
                      group = "Group", Micromet = "MRPP", dist = "bray"){
 
-    
+
   ps = ggClusterNet::inputMicro(otu,tax,map,tree,ps,group  = group)
-  
+
 
   # 求取相对丰度
-  
+
   ps1_rela  = phyloseq::transform_sample_counts(ps, function(x) x / sum(x) );ps1_rela
 
   # library(vegan)
@@ -63,7 +63,7 @@ MicroTest = function(otu = NULL,tax = NULL,map = NULL,ps = NULL,
 # adonis#----
   if (Micromet == "adonis") {
     ado =  vegan::adonis2(unif ~ map$Group,permutations = 999)
-    
+
     # a = round(as.data.frame(ado$aov.tab[5])[1,1],3)
     R2 = paste("Adonis:R ",round(ado$R2[1],3), sep = "")
     # b = as.data.frame(ado$aov.tab[6])[1,1]

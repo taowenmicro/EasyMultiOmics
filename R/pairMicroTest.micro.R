@@ -42,12 +42,12 @@
 #' pairMicroTest (ps = ps, Micromet = "anosim", dist = "bray")
 #' @export
 # pairMicroTest(ps = ps, Micromet = "anosim", dist = "bray")
-pairMicroTest = function(ps = ps, Micromet = "adonis", dist = "bray"){
+pairMicroTest.micro = function(ps = ps, Micromet = "adonis", dist = "bray"){
 
   ps1_rela  = phyloseq::transform_sample_counts(ps, function(x) x / sum(x) );ps1_rela
 
-  map = as.data.frame(phyloseq::sample_data(ps1_rela)) 
-  
+  map = as.data.frame(phyloseq::sample_data(ps1_rela))
+
   otu = ps1_rela %>% ggClusterNet::vegan_otu() %>%
     as.data.frame()
   map$Group = as.factor(map$Group)
@@ -68,7 +68,7 @@ pairMicroTest = function(ps = ps, Micromet = "adonis", dist = "bray"){
     map = as.data.frame(phyloseq::sample_data(ps1_rela))
     # head(map)
     map$ID = row.names(map)
-    
+
     # maps<- dplyr::filter(map,Group %in% Desep_group)
     maps <- map[map$Group %in%Desep_group,]
     row.names(maps) = maps$ID
@@ -78,7 +78,7 @@ pairMicroTest = function(ps = ps, Micromet = "adonis", dist = "bray"){
     map = as.data.frame(phyloseq::sample_data(ps_sub))
     gg =map$Group
     unif <- phyloseq::distance(ps_sub, method=dist)
-    
+
     if (Micromet == "MRPP") {
       mrpp = vegan::mrpp(unif, map$Group)
       as1 = round(mrpp$delta,3)
