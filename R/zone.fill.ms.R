@@ -1,12 +1,12 @@
 
 # ps.ms2 = zone.fill.ms (ps = ps.ms,method = "repeat")
 
-zone.fill.ms = function(ps,method = "repeat",n = 0.667){
+zone.fill.ms = function(ps ,method = "repeat",n = 0.667){
   if (method == "repeat") {
     map = ps %>% sample_data()
-
+    ids = map$Group %>% unique()
     for (i in 1:length(ids)) {
-      ids = map$Group %>% unique()
+
       map$ID = row.names(map)
       id = map %>%
         as.tibble() %>%
@@ -15,7 +15,6 @@ zone.fill.ms = function(ps,method = "repeat",n = 0.667){
         as.data.frame() %>% #rownames_to_column("ID") %>%
         select(id) %>% as.matrix()
       head(otu)
-      otu[otu > 0] = 1
       otu[rowSums(otu) < length(id)*n,] = 0
 
       if (FALSE) {

@@ -66,3 +66,9 @@ my.env = function(){
   library(phyloseq)
   library(tidyverse)
 }
+
+
+remove.all.zone = function(ps,n = 0){
+  ps1 = ps %>%  filter_taxa(function(x) sum(x ) > n , TRUE)
+  return(ps1)
+}
