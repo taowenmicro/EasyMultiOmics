@@ -5,14 +5,15 @@
 # res[[4]]
 
 
-heatmap.line.omics = function(ps01 = ps.ms,
-                                    method.scale = "rela",
+micro.heatmap.line.omics = function(ps01 = ps.16s,
+                                    rank = "Genus",
+                                    method.scale = "TMM",
                                     method.cor = "spearman",
-                                    ps02 = ps.trans,
-                                    lab.1 = "ms",
-                                    lab.2 = "trans",
-                                    top = 100,
-                                    cv = 50
+                              ps02 = ps.ms,
+                              lab.1 = "16s",
+                              lab.2 = "Metabolites",
+                              top = 100,
+                              cv = 50
 
 ){
 
@@ -20,6 +21,7 @@ heatmap.line.omics = function(ps01 = ps.ms,
 
   id <- ps01 %>%
     ggClusterNet::scale_micro(method = method.scale) %>%
+    ggClusterNet::tax_glom_wt(ranks = rank) %>%
     ggClusterNet::filter_OTU_ps(top) %>%
     ggClusterNet::vegan_otu() %>%
     t() %>% as.data.frame() %>%rowCV %>%
@@ -29,7 +31,8 @@ heatmap.line.omics = function(ps01 = ps.ms,
   id
 
   ps_rela = ps01 %>%
-    scale_micro(method = method.scale)
+    ggClusterNet::tax_glom_wt(ranks = rank) %>%
+    scale_micro()
 
   map = phyloseq::sample_data(ps_rela)
   map$ID = row.names(map)
@@ -119,10 +122,10 @@ heatmap.line.omics = function(ps01 = ps.ms,
 
 
 
-  ps_tem = ps02 %>%
-    ggClusterNet::scale_micro(method = method.scale)
+  ps_tem = psG %>%
+    ggClusterNet::scale_micro()
 
-  id <- ps02 %>%
+  id <- psG %>%
     ggClusterNet::filter_OTU_ps(top) %>%
     ggClusterNet::vegan_otu() %>%
     t() %>% as.data.frame() %>%rowCV %>%
@@ -131,7 +134,7 @@ heatmap.line.omics = function(ps01 = ps.ms,
     names()
   id
 
-  ps_rela = ps02 %>%
+  ps_rela = psG %>%
     scale_micro()
 
   map = phyloseq::sample_data(ps_rela)
@@ -259,10 +262,12 @@ heatmap.line.omics = function(ps01 = ps.ms,
 
   #  跨域相关性计算
   pst1 = ps01 %>%
-    scale_micro(method = method.scale)
+    scale_micro() %>%
+    ggClusterNet::tax_glom_wt(ranks = rank)
 
   id <- ps01 %>%
     ggClusterNet::scale_micro(method = method.scale) %>%
+    ggClusterNet::tax_glom_wt(ranks = rank) %>%
     ggClusterNet::filter_OTU_ps(top) %>%
     ggClusterNet::vegan_otu() %>%
     t() %>% as.data.frame() %>%rowCV %>%
@@ -271,14 +276,15 @@ heatmap.line.omics = function(ps01 = ps.ms,
     names()
   id
   pst1 = ps01 %>%
-    scale_micro(method = method.scale) %>%
+    scale_micro() %>%
+    ggClusterNet::tax_glom_wt(ranks = rank) %>%
     subset_taxa.wt("OTU",id)
   map = sample_data(pst1)
   map$Group = "A"
   sample_data(pst1) = map
 
 
-  id <- ps02 %>%
+  id <- psG %>%
     ggClusterNet::filter_OTU_ps(top) %>%
     ggClusterNet::vegan_otu() %>%
     t() %>% as.data.frame() %>%rowCV %>%
@@ -286,7 +292,7 @@ heatmap.line.omics = function(ps01 = ps.ms,
     head(cv) %>%
     names()
   id
-  pst2 = ps02 %>%
+  pst2 = psG %>%
     ggClusterNet::scale_micro() %>%
     subset_taxa.wt("OTU",id)
   map = sample_data(pst2)

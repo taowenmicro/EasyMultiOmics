@@ -1,22 +1,15 @@
-# res = heatmap.line.omics(ps01 = ps.16s,psG = ps.ms)
-# grid.draw(res[[1]])
-# res[[2]]
-# res[[3]]
-# res[[4]]
 
+point.line.omics = function(ps01 = ps.ms,
 
-heatmap.line.omics = function(ps01 = ps.ms,
-                                    method.scale = "rela",
-                                    method.cor = "spearman",
-                                    ps02 = ps.trans,
-                                    lab.1 = "ms",
-                                    lab.2 = "trans",
-                                    top = 100,
-                                    cv = 50
+                                  method.scale = "rela",
+                                  method.cor = "spearman",
+                                  ps02 = ps.trans,
+                                  lab.1 = "ms",
+                                  lab.2 = "trans",
+                                  top = 100,
+                                  cv = 50
 
 ){
-
-
 
   id <- ps01 %>%
     ggClusterNet::scale_micro(method = method.scale) %>%
@@ -29,6 +22,7 @@ heatmap.line.omics = function(ps01 = ps.ms,
   id
 
   ps_rela = ps01 %>%
+    # ggClusterNet::tax_glom_wt(ranks = rank) %>%
     scale_micro(method = method.scale)
 
   map = phyloseq::sample_data(ps_rela)
@@ -87,10 +81,6 @@ heatmap.line.omics = function(ps01 = ps.ms,
   pcm$variable = factor(pcm$variable,levels = map$ID)
 
 
-  # if (ord.col == TRUE) {
-  #   pcm$variable = factor(pcm$variable,levels = axis_order.s)
-  #
-  # }
 
   pcm$id = factor(pcm$id,levels = rig$id)
   head(pcm)
@@ -98,10 +88,10 @@ heatmap.line.omics = function(ps01 = ps.ms,
   pcm1$group = lab.1
   # col0 =colorRampPalette(RColorBrewer::brewer.pal(11,"Spectral")[11:1])(60)
   col1 = ggsci::pal_gsea()(12)
-
+  head(pcm1)
   p1 = ggplot(pcm1, aes(y = id, x = variable)) +
-    # geom_point(aes(size = value,fill = value), alpha = 0.75, shape = 21) +
-    geom_tile(aes(fill = value))+
+    geom_point(aes(size = value,fill = value), alpha = 0.75, shape = 21) +
+    # geom_tile(aes(fill = value))+
     # scale_size_continuous(limits = c(0.000001, 100), range = c(2,25), breaks = c(0.1,0.5,1)) +
     labs( y= "", x = "", size = "Relative Abundance (%)", fill = "")  +
     # scale_fill_manual(values = colours, guide = FALSE) +
@@ -120,7 +110,7 @@ heatmap.line.omics = function(ps01 = ps.ms,
 
 
   ps_tem = ps02 %>%
-    ggClusterNet::scale_micro(method = method.scale)
+    ggClusterNet::scale_micro()
 
   id <- ps02 %>%
     ggClusterNet::filter_OTU_ps(top) %>%
@@ -193,8 +183,8 @@ heatmap.line.omics = function(ps01 = ps.ms,
   col1 = ggsci::pal_gsea()(12)
 
   p2 = ggplot(pcm2, aes(y = id, x = variable)) +
-    # geom_point(aes(size = value,fill = value), alpha = 0.75, shape = 21) +
-    geom_tile(aes(fill = value))+
+    geom_point(aes(size = value,fill = value), alpha = 0.75, shape = 21) +
+    # geom_tile(aes(fill = value))+
     # scale_size_continuous(limits = c(0.000001, 100), range = c(2,25), breaks = c(0.1,0.5,1)) +
     labs( y= "", x = "", size = "Relative Abundance (%)", fill = "")  +
     # scale_fill_manual(values = colours, guide = FALSE) +
@@ -214,12 +204,13 @@ heatmap.line.omics = function(ps01 = ps.ms,
   #  联合分面热图
   pcm0 = rbind(pcm1,pcm2)
   head(pcm0)
-
+  pcm0$value %>% min()
+  pcm0$value %>% max()
   # library(ggh4x)
   p3 = ggplot(pcm0, aes(y = id, x = variable)) +
-    # geom_point(aes(fill = value), alpha = 0.75, shape = 21) +
-    geom_tile(aes(fill = value))+
-    # scale_size_continuous(limits = c(0.000001, 100), range = c(2,25), breaks = c(0.1,0.5,1)) +
+    geom_point(aes(fill = value,size = value), alpha = 0.75, shape = 21) +
+    # geom_tile(aes(fill = value))+
+    # scale_size_continuous( range = c(1,10)) +
     labs( y= "", x = "", size = "Relative Abundance (%)", fill = "")  +
     # scale_fill_manual(values = colours, guide = FALSE) +
     scale_x_discrete(limits = rev(levels(pcm$variable)))  +
@@ -287,7 +278,7 @@ heatmap.line.omics = function(ps01 = ps.ms,
     names()
   id
   pst2 = ps02 %>%
-    ggClusterNet::scale_micro() %>%
+    ggClusterNet::scale_micro(method = method.scale) %>%
     subset_taxa.wt("OTU",id)
   map = sample_data(pst2)
   map$Group = "A"
@@ -296,7 +287,7 @@ heatmap.line.omics = function(ps01 = ps.ms,
                     ps2 = pst2 ,
                     N1 = 0,
                     N2 = 0,
-                    scale = F,
+                    scale = FALSE,
                     onlygroup = TRUE,#不进行列合并，只用于区分不同域
                     dat1.lab = lab.1,
                     dat2.lab = lab.2)
@@ -362,11 +353,11 @@ heatmap.line.omics = function(ps01 = ps.ms,
   for (i in 1:length(edge2$id.facet.from)) {
     id.from = edge2$id.facet.from[i] %>% strsplit( "[_]") %>% sapply(`[`, 2) %>% as.numeric()
     id.to  = edge2$id.facet.to[i] %>% strsplit( "[_]") %>% sapply(`[`, 2)%>% as.numeric()
-    g <- line.across.facets.network2(g,
-                                     from=1, to=2,
-                                     from_point_id=id.from,
-                                     to_point_id=id.to,
-                                     gp=gpar(lty=1, alpha=0.5)
+    g <- line.across.facets.network(g,
+                                    from=1, to=2,
+                                    from_point_id=id.from,
+                                    to_point_id=id.to,
+                                    gp=gpar(lty=1, alpha=0.5)
     )
   }
 
