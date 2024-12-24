@@ -1,13 +1,26 @@
 
 
+#' Title Calculate the diversity for each sample or group
+#'
+#' @param otu OTU/ASV table;
+#' @param tax taxonomy table;
+#' @param map matrix or data frame, including ID and group;
+#' @param ps phyloseq class;
+#' @param group column name for group, such as "Group".
+#' @param sampling sampling OTU/ASV table with the minisize sequence count;
+#'
+#' @return data frame of sample diversity indices.
+#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' @export
+#'
+#' @examples
 alpha.micro = function(otu = NULL,
                  tax = NULL,
                  map = NULL,
                  ps = NULL,
                  group = "Group",
 
-                 sampling = TRUE,
-                 Plot = TRUE){
+                 sampling = TRUE){
 
   ps = ggClusterNet::inputMicro(otu,tax,map,tree,ps,group  = group)
   if (sampling == TRUE) {
