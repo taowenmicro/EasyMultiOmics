@@ -1,18 +1,3 @@
-# 绘制韦恩图和upset图表
-#
-# This is the first function named 'VenUpset'
-# which draw Ven plot and Upset plot with otutab and metadata, and reture  a base plot object
-#
-# You can learn more about package authoring with RStudio at:
-#
-#   http://r-pkgs.had.co.nz/
-#
-# Some useful keyboard shortcuts for package authoring:
-#
-#   Build and Reload Package:  'Ctrl + Shift + B'
-#   Check Package:             'Ctrl + Shift + E'
-#   Test Package:              'Ctrl + Shift + T'
-#   Generate doc:              'Ctrl + Shift + Alt + R'
 
 #' @title Plotting Ven and Upset plot for each group
 #' @description Input otutab and metadata
@@ -23,22 +8,14 @@
 #' @param group column name for groupID.
 #' @param rep repeat number of each group
 #' @return base plot object.
-#' @author Contact: Yong-Xin Liu \email{metagenome@@126.com}
-#' @references
-#'
-#' Zhang, J., Zhang, N., Liu, Y.X., Zhang, X., Hu, B., Qin, Y., Xu, H., Wang, H., Guo, X., Qian, J., et al. (2018).
-#' Root microbiota shift in rice correlates with resident time in the field and developmental stage.
-#' Sci China Life Sci 61, DOI: \url{https://doi.org/10.1007/s11427-018-9284-4}
-#'
-#' @seealso Ven-Upset
+#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
 #' @examples
-#' # Set four parameters: otutab, metadata, group and rep
-#' VenUpset(otu = otutab,map = metadata,group = "genotype",rep = 6)
+#' res = ggVen.Upset.micro(ps = ps.16s,group = "Group")
+#' grid::grid.draw(res[[1]])
+#' dat = res[[2]]
 #' @export
 
 #代码测试
-
-
 # #清空内存
 # rm(list=ls())
 # load("../data/otutab.rda")

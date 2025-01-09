@@ -1,19 +1,46 @@
-# library(ggtreeExtra)
-library(ggtree)
-# library(treeio)
-# library(ggstar)
-#创建新的scale，多个fill或者color时
-library(ggnewscale)
-# #-读取进化树
-# library(patchwork)
-# library(ggClusterNet)
-# library(phyloseq)
-# library(tidyverse)
-#--微生物组进化树功能
-#
-# barpath = paste(otupath,"/phy_tree_micro/",sep = "")
-# dir.create(barpath)
-#
+#' @title Generate Phylogenetic Tree with Taxonomic and Interaction Annotations
+#'
+#' @description
+#' This function generates a detailed phylogenetic tree annotated with taxonomic information, OTU interactions, and sample group-level bar plots. The tree can be visualized in both circular and inward circular layouts, with various layers of data added, including correlations, bar plots, and abundance data.
+#'
+#' @param ps A `phyloseq` object containing microbiome data.
+#' @param Top An integer specifying the number of top OTUs to include based on abundance. Default is `100`.
+#'
+#' @return
+#' A list containing:
+#' \describe{
+#'   \item{p0}{The inward circular phylogenetic tree with basic taxonomic information.}
+#'   \item{p1}{The inward circular tree with taxonomic annotations and OTU points.}
+#'   \item{p2}{The tree with OTU interaction links visualized as edges.}
+#'   \item{p3}{The tree with OTU abundance visualized as stars.}
+#'   \item{p4}{The tree with OTU abundance and OTU labels.}
+#'   \item{p5}{The tree with sample group-level bar plots.}
+#'   \item{p6}{The circular tree with taxonomic annotations and OTU points.}
+#'   \item{p7}{The circular tree with sample group-level bar plots.}
+#'   \item{data}{A data frame containing tip point annotations, including taxonomic levels and OTU names.}
+#' }
+#'
+#' @details
+#' The function performs the following steps:
+#' \itemize{
+#'   \item Extracts and processes taxonomic data from the `phyloseq` object.
+#'   \item Constructs a phylogenetic tree using the `MicrobiotaProcess::convert_to_treedata` function.
+#'   \item Annotates the tree with taxonomic information at the specified levels.
+#'   \item Adds OTU interaction links to the tree based on correlation analysis using the `ggClusterNet::corMicro` function.
+#'   \item Visualizes OTU abundance with star glyphs.
+#'   \item Adds sample group-level bar plots to the tree for visualizing the mean abundance of OTUs across groups.
+#' }
+#'
+#' @examples
+#' \dontrun{
+#' result <- phy_tree.micro(ps = ps.16s,Top = 100)
+#' p0 = result[[1]]
+#' }
+#'
+#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#'
+
+
 
 
 remove_rankID = function(taxtab){
@@ -27,35 +54,6 @@ remove_rankID = function(taxtab){
   taxtab$Species = gsub("s__","",taxtab$Species)
   return(taxtab)
 }
-
-# detach("package:treeio")
-# detach("package:vegan")
-
-#
-# result <- phy_tree_micro (ps = ps,Top = 100)
-#
-# p0 = result[[1]]
-# p1 = result[[2]]
-# p2 = result[[3]]
-# p3 = result[[4]]
-# p4 = result[[5]]
-#
-#
-#
-# FileName <- paste(barpath,Top_micro,"phy_tree_micro1", ".pdf", sep = "")
-# ggsave(FileName, p0, width = 6, height = 6)
-#
-# FileName <- paste(barpath,Top_micro,"phy_tree_micro2", ".pdf", sep = "")
-# ggsave(FileName, p1, width = 7, height = 7)
-#
-# FileName <- paste(barpath,Top_micro,"phy_tree_micro3", ".pdf", sep = "")
-# ggsave(FileName, p2, width = 7, height = 7)
-#
-# FileName <- paste(barpath,Top_micro,"phy_tree_micro4", ".pdf", sep = "")
-# ggsave(FileName, p3, width = 12, height = 12)
-#
-# FileName <- paste(barpath,Top_micro,"phy_tree_micro5", ".pdf", sep = "")
-# ggsave(FileName, p4, width = 15, height = 15)
 
 phy_tree.micro2 <- function(
   ps = ps,

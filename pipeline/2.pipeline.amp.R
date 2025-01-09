@@ -16,7 +16,8 @@ gnum
 axis_order =  phyloseq::sample_data(ps.16s)$Group %>%unique();axis_order
 
 #-主题--颜色等
-res = theme_my()
+package.amp()
+res = theme_my(ps.16s)
 mytheme1 = res[[1]]
 mytheme2 = res[[2]];
 colset1 = res[[3]];colset2 = res[[4]];colset3 = res[[5]];colset4 = res[[6]]
@@ -25,6 +26,7 @@ colset1 = res[[3]];colset2 = res[[4]];colset3 = res[[5]];colset4 = res[[6]]
 #1 alpha.micro: 6中alpha多样性计算#----
 all.alpha = c("Shannon","Inv_Simpson","Pielou_evenness","Simpson_evenness" ,"Richness" ,"Chao1","ACE" )
 #--alpha多样性指标运算
+?alpha.micro
 tab = alpha.micro(ps = ps.16s,group = "Group" )
 head(tab)
 
@@ -92,9 +94,6 @@ p1_1+
   mytheme2 +
   ggplot2::guides(fill = guide_legend(title = NULL)) +
   ggplot2::scale_fill_manual(values = colset1)
-
-
-
 
 #3 alpha.rare.line:alpha多样性稀释曲线#---------
 rare <- mean(phyloseq::sample_sums(ps.16s))/10
@@ -308,6 +307,7 @@ head(dat)
 library(ggalluvial)
 pst = ps.16s %>% subset_taxa.wt("Species","Unassigned",TRUE)
 pst = pst %>% subset_taxa.wt("Genus","Unassigned",TRUE)
+?barMainplot.micro
 result = barMainplot.micro(ps = pst,
                            j = "Genus",
                            # axis_ord = axis_order,
@@ -379,9 +379,6 @@ head(dat)
 
 #19 cir_plot.micro:和弦图展示物种组成-----
 res = cir_plot.micro(ps  = ps.16s,Top = 12,rank = 6)
-
-
-
 
 #20 maptree.micro；圈图展示物种组成-----
 
@@ -586,11 +583,12 @@ dat
 
 
 # biomarker identification -----
-#32 rfcv.micro :交叉验证结果-------
 library(randomForest)
 library(caret)
 library(ROCR) ##用于计算ROC
 library(e1071)
+#32 rfcv.micro :交叉验证结果-------
+
 
 result =rfcv.Micro(ps = ps.16s %>% filter_OTU_ps(100),
                    group  = "Group",optimal = 20,nrfcvnum = 6)
@@ -618,6 +616,7 @@ ps = ps %>% subset_taxa.wt("class","Unassigned",TRUE)
 pst = ps %>% subset_samples.wt("Group",group) %>%
   filter_taxa(function(x) sum(x ) > 10, TRUE)
 res = Roc.micro( ps = pst %>% filter_OTU_ps(1000),group  = "Group",repnum = 5)
+?Roc.micro
 p33.1 =  res[[1]]
 p33.1
 p33.2 =  res[[2]]
@@ -627,6 +626,7 @@ dat
 
 
 #34 loadingPCA.micro: 载荷矩阵筛选特征微生物------
+?loadingPCA.micro
 res = loadingPCA.micro(ps = ps.16s,Top = 20)
 p34.1 = res[[1]]
 p34.1
@@ -635,7 +635,9 @@ dat
 
 
 #35 LDA.micro: LDA筛选特征微生物-----
+?p_base.micro
 p1 <- p_base.micro(ps.16s,Top = 100)
+?LDA.micro
 tablda = LDA.micro(ps = ps.16s,
                    Top = 100,
                    p.lvl = 0.05,
@@ -644,19 +646,22 @@ tablda = LDA.micro(ps = ps.16s,
                    adjust.p = F)
 tablda[[1]]
 
+?lefse_bar
 p35 <- lefse_bar(taxtree = tablda[[2]])
 p35
 dat = tablda[[2]]
 dat
 
 #36 svm.micro:svm筛选特征微生物 ----
-res <- svm.micro(ps = pst %>% filter_OTU_ps(20), k = 5)
+?svm.micro
+res <- svm.micro(ps = ps.16s %>% filter_OTU_ps(20), k = 5)
 AUC = res[[1]]
 AUC
 importance = res[[2]]
 importance
 
-#37 glm.micro:glm筛选特征微生物----
+ #37 glm.micro:glm筛选特征微生物----
+?glm.micro
 res <- glm.micro(ps = pst %>% filter_OTU_ps(50), k = 5)
 AUC = res[[1]]
 AUC
@@ -666,69 +671,35 @@ importance
 #38 xgboost.micro: xgboost筛选特征微生物----
 library(xgboost)
 library(Ckmeans.1d.dp)
+library(mia)
+?xgboost.micro
 res = xgboost.micro(ps =pst, top = 20  )
 accuracy = res[[1]]
 accuracy
 importance = res[[2]]
 importance
 
-
 #39 lasso.micro: lasso筛选特征微生物----
 library(glmnet)
+?lasso.micro
 res =lasso.micro (ps =  pst, top = 20, seed = 1010, k = 5)
 accuracy = res[[1]]
 accuracy
 importance = res[[2]]
 importance
 
-
-
-
-#40 decisiontree.micro: 错----
-
-top = 20
-seed = 6358
-set.seed(seed)
-
-ps.cs <- pst %>% filter_OTU_ps(top)
-
-map <- as.data.frame(phyloseq::sample_data(ps.cs))
-otutab <- as.data.frame(t(ggClusterNet::vegan_otu(ps.cs %>% scale_micro()) ))
-colnames(otutab) <- gsub("-", "_", colnames(otutab))
-test <- as.data.frame(t(otutab))
-test$group <- factor(map$Group)
-
-
-#  group
-
-data <-  test
-# 分割数据为训练集和测试集
-
-
-split <- caTools::sample.split(data$group , SplitRatio = 0.7)  # 将数据按照指定比例分割
-train_data <- subset(data, split == TRUE)  # 训练集
-test_data <- subset(data, split == FALSE)
-str(train_data)
-head(train_data)
-# 训练决策树模型
-a_rpart <- rpart(group ~ ., data =train_data, method = 'class',
-                 parms = list(split = 'information'))
-
-
-plot(a_rpart, margin = 0.1)
-text(a_rpart, cex = 0.5)
-a_rpart$cptable
-
-#决策树划分细节概要，各个分支结构等
-summary( a_rpart)
-
-# 得到测试集的预测值
-pred <- predict(a_rpart, newdata =test_data , type = 'class')
-
-
+#40 decisiontree.micro----
+library(rpart)
+?decisiontree.micro
+res =decisiontree.micro(ps=pst, top = 50, seed = 6358, k = 5)
+accuracy = res[[1]]
+accuracy
+importance = res[[2]]
+importance
 
 
 #41 naivebayes.micro: bayes筛选特征微生物----
+?naivebayes.micro
 res = naivebayes.micro(ps=pst, top = 20, seed = 1010, k = 5)
 accuracy = res[[1]]
 accuracy
@@ -736,6 +707,7 @@ importance = res[[2]]
 importance
 
 #42 randomforest.micro: 随机森林筛选特征微生物----
+?randomforest.micro
 res = randomforest.micro( ps = pst,group  = "Group", optimal = 50)
 p42.1 = res[[1]]
 p42.1
@@ -746,16 +718,17 @@ dat
 p42.4 =res[[4]]
 p42.4
 
-
 #43 bagging.micro : Bootstrap Aggregating筛选特征微生物 ------
 library(ipred)
-res =bagging.micro(ps =  pst, top = 20, seed = 1010, k = 5)
+?bagging.micro
+ps = pst
+res = bagging.micro(ps =  pst, top = 20, seed = 1010, k = 5)
 accuracy = res[[1]]
 accuracy
 importance = res[[2]]
 importance
-#44 nnet.micro 神经网络筛选特征微生物  ------
 
+#44 nnet.micro 神经网络筛选特征微生物  ------
 res =nnet.micro(ps=pst, top = 100, seed = 1010, k = 5)
 accuracy = res[[1]]
 accuracy
@@ -953,8 +926,6 @@ p2 = ggplot(dat2) + geom_bar(aes(x = cross,fill = cross)) +
 p2
 
 
-
-
 #54 Robustness.Targeted.remova:l网络稳定性-去除关键节点-网络鲁棒性#-----
 # 鲁棒性计算需要物种丰富，所以即使计算好了相关矩阵，也需要输入ps对象
 library(patchwork)
@@ -987,11 +958,11 @@ library(picante)
 library(ape)
 library(FSA)
 library(eulerr)
-require(minpack.lm)
-require(Hmisc)
-require(stats4)
+# require(minpack.lm)
+# require(Hmisc)
+# require(stats4)
 sample_data(ps16s)
-psphy = filter_taxa(ps16s, function(x) sum(x ) > 100, TRUE);psphy
+psphy = filter_taxa(ps.16s, function(x) sum(x ) > 100, TRUE);psphy
 map = sample_data(psphy)
 n = map$Group %>% unique() %>%
   length()
@@ -1027,6 +998,7 @@ aovtab <- result[[3]]
 
 
 #58 bNTICul:β最近分类单元指数计算----
+?bNTICul
 result = bNTICul(ps = psphy,
                  group  = "Group",
                  num = 10,
@@ -1037,6 +1009,7 @@ head(bNTI)
 
 
 #59 RCbary: RCbary 计算----
+?RCbary
 result = RCbary(ps = psphy ,group  = "Group",num = 10,thread = 1)
 
 RCbary = result[[1]]
@@ -1066,9 +1039,6 @@ dat = result[[5]]
 head(dat)
 
 
-
-
-
 # other------
 #61 FEAST.micro:溯源分析----
 result = FEAST.micro(ps = ps.16s,
@@ -1087,7 +1057,6 @@ p2
 
 
 # function prediction-----
-library(GO.db)
 library(DOSE)
 library(GO.db)
 library(GSEABase)
@@ -1097,7 +1066,9 @@ library(clusterProfiler)
 library("GSVA")
 library(dplyr)
 ps.kegg = ps.kegg %>% filter_OTU_ps(Top = 1000)
-tax =ps.kegg %>% tax_table()
+
+tax =ps.kegg %>% phyloseq::tax_table()
+
 colnames(tax)[3] = "KOid"
 tax_table(ps.kegg) =tax
 res = EdgerSuper.metf (ps = ps.kegg,
@@ -1129,7 +1100,7 @@ Desep_group = cbtab[,1]
 group = paste(Desep_group[1],Desep_group[2],sep = "-")
 id = paste(group,"level",sep = "")
 
-result = buplot.micro(dt  =dat1,dif = dif,id = id)
+result = buplot.micro(dt=dat1,id = id)
 p1 = result[[1]]
 p1
 p2 = result[[2]]

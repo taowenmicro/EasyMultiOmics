@@ -32,17 +32,10 @@ VennDiagram::Ven plot
 UpSetR::Upset plot
 }
 \examples{
-# Set four parameters: otutab, metadata, group and rep
-VenUpset(otu = otutab,map = metadata,group = "genotype",rep = 6)
-}
-\references{
-Zhang, J., Zhang, N., Liu, Y.X., Zhang, X., Hu, B., Qin, Y., Xu, H., Wang, H., Guo, X., Qian, J., et al. (2018).
-Root microbiota shift in rice correlates with resident time in the field and developmental stage.
-Sci China Life Sci 61, DOI: \url{https://doi.org/10.1007/s11427-018-9284-4}
-}
-\seealso{
-Ven-Upset
+res = ggVen.Upset.micro(ps = ps.16s,group = "Group")
+grid::grid.draw(res[[1]])
+dat = res[[2]]
 }
 \author{
-Contact: Yong-Xin Liu \email{metagenome@126.com}
+Contact: Tao Wen \email{2018203048@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
 }

@@ -2,42 +2,22 @@
 % Please edit documentation in R/pairMicroTest.micro.R
 \name{pairMicroTest.micro}
 \alias{pairMicroTest.micro}
-\title{Beta diversity statistics by adonis/anosim/MRPP in pair}
+\title{Pairwise Microbial Community Statistical Testing}
 \usage{
 pairMicroTest.micro(ps = ps, Micromet = "adonis", dist = "bray")
 }
 \arguments{
-\item{ps}{alternative input;}
+\item{ps}{A `phyloseq` object containing microbial community data, including the OTU table and sample metadata.}
 
-\item{Micromet}{statistics default by adonis, alternative anosim or MRPP;}
+\item{Micromet}{A string specifying the statistical method to use. Options are `"adonis"` (default), `"MRPP"`, or `"anosim"`.}
 
-\item{dist}{distance type, including "unifrac" "wunifrac" "dpcoa" "jsd" "manhattan" "euclidean"   "canberra" "bray" "kulczynski"  "jaccard" "gower" "altGower" "morisita" "horn" "mountford"  "raup" "binomial"  "chao"  "cao" "w"  "-1"  "c" "wb"  "r"   "I"  "e" "t" "me"   "j"  "sor"  "m"   "-2"  "co";}
-
-\item{otu}{OTU/ASV table;}
-
-\item{map}{Sample metadata;}
-
-\item{tree}{tree/nwk file;}
-
-\item{group}{group ID;}
-
-\item{method}{DCA, CCA, RDA, NMDS, MDS, PCoA, PCA, LDA;}
-
-\item{pvalue.cutoff}{Pvalue threshold, default in 0.05;}
+\item{dist}{A string specifying the distance metric to use. Default is `"bray"` (Bray-Curtis distance).}
 }
 \value{
 stat table
 }
 \description{
-Input phyloseq object, test method and distance type
-}
-\details{
-By default, input phyloseq object include metadata and otutab
-The available diversity indices include the following:
-\itemize{
-\item{most used indices: bray unifrac wunifrac}
-\item{other used indices: dpcoa jsd manhattan euclidean canberra kulczynski jaccard gower altGower morisita horn mountford raup binomial chao cao w -1 c wb r I e t me j sor m -2 co}
-}
+The `pairMicroTest.micro` function performs pairwise statistical testing on microbial community data using selected metrics (Adonis, MRPP, or ANOSIM). It calculates statistical differences between groups in a `phyloseq` object based on a specified distance metric.
 }
 \examples{
 dat2 = pairMicroTest.micro(ps = ps.16s, Micromet = "MRPP", dist = "bray")

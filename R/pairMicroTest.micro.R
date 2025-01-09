@@ -1,29 +1,18 @@
 
-#' @title Beta diversity statistics by adonis/anosim/MRPP in pair
-#' @description Input phyloseq object, test method and distance type
-#' @param otu OTU/ASV table;
-#' @param map Sample metadata;
-#' @param ps alternative input;
-#' @param tree tree/nwk file;
-#' @param dist distance type, including "unifrac" "wunifrac" "dpcoa" "jsd" "manhattan" "euclidean"   "canberra" "bray" "kulczynski"  "jaccard" "gower" "altGower" "morisita" "horn" "mountford"  "raup" "binomial"  "chao"  "cao" "w"  "-1"  "c" "wb"  "r"   "I"  "e" "t" "me"   "j"  "sor"  "m"   "-2"  "co";
-#' @param group group ID;
-#' @param method DCA, CCA, RDA, NMDS, MDS, PCoA, PCA, LDA;
-#' @param pvalue.cutoff Pvalue threshold, default in 0.05;
-#' @param Micromet statistics default by adonis, alternative anosim or MRPP;
-#' @details
-#' By default, input phyloseq object include metadata and otutab
-#' The available diversity indices include the following:
-#' \itemize{
-#' \item{most used indices: bray unifrac wunifrac}
-#' \item{other used indices: dpcoa jsd manhattan euclidean canberra kulczynski jaccard gower altGower morisita horn mountford raup binomial chao cao w -1 c wb r I e t me j sor m -2 co}
-#' }
+#' @title Pairwise Microbial Community Statistical Testing
+#' @description
+#' The `pairMicroTest.micro` function performs pairwise statistical testing on microbial community data using selected metrics (Adonis, MRPP, or ANOSIM). It calculates statistical differences between groups in a `phyloseq` object based on a specified distance metric.
+#' @param ps A `phyloseq` object containing microbial community data, including the OTU table and sample metadata.
+#' @param Micromet A string specifying the statistical method to use. Options are `"adonis"` (default), `"MRPP"`, or `"anosim"`.
+#' @param dist A string specifying the distance metric to use. Default is `"bray"` (Bray-Curtis distance).
+#'
 #' @return stat table
 #' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
 #' @examples
 #' dat2 = pairMicroTest.micro(ps = ps.16s, Micromet = "MRPP", dist = "bray")
 #' dat2
 #' @export
-# pairMicroTest(ps = ps, Micromet = "anosim", dist = "bray")
+
 pairMicroTest.micro = function(ps = ps, Micromet = "adonis", dist = "bray"){
 
   ps1_rela  = phyloseq::transform_sample_counts(ps, function(x) x / sum(x) );ps1_rela

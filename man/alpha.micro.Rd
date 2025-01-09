@@ -27,7 +27,16 @@ alpha.micro(
 \item{sampling}{sampling OTU/ASV table with the minisize sequence count;}
 }
 \value{
-data frame of sample diversity indices.
+A data frame containing alpha diversity indices for each sample, along with the sample metadata. The output includes the following indices:
+\itemize{
+  \item `Shannon`: Shannon diversity index.
+  \item `Inv_Simpson`: Inverse Simpson diversity index.
+  \item `Pielou_evenness`: Pielou's evenness index.
+  \item `Simpson_evenness`: Simpson's evenness index.
+  \item `Richness`: Observed richness (number of species).
+  \item `Chao1`: Chao1 richness estimator.
+  \item `ACE`: ACE richness estimator.
+}
 }
 \description{
 The alpha.micro function calculates alpha diversity indices for microbial communities.

@@ -13,14 +13,17 @@ ordinate.micro(
   dist = "bray",
   method = "PCoA",
   Micromet = "adonis",
-  pvalue.cutoff = 0.05,
-  pair = TRUE
+  pvalue.cutoff = 0.05
 )
 }
 \arguments{
 \item{otu}{OTU/ASV table;}
 
+\item{tax}{taxonomy table;}
+
 \item{map}{Sample metadata;}
+
+\item{ps}{A phyloseq format file used as an alternative for the input containing otu, tax, and map.}
 
 \item{group}{group ID;}
 
@@ -31,8 +34,6 @@ ordinate.micro(
 \item{Micromet}{statistics by adonis/anosim/MRPP;}
 
 \item{pvalue.cutoff}{Pvalue threshold;}
-
-\item{tree}{tree/nwk file;}
 }
 \value{
 list object including plot, stat table
@@ -49,7 +50,8 @@ The available diversity indices include the following:
 }
 }
 \examples{
-result = ordinate.micro(ps = ps.16s, group = "Group", dist = "bray",method = "PCoA", Micromet = "anosim", pvalue.cutoff = 0.05,pair = F)
+result = ordinate.micro(ps = ps.16s, group = "Group", dist = "bray",method = "PCoA", Micromet = "anosim",
+pvalue.cutoff = 0.05)
 p3_1 = result[[1]]
 }
 \author{

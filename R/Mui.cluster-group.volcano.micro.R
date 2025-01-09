@@ -1,5 +1,56 @@
-
-
+#' @title Cluster-Based Volcano Plot for Microbial Features
+#'
+#' @description
+#' The `Mui.cluster.volcano.micro` function creates a cluster-based volcano plot
+#' to visualize microbial features across hierarchical clusters. It highlights
+#' significantly enriched or depleted features within each cluster and annotates
+#' the top-ranked features for each cluster based on their fold changes.
+#'
+#' @param res A data frame containing the differential analysis results.
+#' Must include the following columns:
+#' \itemize{
+#'   \item `logFC`: Log2 fold change values.
+#'   \item `level`: Significance levels (e.g., "enriched", "depleted", or "nosig").
+#'   \item `ID`: Unique identifiers for microbial features (e.g., OTUs or genes).
+#' }
+#' @param rs.k An integer specifying the number of clusters to create using
+#' hierarchical clustering. Default is 10.
+#'
+#' @return
+#' A list containing:
+#' \itemize{
+#'   \item  A fully styled volcano plot with fold changes, top-ranked features,
+#'   and cluster annotations.
+#'   \item  A volcano plot with annotated cluster color tiles.
+#'   \item  A data frame combining the differential analysis results and
+#'   cluster assignments for each feature.
+#'   \item  A data frame containing the top 5 features for each cluster,
+#'   ranked by absolute fold changes.
+#' }
+#'
+#' @details
+#' The function performs the following steps:
+#' \itemize{
+#'   \item Performs hierarchical clustering on the microbial OTU matrix to assign features to clusters.
+#'   \item Identifies the top 5 features within each cluster based on their absolute fold changes.
+#'   \item Creates a volcano plot for each cluster, with scatter points representing fold changes
+#'   and significance levels of features.
+#'   \item Annotates the top features and adds group-specific color tiles for clusters.
+#' }
+#'
+#' @examples
+#' \dontrun{
+#'id = sample_data(ps.16s)$Group %>% unique()
+#'aaa = combn(id,2)
+#'group2 = c(aaa[1,1],aaa[2,1])
+#'b= data.frame(group2)
+#'res =  EdgerSuper2.micro (ps = ps.16s,group  = "Group",artGroup =b, j = "OTU")
+#'res2 = Mui.cluster.volcano.micro (res = res,rs.k = 6)
+#' }
+#'
+#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#'
+#' @export
 Mui.cluster.volcano.micro = function(res = res,rs.k = 10){
   colnames(res)[match(colnames(res)[str_detect(colnames(res),"logFC")],colnames(res))] = "logFC"
   colnames(res)[match(colnames(res)[str_detect(colnames(res),"level")],colnames(res))] = "level"

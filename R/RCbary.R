@@ -1,17 +1,43 @@
 
-
-
-# result = RCbary(ps = ps ,group  = "Group",num = 3,thread = 1)
-#
-# RCbary = result[[1]]
-# head(RCbary)
-#
-# path = "./Result/bNTI/"
-# # dir.create(path)
-# filename = paste(path,"/RCb.csv",sep = "")
-# write.csv(RCbary,filename)
-
-
+#' @title RCbray: Quantify the Ecological Turnover Between Microbial Communities
+#'
+#' @description
+#' This function calculates the RCbray (Raup-Crick dissimilarity with Bray-Curtis distance) metric to assess ecological turnover
+#' between microbial communities, considering both community assembly and null model simulations.
+#'
+#' @param otu A data frame or matrix containing OTU (Operational Taxonomic Unit) abundance data.
+#' Rows represent taxa, and columns represent samples.
+#' @param tax A data frame containing taxonomic annotations for each OTU.
+#' @param map A data frame containing sample metadata, including group information.
+#' @param tree A phylogenetic tree object.
+#' @param ps A `phyloseq` object containing OTU, taxonomic, and sample data.
+#' If provided, this supersedes `otu`, `tax`, `map`, and `tree`.
+#' @param group A character string specifying the grouping variable in the metadata. Default is `"Group"`.
+#' @param num An integer specifying the number of null model simulations to perform. Default is `99`.
+#' @param thread An integer specifying the number of processor threads to use for parallel computation. Default is `1`.
+#'
+#' @return A list containing:
+#' \itemize{
+#'   \item `RCb`: A data frame with RCbray values for each pair of samples, including:
+#' }
+#'
+#' @details
+#' The function performs the following steps:
+#' \itemize{
+#'   \item Rarefies the input OTU table to equal sequencing depth across samples.
+#'   \item Computes the Bray-Curtis dissimilarity between sample pairs.
+#'   \item Simulates null communities based on species abundance and occurrence frequencies.
+#'   \item Quantifies the RCbray metric as a standardized comparison between observed and null model dissimilarities.
+#' }
+#'
+#' @examples
+#' \dontrun{
+#' result = RCbary(ps = psphy ,group  = "Group",num = 10,thread = 1)
+#' }
+#'
+#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#'
+#' @export
 
 RCbary = function(otu = NULL,tax = NULL,map = NULL,tree = NULL ,ps = NULL,group  = "Group",num = 99,thread = 1){
   ps_sub <- ps

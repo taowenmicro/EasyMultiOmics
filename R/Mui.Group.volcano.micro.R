@@ -1,5 +1,48 @@
 
-
+#' @title Multi-Group Volcano Plot for Differential Features
+#'
+#' @description
+#' The `Mui.Group.volcano.micro` function generates a multi-group volcano plot
+#' to visualize the differential features (e.g., taxa or genes) across multiple groups.
+#' It highlights significantly enriched or depleted features for each group
+#' and displays the top-ranked features based on their fold changes.
+#'
+#' @param res A data frame containing the differential analysis results.
+#' Must include the following columns:
+#' \itemize{
+#'   \item `logFC`: Log2 fold change values.
+#'   \item `level`: Significance levels (e.g., "enriched", "depleted", or "nosig").
+#'   \item `group`: Group or cluster identifier.
+#' }
+#'
+#' @return
+#' A list containing:
+#' \itemize{
+#'   \item  A fully styled multi-group volcano plot with fold changes, top-ranked features, and group annotations.
+#'   \item  A basic multi-group volcano plot with group annotations.
+#'   \item  The input data frame with an additional `ID` column for unique identifiers.
+#'   \item  A data frame containing the top 5 features (based on absolute fold changes) for each group.
+#' }
+#'
+#' @details
+#' The function performs the following steps:
+#' \itemize{
+#'   \item Computes the top 5 features with the highest absolute fold changes for each group.
+#'   \item Creates background columns for each group based on the maximum and minimum fold changes.
+#'   \item Adds jittered scatter points to represent individual features' fold changes.
+#'   \item Annotates the top-ranked features for each group.
+#'   \item Styles the volcano plot with group-specific color tiles and customized aesthetics.
+#' }
+#'
+#' @examples
+#' \dontrun{
+#' res =  EdgerSuper2.micro (ps = ps.16s,group  = "Group",artGroup =NULL, j = "OTU")
+#' res2 = Mui.Group.volcano.micro(res = res)
+#' }
+#'
+#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#'
+#' @export
 
 Mui.Group.volcano.micro = function(res = res){
   res$ID = row.names(res)

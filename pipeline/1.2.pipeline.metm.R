@@ -34,7 +34,6 @@ all.alpha = c("Shannon","Inv_Simpson","Pielou_evenness","Simpson_evenness" ,"Ric
 tab = alpha.metm(ps = ps.metm,group = "Group",Plot = TRUE )
 head(tab)
 
-
 data = cbind(data.frame(ID = 1:length(tab$Group),group = tab$Group),tab[all.alpha])
 head(data)
 data$ID = as.character(data$ID)
@@ -102,7 +101,7 @@ p1_1+
 
 #3 alpha_rare.metm:alpha多样性稀释曲线#---------
   rare <- mean(phyloseq::sample_sums(ps.metm))/10
-  result =alpha_rare.metm(ps = ps.metm, group = "Group", method = "Richness", start = 100, step = rare)
+  result = alpha_rare.metm(ps = ps.metm, group = "Group", method = "Richness", start = 100, step = rare)
   #--提供单个样本溪稀释曲线的绘制
   p2_1 <- result[[1]]
   p2_1
@@ -122,8 +121,7 @@ p1_1+
 # beta diversity  -----
 #4 ordinate.metm: 排序分析#----------
 result = ordinate.metm(ps = ps.metm, group = "Group", dist = "bray",
-                        method = "PCoA", Micromet = "anosim", pvalue.cutoff = 0.05,
-                        pair = F)
+                        method = "PCoA", Micromet = "anosim", pvalue.cutoff = 0.05)
 p3_1 = result[[1]]
 p3_1 +
   scale_fill_manual(values = colset1)+
@@ -164,7 +162,9 @@ dat1
 
 #6 pairMicroTest.metm:两两分组群落水平差异检测-------
 dat2 = pairMicroTest.metm(ps = ps.metm, Micromet = "MRPP", dist = "bray")
+
 dat2
+
 
 #7 mantal.metm：群落差异检测普鲁士分析#------
 result <- mantal.metm(ps = ps.metm,
@@ -202,7 +202,7 @@ head(dat)
 
 
 # compositipn -----
-#9 Ven.Upset.metm: 用于展示共有、特有的OTU/ASV----
+ #9 Ven.Upset.metm: 用于展示共有、特有的OTU/ASV----
 # 分组小于6时使用
 res = Ven.Upset.metm(ps =  ps.metm,
                       group = "Group",
@@ -229,7 +229,7 @@ library("ggpubr")
 library(agricolae)
 library(reshape2)
 
-result = VenSuper.micro(ps = ps.metm,
+result = VenSuper.metm(ps = ps.metm,
                         group = "Group",
                         num = 6
 )
@@ -251,7 +251,7 @@ p8
 
 
 #12 ggflower.metm:花瓣图展示共有特有微生物------
-res <-ggflower.metm(ps = ps.metm ,
+res <- ggflower.metm(ps = ps.metm ,
                        # rep = 1,
                        group = "ID",
                        start = 1, # 风车效果
@@ -352,7 +352,7 @@ clubardata <- result[[5]]
 #17 cir_barplot.metf:环状堆积柱状图 -----
 
 library(ggtree) # j = "Phylum"
-res = cir_barplot.metf(
+res = cir_barplot.metm(
   ps = ps.metm,
   Top = 15,
   dist = "bray",
@@ -489,9 +489,8 @@ p29.2
 dat = res2[[3]]
 dat
 
-
 # biomarker identification -----
-#26 rfcv.micro :交叉验证结果-------
+#26 rfcv.metm :交叉验证结果-------
 library(randomForest)
 library(caret)
 library(ROCR) ##用于计算ROC
