@@ -2,7 +2,7 @@
 % Please edit documentation in R/randomforest.ms.R
 \name{randomforest.ms}
 \alias{randomforest.ms}
-\title{Random forest modeling for microbiome data}
+\title{Random forest modeling for metabolite data}
 \usage{
 randomforest.ms(
   otu = NULL,
@@ -19,41 +19,52 @@ randomforest.ms(
 )
 }
 \arguments{
-\item{otu}{OTU/ASV table;}
+\item{otu}{Metabolite composition table.}
 
-\item{tax}{taxonomy table}
+\item{tax}{Metabolite classification table.}
 
-\item{map}{Sample metadata;}
+\item{map}{Sample metadata.}
 
-\item{ps}{phyloseq object of microbiome}
+\item{tree}{Phylogenetic tree.}
 
-\item{optimal}{important OTU number which selected}
+\item{ps}{A phyloseq format file used as an alternative for the input containing metabolite, tax, and sample metadata.}
 
-\item{rfcv}{TURE or FELSE,whether need to do cross-validation}
+\item{group}{Column name for groupID in map table(sample metadata).}
 
-\item{nrfcvnum}{Number of cross-validation}
+\item{optimal}{Select the number of important metabolites to be displayed.}
 
-\item{min}{Circle diagram inner diameter adjustment}
+\item{rfcv}{TURE or FALSE,whether need to do cross-validation.}
 
-\item{max}{Circle diagram outer diameter adjustment}
+\item{nrfcvnum}{Number of cross-validation.}
 
-\item{Group}{column name for groupID in map table.}
+\item{min}{Circle diagram inner diameter adjustment.}
+
+\item{max}{Circle diagram outer diameter adjustment.}
 }
 \value{
-list contain ggplot object and table.
+list contain ggplot object and table:
+\item{p1}{A lollipop diagram of the selected number of important metabolites.}
+\item{p2}{A circle diagram of the selected number of important metabolites.}
+\item{a3}{Taxonomic annotation information for the selected number of important metabolites and their importance.}
+\item{pn}{Combined table of model accuracy rates and confusion matrix.}
+\item{a2}{Taxonomic annotation information for all metabolites and their importance.}
 }
 \description{
-Random forest modeling for microbiome data
+Random forest modeling for metabolite data was used to screen for characteristic metabolites.
 }
 \examples{
-# data form github
-result = MicroRF(ps = ps,group  = "Group",optimal = 20,rfcv = TRUE,nrfcvnum = 5,min = -1,max = 5)
-}
-\references{
-Jingying Zhang, Yong-Xin Liu, Na Zhang, Bin Hu, Tao Jin, Haoran Xu, Yuan Qin, Pengxu Yan, Xiaoning Zhang, Xiaoxuan Guo, Jing Hui, Shouyun Cao, Xin Wang, Chao Wang, Hui Wang, Baoyuan Qu, Guangyi Fan, Lixing Yuan, Ruben Garrido-Oter, Chengcai Chu & Yang Bai.
-NRT1.1B is associated with root microbiota composition and nitrogen use in field-grown rice.
-Nature Biotechnology, 2019(37), 6:676-684, DOI: \url{https://doi.org/10.1038/s41587-019-0104-4}
+library(dplyr)
+library(ggClusterNet)
+library(caret)
+library(randomForest)
+res <- randomforest.ms( ps= ps.ms, group  = "Group", optimal = 50)
+p1 = res[[1]];p1
+p2=res[[2]];p2
+p3=res[[4]];p3
+dat1 =res[[3]];dat1
+dat2 =res[[5]];dat2
 }
 \author{
-Contact: Tao Wen \email{2018203048@njau.edu.cn}, Yong-Xin Liu \email{yxliu@genetics.ac.cn}
+Tao Wen \email{2018203048@njau.edu.cn},
+Peng-Hao Xie \email{2019103106@njqu.edu.cn}
 }

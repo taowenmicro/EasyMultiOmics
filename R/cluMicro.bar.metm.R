@@ -55,7 +55,7 @@ cluMicro.bar.metm=function (dist = "bray", otu = NULL, tax = NULL, map = NULL,
           tree = NULL, j = "Phylum", ps = ps, rep = 6, Top = 10, tran = TRUE,
           hcluter_method = "complete", Group = "Group", cuttree = 3)
 {
-  ps = ggClusterNet::inputMicro(otu, tax, map, tree, ps, group = Group)
+ # ps = ggClusterNet::inputMicro(otu, tax, map, tree, ps, group = Group)
   ps1_rela = phyloseq::transform_sample_counts(ps, function(x) x/sum(x))
   otu = as.data.frame(t(ggClusterNet::vegan_otu(ps1_rela)))
   unif = phyloseq::distance(ps1_rela, method = dist)
@@ -86,6 +86,7 @@ cluMicro.bar.metm=function (dist = "bray", otu = NULL, tax = NULL, map = NULL,
       tax[i, j] = "Other"
     }
   }
+
   phyloseq::tax_table(psdata) = tax
   Taxonomies <- psdata %>% phyloseq::psmelt()
   head(Taxonomies)
@@ -95,6 +96,7 @@ cluMicro.bar.metm=function (dist = "bray", otu = NULL, tax = NULL, map = NULL,
   head(Taxonomies)
   p <- p + ggnewscale::new_scale_fill()
   p
+  print("1")
   p1 <- facet_plot(p, panel = "Stacked Barplot", data = Taxonomies,
                    geom = ggstance::geom_barh, mapping = aes(x = Abundance,
                                                              fill = !!sym(j)), color = "black", stat = "identity")
@@ -120,6 +122,9 @@ cluMicro.bar.metm=function (dist = "bray", otu = NULL, tax = NULL, map = NULL,
       table = rbind(table, data)
     }
   }
+
+
+  print("2")
   sum(grotax$Abundance)
   head(table)
   ps1_rela = phyloseq::transform_sample_counts(ps, function(x) x/sum(x))
@@ -128,9 +133,10 @@ cluMicro.bar.metm=function (dist = "bray", otu = NULL, tax = NULL, map = NULL,
   iris.apply <- lapply(iris.split, function(x) colMeans(x))
   iris.combine <- do.call(rbind, iris.apply)
   otuG = t(iris.combine)
-  ps = phyloseq::phyloseq(phyloseq::otu_table(otuG, taxa_are_rows = T),
+  ps = phyloseq::phyloseq(phyloseq::otu_table(otuG, taxa_are_rows = TRUE),
                           phyloseq::tax_table(ps1_rela))
   hc = ps %>% phyloseq::distance(method = dist) %>% stats::hclust(method = hcluter_method)
+  print("3")
   clus <- cutree(hc, cuttree)
   d = data.frame(label = names(clus), member = factor(clus))
   map = data.frame(ID = unique(phyloseq::sample_data(ps1_rela)$Group),

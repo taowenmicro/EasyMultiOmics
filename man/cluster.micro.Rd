@@ -4,7 +4,7 @@
 \alias{cluster.micro}
 \title{Cluster and Visualize Microbial Communities}
 \usage{
-cluster.micro(
+\method{cluster}{micro}(
   ps = ps,
   hcluter_method = "complete",
   dist = "bray",

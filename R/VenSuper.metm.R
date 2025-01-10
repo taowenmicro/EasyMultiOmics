@@ -165,7 +165,7 @@ VenSuper.metm =  function(ps = NULL,group  = "Group",num = 6){
     )
     ps_sub
 
-
+print("3")
 
     #--------------过滤掉ven中没有otu的分组
     num = ven_pick[i,1:length(unique(mapping$Group))]
@@ -183,10 +183,11 @@ VenSuper.metm =  function(ps = NULL,group  = "Group",num = 6){
 
 
     # 这部分进行堆叠柱状图的出图，但是不能再做标准化了
-
-    result = barMainplot.micro(ps = ps_sub,j = "Phylum",axis_ord = NULL,label = FALSE ,sd = FALSE,
+sample_data(ps_sub)
+tax_table(ps_sub)
+    result = barMainplot.metm(ps = ps_sub,j = "Phylum",axis_ord = NULL,label = FALSE ,sd = FALSE,
                                Top = 10,tran = FALSE)
-    print("3")
+    print("4")
     #提取脱图片
     p = result[[1]]
     # 提取作图数据，也就是这部分ven包含otu的数量

@@ -40,7 +40,7 @@ For cross-validation of microbiome data
 }
 \examples{
 # data form github
-result = Micro.rfcv(otu = NULL,tax = NULL,map = NULL,tree = NULL ,ps = ps_rela,group  = "Group",optimal = 20,nrfcvnum = 6)
+result = rfcv.Micro(ps = ps_rela,group  = "Group",optimal = 20,nrfcvnum = 6)
 prfcv = result[[1]]# plot rfcv
 rfcvtable = result[[3]]# table rfcv
 }

@@ -12,7 +12,6 @@
 #' @param ps phyloseq object of microbiome
 #' @param Group column name for groupID in map table.
 #' @param repnum Modeling times
-#' @details
 #' @return list contain ggplot object and table.
 #' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Yong-Xin Liu \email{yxliu@@genetics.ac.cn}
 #' @references

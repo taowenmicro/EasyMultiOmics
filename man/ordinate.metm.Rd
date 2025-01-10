@@ -13,7 +13,8 @@ ordinate.metm(
   dist = "bray",
   method = "PCoA",
   Micromet = "adonis",
-  pvalue.cutoff = 0.05
+  pvalue.cutoff = 0.05,
+  pair = FALSE
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ ordinate.metm(
 \item{Micromet}{statistics by adonis/anosim/MRPP;}
 
 \item{pvalue.cutoff}{Pvalue threshold;}
+
+\item{pair}{A logical value indicating whether to perform pairwise group comparisons. Default is `FALSE`.}
 }
 \value{
 list object including plot, stat table
@@ -50,7 +53,7 @@ The available diversity indices include the following:
 }
 }
 \examples{
-result = ordinate.metm(ps = ps.16s, group = "Group", dist = "bray",method = "PCoA", Micromet = "anosim", pvalue.cutoff = 0.05,pair = F)
+result = ordinate.metm(ps = ps.16s, group = "Group", dist = "bray",method = "PCoA", Micromet = "anosim", pvalue.cutoff = 0.05)
 p3_1 = result[[1]]
 }
 \author{

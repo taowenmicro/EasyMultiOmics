@@ -13,7 +13,8 @@ ordinate.micro(
   dist = "bray",
   method = "PCoA",
   Micromet = "adonis",
-  pvalue.cutoff = 0.05
+  pvalue.cutoff = 0.05,
+  pair = FALSE
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ ordinate.micro(
 \item{Micromet}{statistics by adonis/anosim/MRPP;}
 
 \item{pvalue.cutoff}{Pvalue threshold;}
+
+\item{pair}{A logical value indicating whether to perform pairwise group comparisons. Default is `FALSE`.}
 }
 \value{
 list object including plot, stat table

@@ -110,13 +110,13 @@ barMainplot.metm=function (otu = NULL, tax = NULL, map = NULL, tree = NULL, ps =
   head(zhnagxu2)
   colnames(zhnagxu2) <- c("aa", "group", "Abundance", "sd")
   zhnagxu2$aa = factor(zhnagxu2$aa, order = TRUE, levels = cc$aa)
-  zhnagxu3 = zhnagxu2 %>% left_join(cc) %>% arrange(allsum)
+  zhnagxu3 = zhnagxu2 %>%dplyr::left_join(cc) %>%dplyr:: arrange(allsum)
   head(zhnagxu3)
   dat = plyr::ddply(zhnagxu3, "group", dplyr::summarize, label_sd = cumsum(Abundance),
                     label_y = cumsum(Abundance) - 0.5 * Abundance)
   dat$aa = zhnagxu3$aa %>% unique()
   head(dat)
-  Taxonomies_x = zhnagxu3 %>% inner_join(dat)
+  Taxonomies_x = zhnagxu3 %>%dplyr::inner_join(dat)
   Taxonomies_x$label = Taxonomies_x$aa
   Taxonomies_x$aa = factor(Taxonomies_x$aa, order = TRUE, levels = c(as.character(cc$aa)))
   p4 <- ggplot(Taxonomies_x, aes(x = group, y = Abundance,

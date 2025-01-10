@@ -48,8 +48,7 @@ list contain ggplot object and table.
 Random forest modeling for microbiome data
 }
 \examples{
-# data form github
-result = MicroRF(ps = ps,group  = "Group",optimal = 20,rfcv = TRUE,nrfcvnum = 5,min = -1,max = 5)
+result = randomforest.micro(ps = ps,group  = "Group",optimal = 20,rfcv = TRUE,nrfcvnum = 5,min = -1,max = 5)
 }
 \author{
 Contact: Tao Wen \email{2018203048@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}

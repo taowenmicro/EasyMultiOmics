@@ -4,7 +4,7 @@
 \alias{cluster.metm}
 \title{Cluster and Visualize Microbial Communities}
 \usage{
-cluster.metm(
+\method{cluster}{metm}(
   ps = ps.16s,
   hcluter_method = "complete",
   dist = "bray",

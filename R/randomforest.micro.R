@@ -14,8 +14,7 @@
 #' @return list contain ggplot object and table.
 #' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
 #' @examples
-#' # data form github
-#' result = MicroRF(ps = ps,group  = "Group",optimal = 20,rfcv = TRUE,nrfcvnum = 5,min = -1,max = 5)
+#' result = randomforest.micro(ps = ps,group  = "Group",optimal = 20,rfcv = TRUE,nrfcvnum = 5,min = -1,max = 5)
 #'@export
 
 randomforest.micro <- function(otu = NULL,tax = NULL,map = NULL,tree = NULL,

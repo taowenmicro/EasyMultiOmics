@@ -21,8 +21,9 @@ gnum
 #--设定排序顺序1：按照ps.metm对象中map文件顺序进行
 axis_order =  phyloseq::sample_data(ps.metm)$Group %>%unique();axis_order
 
-#-主题--颜色等
-res = theme_my()
+#-主题--
+package.amp()
+res = theme_my(ps.metm)
 mytheme1 = res[[1]]
 mytheme2 = res[[2]];
 colset1 = res[[3]];colset2 = res[[4]];colset3 = res[[5]];colset4 = res[[6]]
@@ -31,7 +32,8 @@ colset1 = res[[3]];colset2 = res[[4]];colset3 = res[[5]];colset4 = res[[6]]
 #1 alpha.metm: 6中alpha多样性计算#----
 all.alpha = c("Shannon","Inv_Simpson","Pielou_evenness","Simpson_evenness" ,"Richness" ,"Chao1","ACE" )
 #--alpha多样性指标运算
-tab = alpha.metm(ps = ps.metm,group = "Group",Plot = TRUE )
+? alpha.metm
+tab = alpha.metm(ps = ps.metm,group = "Group" )
 head(tab)
 
 data = cbind(data.frame(ID = 1:length(tab$Group),group = tab$Group),tab[all.alpha])
@@ -85,6 +87,7 @@ p1_0+
 #2 alpha.pd :用于计算pd多样性#-------
 library(ape)
 library(picante)
+?alpha.pd
 tab2 = alpha.pd(ps.metm)
 head(tab2)
 result = EasyStat::MuiKwWlx2(data = tab2,num = 3)
@@ -101,7 +104,8 @@ p1_1+
 
 #3 alpha_rare.metm:alpha多样性稀释曲线#---------
   rare <- mean(phyloseq::sample_sums(ps.metm))/10
-  result = alpha_rare.metm(ps = ps.metm, group = "Group", method = "Richness", start = 100, step = rare)
+ ?alpha_rare.metm
+ result = alpha_rare.metm(ps = ps.metm, group = "Group", method = "Richness", start = 100, step = rare)
   #--提供单个样本溪稀释曲线的绘制
   p2_1 <- result[[1]]
   p2_1
@@ -120,6 +124,7 @@ p1_1+
 
 # beta diversity  -----
 #4 ordinate.metm: 排序分析#----------
+?ordinate.metm
 result = ordinate.metm(ps = ps.metm, group = "Group", dist = "bray",
                         method = "PCoA", Micromet = "anosim", pvalue.cutoff = 0.05)
 p3_1 = result[[1]]
@@ -161,12 +166,14 @@ dat1 = MicroTest.metm(ps = ps.metm, Micromet = "adonis", dist = "bray")
 dat1
 
 #6 pairMicroTest.metm:两两分组群落水平差异检测-------
+?pairMicroTest.metm
 dat2 = pairMicroTest.metm(ps = ps.metm, Micromet = "MRPP", dist = "bray")
 
 dat2
 
 
 #7 mantal.metm：群落差异检测普鲁士分析#------
+?mantal.metm
 result <- mantal.metm(ps = ps.metm,
                        method =  "spearman",
                        group = "Group",
@@ -183,6 +190,7 @@ p3_7 +
 
 
 #8 cluster.metm:样品聚类-----
+?cluster.metm
 res = cluster.metm (ps= ps.metm,
                      hcluter_method = "complete",
                      dist = "bray",
@@ -202,8 +210,9 @@ head(dat)
 
 
 # compositipn -----
- #9 Ven.Upset.metm: 用于展示共有、特有的OTU/ASV----
+#9 Ven.Upset.metm: 用于展示共有、特有的OTU/ASV----
 # 分组小于6时使用
+?Ven.Upset.metm
 res = Ven.Upset.metm(ps =  ps.metm,
                       group = "Group",
                       N = 0.5,
@@ -219,6 +228,7 @@ head(dat)
 
 #10 ggVen.Upset.metm:用于展示共有、特有的OTU/ASV----
 # 分组小于6时使用
+?ggVen.Upset.metm
 res = ggVen.Upset.metm(ps = ps.metm,group = "Group")
 grid::grid.draw(res[[1]])
 dat = res[[2]]
@@ -251,6 +261,7 @@ p8
 
 
 #12 ggflower.metm:花瓣图展示共有特有微生物------
+?ggflower.metm
 res <- ggflower.metm(ps = ps.metm ,
                        # rep = 1,
                        group = "ID",
@@ -271,6 +282,7 @@ head(dat)
 
 
 #13 ven.network.metm:venn 网络----
+?ven.network.metm
 result = ven.network.metm(
   ps = ps.metm,
   N = 0.5,
@@ -284,6 +296,7 @@ head(dat)
 
 #14 Micro_tern.metm: 三元图展示组成----
 ps1 = ps.metm %>% filter_OTU_ps(500)
+?Micro_tern.metm
 res = Micro_tern.metm(ps1)
 p15 = res[[1]]
 p15[[1]] +theme_bw()
@@ -295,13 +308,15 @@ head(dat)
 library(ggalluvial)
 pst = ps.metm %>% subset_taxa.wt("Species","Unassigned",TRUE)
 pst = pst %>% subset_taxa.wt("Genus","Unassigned",TRUE)
+?barMainplot.metm
 result = barMainplot.metm(ps = pst,
                            j = "Genus",
                            # axis_ord = axis_order,
                            label = FALSE,
                            sd = FALSE,
                            Top =5)
-p4_1 <- result[[1]]
+
+ p4_1 <- result[[1]]
 # scale_fill_manual(values = colset2) +
 # scale_x_discrete(limits = axis_order) +
 # mytheme1
@@ -328,7 +343,8 @@ head(databar)
 
 
 
-#16 cluMicro.bar.metm: 聚类堆积柱状图展示组成 问题-----
+#16 cluMicro.bar.metm: 聚类堆积柱状图展示组成-----
+
 result <-  cluMicro.bar.metm (dist = "bray",
                                ps = ps.metm,
                                j = "Genus",
@@ -352,6 +368,7 @@ clubardata <- result[[5]]
 #17 cir_barplot.metf:环状堆积柱状图 -----
 
 library(ggtree) # j = "Phylum"
+? cir_barplot.metm
 res = cir_barplot.metm(
   ps = ps.metm,
   Top = 15,
@@ -365,9 +382,8 @@ dat= res[[2]]
 head(dat)
 
 #18 cir_plot.metm:和弦图展示物种组成-----
+?cir_plot.metm
 res = cir_plot.metm(ps  = ps.metm,Top = 12,rank = 6)
-
-
 
 
 #19 Microheatmap.metm: 热图展示物种相对丰度差异-----
@@ -389,7 +405,7 @@ id <- ps.metm %>%
   sort(decreasing = TRUE) %>%
   head(heatnum) %>%
   names()
-
+? Microheatmap.metm
 result <- Microheatmap.metm(ps_rela = ps_tem,id = id ,col_cluster = FALSE,row_cluster = FALSE)
 
 p24.1 <- result[[1]]
@@ -403,6 +419,7 @@ head(dat)
 
 # difference analysis -----
 #20 EdgerSuper.metm:EdgeR计算差异微生物----
+?EdgerSuper.metm
 res = EdgerSuper.metm(ps = ps.metm %>% ggClusterNet::filter_OTU_ps(500),group  = "Group",artGroup = NULL, j = "Species")
 
 
@@ -416,11 +433,13 @@ dat =  res[[2]]
 head(dat)
 
 #21 EdgerSuper2.metm:EdgeR计算差异微生物-----
+?EdgerSuper2.metm
 res =  EdgerSuper2.metm (ps = ps.metm,group  = "Group",artGroup =NULL, j = "Species")
 head(res)
 
 
 #22 DESep2Super.metm:DESep2计算差异微生物-----
+? DESep2Super.metm
 res = DESep2Super.metm(ps = ps.metm %>% ggClusterNet::filter_OTU_ps(500),
                         group  = "Group",
                         artGroup =NULL,
@@ -439,7 +458,7 @@ dat =  res[[2]]
 dat
 
 #23 edge_Manhattan.metm: 曼哈顿图展示差异微生物------
-
+?edge_Manhattan.metm
 res = edge_Manhattan.metm(
   ps = ps.metm%>% ggClusterNet::filter_OTU_ps(500),
   pvalue = 0.05,
@@ -458,7 +477,7 @@ p27.3
 #
 # # map$Group = as.factor(map$Group)
 # sample_data(ps) = map
-
+?stemp_diff.metm
 allgroup <- combn(unique(map$Group),2)
 plot_list <- list()
 for (i in 1:dim(allgroup)[2]) {
@@ -495,7 +514,7 @@ library(randomForest)
 library(caret)
 library(ROCR) ##用于计算ROC
 library(e1071)
-
+?rfcv.metm
 result = rfcv.metm(ps = ps.metm %>% filter_OTU_ps(100),
                    group  = "Group",optimal = 20,nrfcvnum = 6)
 
@@ -539,13 +558,13 @@ dat
 
 
 #29 LDA.metm: LDA筛选特征微生物-----
+?LDA.metm
 tablda = LDA.metm(ps = ps.metm,
                    Top = 100,
                    p.lvl = 0.05,
                    lda.lvl = 1,
                    seed = 11,
                    adjust.p = F)
-tablda[[1]]
 
 p35 <- lefse_bar(taxtree = tablda[[2]])
 p35
@@ -578,6 +597,7 @@ importance
 
 #33 lasso.metm: lasso筛选特征微生物----
 library(glmnet)
+?lasso.metm
 res =lasso.metm(ps =  pst, top = 20, seed = 1010, k = 5)
 accuracy = res[[1]]
 accuracy
@@ -585,54 +605,17 @@ importance = res[[2]]
 importance
 
 
-
-
 #34 decisiontree.micro: 错----
-
-top = 20
-seed = 6358
-set.seed(seed)
-
-ps.cs <- pst %>% filter_OTU_ps(top)
-
-map <- as.data.frame(phyloseq::sample_data(ps.cs))
-otutab <- as.data.frame(t(ggClusterNet::vegan_otu(ps.cs %>% scale_micro()) ))
-colnames(otutab) <- gsub("-", "_", colnames(otutab))
-test <- as.data.frame(t(otutab))
-test$group <- factor(map$Group)
-
-
-#  group
-
-data <-  test
-# 分割数据为训练集和测试集
-
-
-split <- caTools::sample.split(data$group , SplitRatio = 0.7)  # 将数据按照指定比例分割
-train_data <- subset(data, split == TRUE)  # 训练集
-test_data <- subset(data, split == FALSE)
-str(train_data)
-head(train_data)
-# 训练决策树模型
-a_rpart <- rpart(group ~ ., data =train_data, method = 'class',
-                 parms = list(split = 'information'))
-
-
-plot(a_rpart, margin = 0.1)
-text(a_rpart, cex = 0.5)
-a_rpart$cptable
-
-#决策树划分细节概要，各个分支结构等
-summary( a_rpart)
-
-# 得到测试集的预测值
-pred <- predict(a_rpart, newdata =test_data , type = 'class')
-
-
-
+library(rpart)
+?decisiontree.micro
+res =decisiontree.metm(ps=pst, top = 50, seed = 6358, k = 5)
+accuracy = res[[1]]
+accuracy
+importance = res[[2]]
+importance
 
 #35 naivebayes.metm: bayes筛选特征微生物----
-res =naivebayes.metm(ps=pst, top = 20, seed = 1010, k = 5)
+res = naivebayes.metm(ps=pst, top = 20, seed = 1010, k = 5)
 accuracy = res[[1]]
 accuracy
 importance = res[[2]]
@@ -657,8 +640,8 @@ accuracy = res[[1]]
 accuracy
 importance = res[[2]]
 importance
-#38 nnet.metm : 神经网络筛选特征微生物 ------
 
+#38 nnet.metm : 神经网络筛选特征微生物 ------
 res =nnet.metm (ps=pst, top = 100, seed = 1010, k = 5)
 accuracy = res[[1]]
 accuracy

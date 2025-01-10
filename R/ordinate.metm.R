@@ -13,7 +13,7 @@
 #' @param tax taxonomy table;
 #' @param ps A phyloseq format file used as an alternative for the input containing otu, tax, and map.
 #' @param Micromet statistics by adonis/anosim/MRPP;
-#'
+#' @param pair A logical value indicating whether to perform pairwise group comparisons. Default is `FALSE`.
 #' @details
 #' By default, input phyloseq object include metadata, otutab and tree
 #' The available diversity indices include the following:
@@ -24,17 +24,16 @@
 #' @return list object including plot, stat table
 #' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
 #' @examples
-#'result = ordinate.metm(ps = ps.16s, group = "Group", dist = "bray",method = "PCoA", Micromet = "anosim", pvalue.cutoff = 0.05,pair = F)
+#'result = ordinate.metm(ps = ps.16s, group = "Group", dist = "bray",method = "PCoA", Micromet = "anosim", pvalue.cutoff = 0.05)
 #'p3_1 = result[[1]]
 #' @export
-#'
 #'
 ordinate.metm=function (otu = NULL, tax = NULL, map = NULL,
                         ps = NULL, group = "Group",
           dist = "bray", method = "PCoA", Micromet = "adonis",
-          pvalue.cutoff = 0.05)
+          pvalue.cutoff = 0.05,pair = FALSE)
 {
-  ps = ggClusterNet::inputMicro(otu, tax, map,  ps, group = group)
+  #ps = ggClusterNet::inputMicro(otu, tax, map,  ps, group = group)
   ps1_rela = phyloseq::transform_sample_counts(ps, function(x) x/sum(x))
   if (method == "DCA") {
     ordi = phyloseq::ordinate(ps1_rela, method = method,

@@ -13,7 +13,7 @@
 #' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn},  Peng-Hao Xie \email{2019103106@njqu.edu.cn}
 #' @examples
 #' # data form github
-#' result = Micro.rfcv(otu = NULL,tax = NULL,map = NULL,tree = NULL ,ps = ps_rela,group  = "Group",optimal = 20,nrfcvnum = 6)
+#' result = rfcv.Micro(ps = ps_rela,group  = "Group",optimal = 20,nrfcvnum = 6)
 #' prfcv = result[[1]]# plot rfcv
 # result[[2]]# plotdata
 #' rfcvtable = result[[3]]# table rfcv
