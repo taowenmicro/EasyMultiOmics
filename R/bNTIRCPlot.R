@@ -1,36 +1,49 @@
 
-
-#---
-#
-# # bNTI data
-# # Import bNTI data
-#
-# library(EasyMicrobiome)
-# library(dplyr)
-# library(ggplot2)
-# bNTI = read.csv("../pipeline//bNTI.csv",row.names = 1)
-# head(bNTI)
-#
-# ps = readRDS("../ori_data/ps_liu.rds")
-#
-# # RCbray 数据读入，修改列名
-# RCb = read.csv("../pipeline/RCb.csv",row.names = 1) %>%
-#   mutate(Sample_1 = Site2, Sample_2 = Site1)
-# head(RCb)
-# result = bNTIRCPlot(ps = ps ,RCb  = RCb,bNTI = bNTI,group  = "Group")
-#
-# #--bNTI出图片
-# result[[1]]
-#
-# #RCbary可视化
-# result[[2]]
-# #组合图片BNTI，RCbray
-# result[[3]]
-#
-# plotdata = result[[4]]
-# head(plotdata)
-
-
+#' @title Integrating bNTI and RCbray for Ecological Processes Visualization
+#'
+#' @description
+#' The `bNTIRCPlot` function combines β-nearest taxon index (bNTI) and Raup-Crick dissimilarity with Bray-Curtis distance (RCbray) to visualize the relative contributions of ecological processes shaping microbial communities.
+#'
+#' @param otu A data frame or matrix containing OTU (Operational Taxonomic Unit) abundance data. Rows represent taxa, and columns represent samples.
+#' @param tax A data frame containing taxonomic annotations for each OTU.
+#' @param map A data frame containing sample metadata, including group information.
+#' @param tree A phylogenetic tree object.
+#' @param ps A `phyloseq` object containing OTU, taxonomic, and sample data. If provided, this supersedes `otu`, `tax`, `map`, and `tree`.
+#' @param RCb A data frame containing RCbray values for each pair of samples.
+#' @param bNTI A data frame containing bNTI values for each pair of samples.
+#' @param group A character string specifying the grouping variable in the metadata. Default is `"Group"`.
+#'
+#' @return A list containing:
+#' \itemize{
+#'   \item  A boxplot of bNTI values within each group.
+#'   \item  A bar plot of the relative proportions of ecological processes for each group.
+#'   \item `A combined plot of the bNTI and ecological process bar plot.
+#'   \item  A merged data frame containing bNTI, RCbray, and ecological process information.
+#'   \item  A summary table of the proportions of ecological processes for each group.
+#' }
+#'
+#' @details
+#' This function integrates bNTI and RCbray metrics to classify ecological processes into five categories:
+#' \itemize{
+#'   \item `Drift`
+#'   \item `Dispersal Limited`
+#'   \item `Homogenizing Dispersal`
+#'   \item `Variable Selection`
+#'   \item `Homogeneous Selection`
+#' }
+#' It generates visualizations to depict the contribution of these processes across microbial communities.
+#'
+#' @examples
+#' \dontrun{
+#' result = bNTICul(ps = psphy,group  = "Group",num = 10,thread = 1)
+#' bNTI = result[[1]]
+#' result = RCbary(ps = psphy ,group  = "Group",num = 10,thread = 1)
+#' RCbary = result[[1]]
+#' result = bNTIRCPlot(ps = psphy ,RCb  =Rcb, bNTI = bNTI,group  = "Group")
+#' }
+#'
+#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' @export
 bNTIRCPlot = function(otu = NULL,tax = NULL,
                       map = NULL,tree = NULL ,
                       ps = NULL,

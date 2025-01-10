@@ -1,3 +1,39 @@
+#' @title Ordination analysis and plotting
+#' @description Input metabolite table, metadata and tree or phyloseq object;
+#' support 47 distance type (bray, unifrac, wunifrac ...),
+#' 8 ordination method (PCoA, NMDS, ...);
+#' output ggplot2 figure, data and statistical test result.
+#' @param otu Metabolite composition table.
+#' @param map Sample metadata.
+#' @param dist Distance type, including "unifrac","wunifrac","manhattan","euclidean","bray","jaccard"... .
+#' @param group Column name for groupID in map table(sample metadata).
+#' @param method DCA, CCA, RDA, NMDS, MDS, PCoA, PCA, LDA, t-sne.
+#' @param pvalue.cutoff Pvalue threshold.
+#' @param tax  Metabolite classification table.
+#' @param ps A phyloseq format file used as an alternative for the input containing metabolite, tax, and sample metadata.
+#' @param pair A logical value for whether to perform analysis between any two groups.
+#' @param Micromet statistics by adonis/anosim/MRPP;
+#' @return A list containing the following components:
+#' \item{p2}{Standard plot of the ordination results.}
+#' \item{points}{Data frame with coordinates of samples in the ordination space.}
+#' \item{p3}{Annotated plot with sample labels.}
+#' \item{pairResult}{Results of pairwise tests if applicable.}
+#' \item{title1}{Overall inspection results by anosim or adonis.}
+#' \item{eig}{Eigenvalues or variance explained by each axis.}
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' @examples
+#' result = ordinate.ms(ps = ps.ms, group = "Group", dist = "bray",
+#' method = "PCoA", Micromet = "anosim", pvalue.cutoff = 0.05,pair = F)
+#' p3_1 = result[[1]]
+#' p3_1
+#' p3_2 = result[[3]]
+#' p3_2
+#' plotdata =result[[2]]
+#' head(plotdata)
+#' @export
+
 ordinate.ms = function(otu = NULL,tax = NULL,map = NULL,ps = NULL,
          group = "Group", dist = "bray", method ="PCoA",
          Micromet = "adonis", pvalue.cutoff = 0.05,pair=TRUE){

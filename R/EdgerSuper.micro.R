@@ -1,4 +1,58 @@
 
+#' @title Differential Abundance Analysis Using EdgeR for Microbial Data
+#'
+#' @description
+#' This function performs differential abundance analysis for microbial data using the `EdgeR` package.
+#' It identifies differentially abundant taxa between groups in a `phyloseq` object, visualizes the results
+#' with volcano plots, and outputs normalized abundance data with taxonomic annotations.
+#'
+#' @param otu A data frame containing OTU counts. Optional if `ps` is provided.
+#' @param tax A data frame containing taxonomic annotations. Optional if `ps` is provided.
+#' @param map A data frame containing sample metadata. Optional if `ps` is provided.
+#' @param tree A phylogenetic tree. Optional if `ps` is provided.
+#' @param ps A `phyloseq` object containing microbiome data. If provided, overrides `otu`, `tax`, `map`, and `tree`.
+#' @param group A string specifying the grouping variable in the sample metadata. Default is `"Group"`.
+#' @param pvalue A numeric value specifying the significance threshold for adjusted p-values. Default is `0.05`.
+#' @param lfc A numeric value specifying the log2 fold change cutoff. Default is `0`.
+#' @param artGroup A matrix specifying custom group comparisons. Optional.
+#' @param method A string specifying the normalization method for EdgeR. Default is `"TMM"`.
+#' @param j A string or integer specifying the taxonomic rank to perform the analysis on. Can be a numeric rank (1-7), taxonomic name (e.g., `"Phylum"`), or `"OTU"`. Default is `2`.
+#'
+#' @return
+#' A list containing:
+#' \describe{
+#'   \item{A list of volcano plots for each group comparison, showing log fold changes vs. p-values.}
+#'   \item{A data frame containing differential abundance results, including normalized abundances and taxonomic annotations.}
+#' }
+#'
+#' @details
+#' The function performs the following steps:
+#' \itemize{
+#'   \item Prepares OTU data, taxonomic annotations, and metadata from a `phyloseq` object or individual input files.
+#'   \item Aggregates data to the specified taxonomic rank (if applicable).
+#'   \item Normalizes OTU counts using the specified normalization method (`"TMM"` by default).
+#'   \item Constructs a model matrix for group comparisons and estimates dispersions using EdgeR's generalized linear model (GLM) framework.
+#'   \item Identifies differentially abundant taxa based on the specified `pvalue` and `lfc` thresholds.
+#'   \item Generates volcano plots for each group comparison, highlighting enriched and depleted taxa.
+#'   \item Appends taxonomic annotations and normalized abundances to the differential abundance results.
+#' }
+#'
+#' The function supports both predefined and custom group comparisons (`artGroup`) and provides detailed visualizations for the results.
+#'
+#' @examples
+#' \dontrun{
+#' res = EdgerSuper.micro(ps = ps.16s %>% ggClusterNet::filter_OTU_ps(500),group  = "Group",artGroup = NULL, j = "OTU")
+#' p25.1 =  res[[1]][1]
+#' p25.2 =  res[[1]][2]
+#' p25.3 =  res[[1]][3]
+#' dat =  res[[2]]
+#' }
+#'
+#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#'
+#' @export
+
+
 
 
 #------许多情况下，我们需要将指定一些组合，并不是全部组别的两两组合，然后做差异分析#--------
@@ -6,39 +60,6 @@
 # #--------差异分析:Edger#---------
 #
 # #--根据分组，将分组内内全部的组合都会做差异分析，并输出每个两两比较的csv表格（全部otu和差异otu表格）
-#
-#
-# # #导入otu表格
-# otu = read.delim("./ori_data/otutab.txt",row.names = 1)
-# #导入注释文件
-# tax = read.delim("./ori_data/taxonomy.txt",row.names = 1)
-# head(tax)
-# #导入分组文件
-# map = read.delim("./ori_data/metadata.tsv",row.names = 1)
-
-# ps = inputMicro(otu,tax,map,tree,group  = "Group")
-# ps
-#
-#
-# #-指定文件夹
-#
-# path = "./Edgr"
-# dir.create(path)
-#
-#
-
-# result = EdgerSuper(otu,tax,map,group  = "Group")
-# head(result)
-#
-#
-# #-----人工指定分组信息
-# group1 = c("KO","OE")
-# group2 = c("WT","OE")
-# b= data.frame(group1,group2)
-# result = EdgerSuper(otu,tax,map,group  = "Group",artGroup = b)
-# head(result)
-#
-# #--------
 
 
 # otu = NULL

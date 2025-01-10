@@ -1,6 +1,38 @@
-
-
-
+#' @title Generate Circular Plot for Microbial Composition
+#'
+#' @description
+#' This function creates a circular plot to visualize microbial community composition based on OTU abundance.
+#' It summarizes the microbial taxa at the specified rank, calculates the mean abundance within groups, and displays the data in a circular chord diagram.
+#'
+#' @param ps A `phyloseq` object containing microbiome data.
+#' @param Top An integer specifying the number of top taxa to display. Taxa not in the top are grouped as `"others"`. Default is `10`.
+#' @param rank A numeric or character value specifying the taxonomic rank for aggregation (e.g., `"Phylum"`, `"Genus"`, etc.). Default is `7`.
+#'
+#' @return
+#' A list containing:
+#' \describe{
+#'   \item{mer_otu_mean}{A matrix summarizing the mean abundance of OTUs across groups.}
+#' }
+#'
+#' @details
+#' The function performs the following steps:
+#' \itemize{
+#'   \item Transforms the data into relative abundances using `phyloseq::transform_sample_counts`.
+#'   \item Aggregates microbial taxa at the specified rank using `ggClusterNet::tax_glom_wt`.
+#'   \item Calculates the mean abundance of OTUs for each group and selects the top `Top` taxa.
+#'   \item Groups less abundant taxa into a category labeled `"others"`.
+#'   \item Visualizes the relationships between microbial taxa and groups using a circular chord diagram with the `circlize` package.
+#' }
+#'
+#' @examples
+#' \dontrun{
+#' res = cir_plot.micro(ps  = ps.16s,Top = 12,rank = 6)
+#'
+#' }
+#'
+#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#'
+#' @export
 
 
 cir_plot.micro = function(ps  =ps,

@@ -1,4 +1,47 @@
-#
+#' @title Generate Bar and Flow Plots for Microbial Composition
+#'
+#' @description
+#' This function generates bar plots, alluvial flow plots, and flower plots to visualize microbial composition across groups.
+#' The function supports relative abundance transformations, error bars, and optional labeling.
+#'
+#' @param otu A data frame containing OTU data. If `NULL`, the `ps` object is used.
+#' @param tax A data frame containing taxonomy data. If `NULL`, the `ps` object is used.
+#' @param map A data frame containing sample metadata. If `NULL`, the `ps` object is used.
+#' @param tree A phylogenetic tree object. If `NULL`, the `ps` object is used.
+#' @param ps A `phyloseq` object containing  otu, tax, mapping data.
+#' @param group A character string specifying the grouping variable in the sample metadata. Default is `"Group"`.
+#' @param j A character string specifying the taxonomic rank to analyze (e.g., `"Phylum"`, `"Genus"`). Default is `"Phylum"`.
+#' @param axis_ord A character vector specifying the order of x-axis groups. If `NULL`, default order is used.
+#' @param label Logical. If `TRUE`, adds text labels to the plots. Default is `TRUE`.
+#' @param sd Logical. If `TRUE`, adds error bars to the plots. Default is `FALSE`.
+#' @param Top An integer specifying the number of top taxa to display. Taxa not in the top are grouped as `"others"`. Default is `10`.
+#' @param tran Logical. If `TRUE`, transforms data to relative abundances. Default is `TRUE`.
+#'
+#' @return
+#' A list containing:
+#' \describe{
+#'   \item{A bar plot showing the relative abundances of taxa across groups.}
+#'   \item{A data frame with the processed microbial composition data.}
+#'   \item{An alluvial flow plot visualizing the changes in relative abundances across groups.}
+#'   \item{A flower plot displaying relative abundances in a circular layout.}
+#' }
+#'
+#' @details
+#' The function processes microbiome data to compute relative abundances (if `tran = TRUE`) and groups taxa based on the specified rank (`j`).
+#' It visualizes the data as bar plots, alluvial flow plots, and flower plots. The top `Top` taxa are highlighted, and the remaining taxa are grouped as `"others"`.
+#'
+#' @examples
+#' \dontrun{
+#' result = barMainplot.micro(ps = pst,j = "Genus",label = FALSE,sd = FALSE,Top =5)
+#' p4_1 <- result[[1]]
+#' databar <- result[[2]]
+#' }
+#'
+#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#'
+#' @export
+
+
 # j = "Phylum"
 # j = "Class"
 # j = "Order"
@@ -28,7 +71,6 @@
 # detach("package:plyr")
 # detach("package:reshape2")
 # library(ggplot2)
-
 
 
 barMainplot.micro = function(otu = NULL,tax = NULL,map = NULL,tree = NULL ,ps = NULL,group  = "Group",
@@ -292,34 +334,4 @@ barMainplot.micro = function(otu = NULL,tax = NULL,map = NULL,tree = NULL ,ps = 
 
 
 
-#
-# tax_glom_wt <- function(ps = ps,ranks = "Phylum") {
-#
-#
-#   otu <- as.data.frame(t(vegan_otu(ps)))
-#   tax <- as.data.frame(vegan_tax(ps))
-#
-#   # building group
-#   tax[[ranks]][is.na(tax[[ranks]])] = "Unknown"
-#   tax[[ranks]][tax[[ranks]] == ""] = "Unknown"
-#   split <- split(otu,tax[[ranks]])
-#   #calculate sum by group
-#   apply <- lapply(split,function(x)colSums(x[]))
-#   # result chack
-#   otucon <- do.call(rbind,apply)
-#
-#   taxcon <- tax[1:match(ranks,colnames(tax))]
-#   taxcon <- taxcon[!duplicated(tax[[ranks]]),]
-#   #-tax name with NA wound be repeated with unknown
-#   taxcon[[ranks]][is.na(taxcon[[ranks]])] = "unknown"
-#   row.names(taxcon) <- taxcon[[ranks]]
-#
-#
-#   pscon <- phyloseq(
-#     otu_table( as.matrix(otucon),taxa_are_rows = TRUE),
-#     tax_table(as.matrix(taxcon)),
-#     sample_data(ps)
-#   )
-#   return(pscon)
-# }
-#
+

@@ -1,15 +1,44 @@
 
-# result = bNTICul(ps = ps ,group  = "Group",num = 3,thread = 1)
-#
-# bNTI = result[[1]]
-# head(bNTI)
-#
-# path = "./Result/bNTI"
-# dir.create(path)
-# filename = paste(path,"/bNTI.csv",sep = "")
-# write.csv(bNTI, filename)
-
-
+#' @title Calculate βNTI for Phylogenetic Turnover
+#'
+#' @description
+#' This function calculates the beta nearest taxon index (βNTI) for assessing phylogenetic turnover in microbial communities.
+#' It compares observed βMNTD (beta mean nearest taxon distance) to null model expectations and standardizes the difference.
+#'
+#' @param otu A data frame or matrix containing OTU (Operational Taxonomic Unit) abundance data.
+#' Rows represent taxa, and columns represent samples.
+#' @param tax A data frame containing taxonomic annotation for each OTU.
+#' @param map A data frame containing sample metadata, including group information.
+#' @param tree A phylogenetic tree object.
+#' @param ps A `phyloseq` object containing OTU, taxonomic, and sample data.
+#' If provided, this supersedes `otu`, `tax`, `map`, and `tree`.
+#' @param group A character string specifying the grouping variable in the metadata. Default is `"Group"`.
+#' @param num An integer specifying the number of randomizations for the null model. Default is `99`.
+#' @param thread An integer specifying the number of processor threads to use for parallel computation. Default is `1`.
+#'
+#' @return A list containing:
+#' \itemize{
+#'   \item `bNTI`: A data frame with calculated βNTI values, including observed βMNTD, mean and standard deviation of permuted βMNTD, and βNTI for each sample pair.
+#' }
+#'
+#' @details
+#' The function performs the following steps:
+#' \itemize{
+#'   \item Rarefies the input OTU table to standardize sample sequencing depth.
+#'   \item Computes the observed βMNTD between sample pairs.
+#'   \item Generates null communities by randomizing the phylogenetic tree and computes null model βMNTD values.
+#'   \item Calculates βNTI as the standardized difference between observed and null model βMNTD.
+#' }
+#' This function supports parallel computation using multiple threads to reduce computation time for null model simulations.
+#'
+#' @examples
+#' \dontrun{
+#' result = bNTICul(ps = psphy,group  = "Group",num = 10,thread = 1)
+#' }
+#'
+#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#'
+#' @export
 bNTICul = function(otu = NULL,tax = NULL,map = NULL,tree = NULL ,ps = NULL,group  = "Group",num = 99,thread = 1){
   ps = inputMicro(otu,tax,map,tree,ps,group  = group)
   ps

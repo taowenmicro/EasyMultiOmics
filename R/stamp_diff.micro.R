@@ -1,34 +1,48 @@
-#
-# #-------差异分析upper和Bottom#--------
-# source("G:\\Shared_Folder\\Function_local\\R_function\\micro/stemp_diff.R")
-#
-# diffpath = paste(otupath,"/diff_tax/",sep = "")
-# dir.create(diffpath)
-# # https://mp.weixin.qq.com/s/DTOz37JgH80kuLNi6Ae6-g
-# #---分组两两提取#--------
-# map = sample_data(ps)
-# allgroup <- combn(unique(map$Group),2)
-#
-# for (i in 1:dim(allgroup)[2]) {
-#   ps_sub <- subset_samples(ps0,Group %in% allgroup[,i]);ps_sub
-#   p <- stemp_diff(ps = ps_sub,Top = 20,ranks = 7)
-#   p
-#
-#   filename = paste(diffpath,"/",paste(allgroup[,i][1],allgroup[,i][2],sep = "_"),"stemp_P_plot.csv",sep = "")
-#   write.csv(diff.mean,filename)
-#
-#   filename = paste(diffpath,"/",paste(allgroup[,i][1],allgroup[,i][2],sep = "_"),"stemp_P_plot.pdf",sep = "")
-#   ggsave(filename,p,width = 14,height = 6)
-#
-#   filename = paste(diffpath,"/",paste(allgroup[,i][1],allgroup[,i][2],sep = "_"),"stemp_P_plot.jpg",sep = "")
-#   ggsave(filename,p,width = 14,height = 6)
-#
-# }
 
-# ps_sub <- subset_samples(ps0,!Group %in% c("Group1"));ps_sub
-# p <- stemp_diff(ps = ps_sub,Top = 20,ranks = 3)
-# p
-
+#' @title Statistical Comparison of Taxonomic Abundances Between Groups
+#'
+#' @description
+#' The `stemp_diff.micro` function identifies significant differences in taxonomic abundances between two groups
+#' using statistical tests such as `t-test` or `Wilcoxon test`. It visualizes the results as bar plots and confidence interval plots.
+#'
+#' @param ps A `phyloseq` object containing microbiome data (OTU table, taxonomic table, and sample metadata).
+#' @param Top An integer specifying the maximum number of OTUs or taxa to analyze. Default is `20`.
+#' @param ranks A character or numeric value specifying the taxonomic rank to analyze. For example: `"Genus"`, `"Family"`, or a numeric rank index. Default is `6`.
+#' @param method A character string indicating the normalization method. Options are `TMM` (default), `RLE`, or others supported by the `edgeR` package.
+#' @param test.method A character string specifying the statistical test. Options are `"t.test"` (default) for Student's t-test or `"wilcox.test"` for the Wilcoxon rank-sum test.
+#'
+#' @return
+#' A composite plot (`patchwork` object) consisting of three panels:
+#' \itemize{
+#'   \item A bar plot showing mean proportions of taxa between groups.
+#'   \item A confidence interval plot showing the difference in mean proportions with 95% confidence intervals.
+#'   \item A column of adjusted p-values associated with the taxa.
+#' }
+#'
+#' @details
+#' The function performs the following steps:
+#' \itemize{
+#'   \item Aggregates the data at the specified taxonomic rank.
+#'   \item Normalizes the data using the specified method (`TMM` by default).
+#'   \item Filters taxa to include only the top `Top` most abundant taxa.
+#'   \item Applies the specified statistical test (`t.test` or `wilcox.test`) for each taxon to compare mean proportions between groups.
+#'   \item Adjusts the p-values using the Bonferroni correction method.
+#'   \item Creates a composite plot visualizing the mean proportions, confidence intervals, and adjusted p-values.
+#' }
+#'
+#' @examples
+#' \dontrun{
+#' map = phyloseq::sample_data(ps.16s)
+#' allgroup <- combn(unique(map$Group),2)
+#' plot_list <- list()
+#' for (i in 1:dim(allgroup)[2]) {
+#'  ps_sub <- phyloseq::subset_samples(ps.16s,Group %in% allgroup[,i]);ps_sub
+#'  p <- stemp_diff.micro(ps = ps_sub,Top = 20,ranks = 6)
+#'  plot_list[[i]] <- p}
+#' }
+#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#'
+#' @export
 
 stemp_diff.micro <- function(ps= ps,Top = 20,ranks = 6,method = "TMM",test.method = "t.test"){
   #--门水平合并

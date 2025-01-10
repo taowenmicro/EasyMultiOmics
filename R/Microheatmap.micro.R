@@ -1,15 +1,62 @@
+#' @title Generate a Heatmap for Microbial Abundance Data
+#'
+#' @description
+#' This function generates a heatmap to visualize microbial abundance across samples. The heatmap includes options for clustering, scaling, and annotations of rows and columns. The data is sourced from a `phyloseq` object.
+#' @param ps_rela A `phyloseq` object containing relative abundance data.
+#' @param id A vector specifying the taxa or features to include in the heatmap.
+#' @param label Logical. If `TRUE`, displays sample labels as a color bar. Default is `TRUE`.
+#' @param col_cluster Logical. If `TRUE`, clusters columns (samples). Default is `TRUE`.
+#' @param row_cluster Logical. If `TRUE`, clusters rows (taxa or features). Default is `TRUE`.
+#' @param ord.col Logical. If `TRUE`, orders columns based on `axis_order.s`. Default is `TRUE`.
+#' @param scale Logical. If `TRUE`, scales abundance data row-wise to mitigate the influence of high-abundance taxa. Default is `TRUE`.
+#' @param axis_order.s A vector specifying the order of sample IDs for column arrangement. Default is `axis_order.s`.
+#' @param row.lab A character string specifying a taxonomic rank (e.g., `"Phylum"`, `"Genus"`) to annotate rows.
+#' @param col1 A vector of colors for the heatmap gradient. Default is `ggsci::pal_gsea(alpha = 1)(12)`.
+#'
+#' @return
+#' A list containing:
+#' \describe{
+#'   \item{A heatmap displaying abundance data as a tile plot.}
+#'   \item{A heatmap displaying abundance data as a bubble plot.}
+#'   \item{A data frame containing the processed data used for the heatmap.}
+#' }
+#'
+#' @details
+#' The function performs the following steps:
+#' \itemize{
+#'   \item Extracts and processes abundance and taxonomic data for the specified taxa (`id`).
+#'   \item Scales the data row-wise if `scale = TRUE` to normalize abundances.
+#'   \item Constructs hierarchical clusters for rows and/or columns based on user input.
+#'   \item Optionally annotates rows with taxonomic information and columns with sample group information.
+#'   \item Generates two types of heatmaps:
+#'     \itemize{
+#'       \item A tile heatmap (p1).
+#'       \item A bubble heatmap (p2).
+#'     }
+#'   \item Adds clustering dendrograms and side plots (e.g., row mean bar plots) as optional annotations.
+#' }
+#'
+#' This function provides a highly customizable way to visualize microbial abundance data with integrated clustering and annotations.
+#'
+#' @examples
+#' \dontrun{
+#' result <- Microheatmap.micro(ps_rela = ps_tem,id = id ,col_cluster = FALSE,row_cluster = FALSE)
+#' p24.1 <- result[[1]]
+#' p24.2 <- result[[2]]
+#' dat = result[[3]]
+#' }
+#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#'
+#' @export
 
-
-
-
-Microheatmap.micro <- function(ps_rela,
-                         id,
+Microheatmap.micro <- function(ps_rela=ps,
+                         id=id,
                          label =  TRUE,
                          col_cluster = TRUE,
                          row_cluster = TRUE,
                          ord.col = TRUE,
                          scale = TRUE,# 是否标准化丰度，可以避免极大丰度的影响
-                         axis_order.s = axis_order.s,
+                         axis_order.s = NULL,
                          row.lab = NULL,
                          col1 = ggsci::pal_gsea(alpha = 1)(12)
                          ){
@@ -129,7 +176,6 @@ Microheatmap.micro <- function(ps_rela,
       panel.grid=element_blank(),
       axis.text.y = element_text(size = 3),
       axis.text.x = element_text(colour = "black",angle = 90)
-
     )
 
   colours = c( "#A54657",  "#582630", "#F7EE7F", "#4DAA57","#F1A66A","#F26157", "#F9ECCC", "#679289", "#33658A",

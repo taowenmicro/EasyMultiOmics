@@ -2,7 +2,7 @@
 % Please edit documentation in R/cluMicro.bar.ms.R
 \name{cluMicro.bar.ms}
 \alias{cluMicro.bar.ms}
-\title{Plotting alpha diversity barplot for each group with anova statistics}
+\title{Generate Clustered Bar Plots for metabolite data}
 \usage{
 cluMicro.bar.ms(
   dist = "bray",
@@ -21,53 +21,72 @@ cluMicro.bar.ms(
 )
 }
 \arguments{
-\item{otu}{OTU/ASV table;}
+\item{dist}{A character string specifying the distance method for clustering. Default is `"bray"`.}
 
-\item{tax}{taxonomy table}
+\item{otu}{A data frame containing metabolite data. If `NULL`, the `ps` object is used.}
 
-\item{map}{Sample metadata;}
+\item{tax}{A data frame containing taxonomy data. If `NULL`, the `ps` object is used.}
 
-\item{rep}{Number of sample replicates measured in each group}
+\item{map}{A data frame containing sample metadata. If `NULL`, the `ps` object is used.}
 
-\item{Top}{Select the number of microorganisms with the highest relative abundance in all samples}
+\item{tree}{A phylogenetic tree object. If `NULL`, the `ps` object is used.}
 
-\item{hcluter_method}{hcluter method}
+\item{j}{A character string specifying the taxonomic rank to analyze (e.g., `"Class"`, `"Super_class"`). Default is `"Class"`.}
 
-\item{Group}{column name for groupID in map table.}
+\item{ps}{A `phyloseq` object containing metabolite data.}
 
-\item{cuttree}{cut number}
+\item{rep}{An integer specifying the number of replicates. Default is `6`.}
+
+\item{Top}{An integer specifying the number of top taxa to display. Taxa not in the top are grouped as `"Other"`. Default is `10`.}
+
+\item{tran}{Logical. If `TRUE`, transforms data to relative abundances. Default is `TRUE`.}
+
+\item{hcluter_method}{A character string specifying the hierarchical clustering method. Default is `"complete"`.}
+
+\item{Group}{A character string specifying the grouping variable in the sample metadata. Default is `"Group"`.}
+
+\item{cuttree}{An integer specifying the number of clusters to cut the dendrogram into. Default is `3`.}
 }
 \value{
-list contain ggplot object and table.
+A list containing the following elements:
+\describe{
+  \item{A `ggtree` dendrogram showing the clustering tree at the sample level.}
+  \item{A stacked bar plot combined with the dendrogram at the sample level.}
+  \item{A `ggtree` dendrogram showing the clustering tree at the group level.}
+  \item{A stacked bar plot combined with the dendrogram at the group level.}
+  \item{A data frame with metabolite composition data, including relative abundances and taxonomic annotations.}
+}
 }
 \description{
-Combine sample clustering and drawing stacked histograms of microbial categories
+This function performs hierarchical clustering on metabolite data and
+ generates stacked bar plots and dendrograms to visualize the clustering results.
+ The metabolite data can be grouped at a specified taxonomic rank and converted to
+  relative abundances for visualization.
 }
 \details{
-hcluter method is same an function hcluster
+This function:
+\itemize{
+  \item Standardizes the metabolite data to relative abundances if `tran = TRUE`.
+  \item Performs hierarchical clustering on both sample-level and group-level data using the specified distance and clustering methods.
+  \item Combines the clustering dendrograms with stacked bar plots of metabolite composition at the specified taxonomic rank (`j`).
+  \item Groups microbial taxa not in the top `Top` by abundance as `"Other"`.
+}
+
+The function outputs plots and processed data to explore metabolite community composition and clustering relationships.
 }
 \examples{
-# data form github
-metadata = read.table("http://210.75.224.110/github/EasyAmplicon/data/metadata.tsv", header=T, row.names=1, sep="\t", comment.char="", stringsAsFactors = F)
-otutab = read.table("http://210.75.224.110/github/EasyAmplicon/data/otutab.txt", header=T, row.names=1, sep="\t", comment.char="", stringsAsFactors = F)
-taxonomy = read.table("http://210.75.224.110/github/EasyAmplicon/data/taxonomy.txt", header=T, row.names=1, sep="\t", comment.char="", stringsAsFactors = F)
-result <-  cluMicro.bar (dist = "bray",
-                        otu = otutab,
-                        tax = taxonomy,
-                        map = metadata,
-                        rep = 6 ,# 重复数量是6个
-                        Top = 10, # 提取丰度前十的物种注释
-                        tran = TRUE, # 转化为相对丰度值
-                        hcluter_method = "complete",
-                        cuttree = 3,
-                        Group = "Group"
-)
+\dontrun{
+result <-  cluMicro.bar.micro (dist = "bray",ps = ps.ms,j = "Class",Top = 10, tran = TRUE, hcluter_method = "complete",Group = "Group",cuttree = length(unique(phyloseq::sample_data(ps)$Group)))
+result[[1]]
+p5_2 <- result[[2]]
+p5_2
+p5_3 <- result[[3]]
+p5_3
+p5_4 <- result[[4]]
+p5_4
+clubardata <- result[[5]]
 }
-\references{
-Jingying Zhang, Yong-Xin Liu, Na Zhang, Bin Hu, Tao Jin, Haoran Xu, Yuan Qin, Pengxu Yan, Xiaoning Zhang, Xiaoxuan Guo, Jing Hui, Shouyun Cao, Xin Wang, Chao Wang, Hui Wang, Baoyuan Qu, Guangyi Fan, Lixing Yuan, Ruben Garrido-Oter, Chengcai Chu & Yang Bai.
-NRT1.1B is associated with root microbiota composition and nitrogen use in field-grown rice.
-Nature Biotechnology, 2019(37), 6:676-684, DOI: \url{https://doi.org/10.1038/s41587-019-0104-4}
 }
 \author{
-Contact: Tao Wen \email{2018203048@njau.edu.cn}, Yong-Xin Liu \email{yxliu@genetics.ac.cn}
+Contact: Tao Wen \email{2018203048@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
 }

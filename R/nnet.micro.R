@@ -1,8 +1,29 @@
-
+#' @title Neural network screening of characteristic microorganisms
+#' @description
+#' A neural network, one of the machine learning methods, was used to screen for characteristic
+#' microorganisms, and the model was evaluated using k-fold cross-validation.
+#' @param ps A phyloseq format file used as an alternative for the input containing otu, tax, and map.
+#' @param top The top microorganisms to consider.
+#' @param seed The random seed for reproducibility.
+#' @param k The number of folds for cross-validation.
+#' @return A list object including the following components:
+#' \item{Accuracy}{The average accuracy of the neural network model.}
+#' \item{Importance}{A data frame showing the feature importance ranked in descending order.}
+#' @export
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' @examples
+#' library(dplyr)
+#' library(ggClusterNet)
+#' res =nnet.micro(ps=ps, top = 100, seed = 1010, k = 5)
+#' accuracy = res[[1]]
+#' accuracy
+#' importance = res[[2]]
+#' importance
 
 nnet.micro <- function(ps=ps, top = 20, seed = 1010, k = 5) {
   set.seed(seed)
-
   # 数据准备
   ps.cs <- ps %>% filter_OTU_ps(top)
   map <- as.data.frame(phyloseq::sample_data(ps.cs))
@@ -10,23 +31,18 @@ nnet.micro <- function(ps=ps, top = 20, seed = 1010, k = 5) {
   colnames(otutab) <- gsub("-", "_", colnames(otutab))
   test <- as.data.frame(t(otutab))
   test$OTUgroup <- factor(map$Group)
-
-
-
   # 初始化结果存储
   accuracy_values <- numeric(k)
   feature_importance_list <- list()
-
   # 创建交叉验证的折
-  folds <- createFolds(y = test$OTUgroup, k = k)
-
+  folds <- caret::createFolds(y = test$OTUgroup, k = k)
   # 进行交叉验证
   for (i in 1:k) {
     fold_test <- test[folds[[i]], ]
     fold_train <- test[-folds[[i]], ]
 
     # 训练 nnet 模型
-    a_nn <- nnet(OTUgroup ~ ., data = fold_train, size = 2, rang = 0.1, decay = 5e-4, MaxNWts = 84581, maxit = 200)
+    a_nn <- nnet::nnet(OTUgroup ~ ., data = fold_train, size = 2, rang = 0.1, decay = 5e-4, MaxNWts = 84581, maxit = 200)
 
     # 得到测试集的预测值
     pred <- predict(a_nn, newdata = fold_test, type = 'class')

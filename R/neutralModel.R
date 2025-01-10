@@ -1,15 +1,44 @@
-# library(EasyMicrobiome)
-# ps = readRDS("./ori_data/ps_liu.rds")
-# ps
-#
-# result = neutralModel(ps = ps,group  = "Group")
-# #--合并图表
-# p =  result[[1]]
-#
-# #--分开的图表--存储在一个list中
-# plist = result[[2]]
-# #-提取单个的图表
-# plist[[1]]
+#' @title Neutral Model Fit for Microbial Communities
+#'
+#' @description
+#' This function implements a neutral community model to assess the relationship
+#' between microbial taxa abundance in the metacommunity and their occurrence frequency
+#' across samples. It fits the model for each group in the dataset and visualizes the results
+#' using scatter plots with confidence intervals.
+#'
+#' @param otu A data frame or matrix containing OTU (Operational Taxonomic Unit) abundance data.
+#' Rows represent taxa, and columns represent samples.
+#' @param tax A data frame containing taxonomic annotation for each OTU.
+#' @param map A data frame containing sample metadata, including group information.
+#' @param tree A phylogenetic tree object (optional).
+#' @param ps A `phyloseq` object containing OTU, taxonomic, and sample data.
+#' If provided, this supersedes `otu`, `tax`, `map`, and `tree`.
+#' @param group A character string specifying the grouping variable in the metadata.
+#' Default is `"Group"`.
+#' @param ncol An integer specifying the number of columns for the arranged output plots. Default is 3.
+#' @param nrow An integer specifying the number of rows for the arranged output plots. Default is 1.
+#'
+#' @return A list containing:
+#' \itemize{
+#'   \item  A combined plot showing neutral model fits for all groups.
+#'   \item  A list of individual ggplot objects for each group.
+#'   \item  A list of data frames containing observed occupancy and abundance for each group.
+#'   \item  A list of data frames containing predicted frequencies and confidence intervals for each group.
+#' }
+#'
+#' @examples
+#' \dontrun{
+#' psphy = filter_taxa(ps16s, function(x) sum(x ) > 100, TRUE);psphy
+#' map = sample_data(psphy)
+#' n = map$Group %>% unique() %>%length()
+#' result = neutralModel(ps = psphy,group  = "Group",ncol = n)
+#'
+#' }
+#'
+#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#'
+#' @export
+
 
 neutralModel = function(otu = NULL,
                         tax = NULL,
@@ -19,7 +48,7 @@ neutralModel = function(otu = NULL,
                         group  = "Group",
                         ncol = 3,
                         nrow  = 1
-                        
+
                         ){
 
   # 抽平，默认使用最小序列抽平
@@ -35,7 +64,7 @@ neutralModel = function(otu = NULL,
 
   #------------------------------------------开始计算中性模型----------------------------------------------------------
   map = as.data.frame(sample_data(psrare))
-  aa = levels(map$Group)
+  aa = unique(map$Group)
   aa
   map$ID = row.names(map)
 
@@ -116,24 +145,58 @@ neutralModel = function(otu = NULL,
 
 
 
-    p = ggplot(data=obs.df) +
-      geom_point(data=obs.df, aes(x=log10(metacomm_RA), y=frequency),
-                 alpha=.3, size=2, color="#8DD3C7") +
-      geom_line(data=pred.df, aes(x=log10(metacomm_RA), y=frequency), color="#FFFFB3") +
-      geom_line(data=pred.df, aes(x=log10(metacomm_RA), y=frequency_lowerCI), linetype=2, color="#FFFFB3") +
-      geom_line(data=pred.df, aes(x=log10(metacomm_RA), y=frequency_upperCI), linetype=2, color="#FFFFB3") +
-      # geom_text(data=fitstats, aes(label = paste("R^2 == ", round(Rsqr, 3))),
-      #           x=1, y=0.75, size=4, parse=TRUE) +
-      # geom_text(data=fitstats, aes(label = paste("italic(m) ==", round(m, 3))),
-      #           x=-1, y=0.85, size=4, parse=TRUE) +
-      labs(x="Log10 abundance in\nmetacommunity", y="Frequency detected",title = paste(aa[i],paste("R^2 == ", round(fitstats$Rsqr, 3)),paste("italic(m) ==", round(fitstats$m, 3)))) +
-      theme_bw() +
+    data= merge( obs.df,pred.df, by="metacomm_RA")
+
+    data$color <- ifelse( data$frequency.x > data$frequency_upperCI,
+                          "#509579",
+                          ifelse( data$frequency.x <  data$frequency_lowerCI,
+                                  "grey",
+                                  "#485970"))
+
+    p = ggplot(data= data) +
+      # geom_jitter(aes(x = log10(metacomm_RA), y = frequency.x, fill = color),
+      #             width = 0.1, height = 0.22, alpha = 0.7, size = 2, color="black",shape =  21)+
+      geom_point(aes(x=log10(metacomm_RA), y=frequency.x, color = color),
+                 alpha=.4, size=2,shape =21) +
+      geom_line( aes(x=log10(metacomm_RA), y=frequency.y)) +
+      geom_line(aes(x=log10(metacomm_RA), y=frequency_lowerCI), linetype=2, color="black") +
+      geom_line( aes(x=log10(metacomm_RA), y=frequency_upperCI), linetype=2, color="black")+
+      #  scale_fill_pl(values =c("#485970","#509579","#cf9198"))+
+      scale_color_manual(values =c( "grey90","#509579","#FF7F00"),label=c( "A","B","C" ))+
+      theme_bw()+
+      theme(panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank())+
+      labs(x="Log10 abundance in\nmetacommunity", y="Frequency detected",
+           title = paste(aa[i],paste("R^2 == ", round(fitstats$Rsqr, 3)),
+                         paste("italic(m) ==", round(fitstats$m, 3)))) +
+      #  theme_bw() +
       theme(axis.line = element_line(color="black"),
             legend.position = "none",
             axis.title = element_text(size=14),
             axis.text = element_text(size=12))
 
     p
+
+
+
+
+    # p = ggplot(data=obs.df) +
+    #   geom_point(data=obs.df, aes(x=log10(metacomm_RA), y=frequency),
+    #              alpha=.3, size=2, color="#8DD3C7") +
+    #   geom_line(data=pred.df, aes(x=log10(metacomm_RA), y=frequency), color="#FFFFB3") +
+    #   geom_line(data=pred.df, aes(x=log10(metacomm_RA), y=frequency_lowerCI), linetype=2, color="#FFFFB3") +
+    #   geom_line(data=pred.df, aes(x=log10(metacomm_RA), y=frequency_upperCI), linetype=2, color="#FFFFB3") +
+    #   # geom_text(data=fitstats, aes(label = paste("R^2 == ", round(Rsqr, 3))),
+    #   #           x=1, y=0.75, size=4, parse=TRUE) +
+    #   # geom_text(data=fitstats, aes(label = paste("italic(m) ==", round(m, 3))),
+    #   #           x=-1, y=0.85, size=4, parse=TRUE) +
+    #   labs(x="Log10 abundance in\nmetacommunity", y="Frequency detected",title = paste(aa[i],paste("R^2 == ", round(fitstats$Rsqr, 3)),paste("italic(m) ==", round(fitstats$m, 3)))) +
+    #   theme_bw() +
+    #   theme(axis.line = element_line(color="black"),
+    #         legend.position = "none",
+    #         axis.title = element_text(size=14),
+    #         axis.text = element_text(size=12))
+
 
 
 

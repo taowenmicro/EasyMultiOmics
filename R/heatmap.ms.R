@@ -1,6 +1,24 @@
-
-
-
+#' @title  Create a heatmap with metabolites clustering and labeling
+#'
+#' @description
+#' The heatmap.ms function generates a heatmap with clustering and labeling based on metabolites  data and sample metadata.
+#'  It includes row and column clustering, relative abundance visualization, and sample group labeling.
+#' @param ps_rela A phyloseq format file used as an alternative for the input containing metabolite composition table(realtive abundance),
+#' metabolite classification table, and sample metadata.
+#' @param label Logical parameters indicating whether to label sample groups. Default is TRUE.
+#' @param col_cluster Logical parameters indicating whether to perform column clustering. Default is TRUE.
+#' @param row_cluster Logical parameters indicating whether to perform row clustering. Default is TRUE.
+#' @return A list containing the following components:
+#' \item{p1}{Heatmap with row clustering and relative abundance visualization.}
+#' \item{p2}{Bubble heatmap with sample clustering and relative abundance visualization.}
+#' \item{pcm}{Analysis data for heatmap plotting.}
+#'
+#' @examples
+#' ps.ms_rela <- ps.ms %>% scale_micro(method = "rela") %>%
+#'  tax_glom_wt(ranks = "Class")
+#'  result <- heatmap.ms (ps.ms_rela,label =  FALSE,col_cluster = FALSE,row_cluster =FALSE)
+#'  p19 <- result[[1]]
+#' @export
 
 # ps_rela <- ps %>% scale_micro(method = "rela") %>%
 #   tax_glom_wt(ranks = "classification")
@@ -16,7 +34,7 @@
 # p2
 
 
-heatmap.ms <- function(ps_rela,
+heatmap.ms <- function(ps_rela= ps_rela,
                       label =  TRUE,
                       col_cluster = TRUE,
                       row_cluster = TRUE
@@ -59,6 +77,7 @@ heatmap.ms <- function(ps_rela,
     clust <- hclust(dist(mat %>% as.matrix())) # hclust with distance matrix
     ggtree_plot <- ggtree::ggtree(clust)
   }
+
   if (row_cluster ==  TRUE) {
     v_clust <- hclust(dist(mat %>% as.matrix() %>% t()))
     ggtree_plot_col <- ggtree::ggtree(v_clust) + ggtree::layout_dendrogram()
@@ -118,21 +137,21 @@ heatmap.ms <- function(ps_rela,
     aplot::insert_right(p_rig, width=.2)
   p2 <- p2  %>%
     aplot::insert_right(p_rig, width=.2)
-  if (col_cluster ==  T) {
+  if (col_cluster ==  TRUE) {
     p1 <- p1  %>%
       aplot::insert_left(ggtree_plot, width=.2)
     p2 <- p2  %>%
       aplot::insert_left(ggtree_plot, width=.2)
   }
 
-  if (row_cluster ==  T) {
+  if (row_cluster ==  TRUE) {
     p1 <- p1  %>%
       aplot::insert_top(labels, height=.02)
     p2 <- p2  %>%
       aplot::insert_top(labels, height=.02)
   }
 
-  if (label ==  T) {
+  if (label ==  TRUE) {
     p1 <- p1  %>%
       aplot::insert_top(ggtree_plot_col, height=.1)
     p2 <- p2  %>%

@@ -1,39 +1,32 @@
-#
-#
-# #--门特尔检验-普氏分析#-----
-#
-# method = "spearman"
-#
-# head(sample_data(ps0))
-# result <- mantal.micro(ps = ps0,method =  "spearman",group = "Group")
-#
-# combn(unique(map$Group),2)
-# result[[2]]
-
-#
-#
-# source("G:\\Shared_Folder\\Function_local\\R_function\\micro/matel_pro_plot.R")
-#
-# #--门特尔检验-普氏分析#-----
-# library(vegan)
-# size = combn(unique(map$Group),2) %>% dim()
-# size
-# result <- mantal.micro(ps = ps,method =  "spearman",group = "Group",
-#                        ncol = size[2],
-#                        nrow = 1
-# )
-# data <- result[[1]]
-#
-# p3_7 <- result[[2]] +  mytheme1
-# p3_7
-#
-#
-# FileName <- paste(betapath,"mantel_pro.csv", sep = "")
-# write.csv(data,FileName)
-# FileName1 <- paste(betapath,"/a2_","Mantel_Pro.pdf", sep = "")
-# ggsave(FileName1 , p3_7, width = 8, height = 8)
-
-
+#' @title Mantel Test and Visualization for Microbial Communities
+#'
+#' @description
+#' The `mantal.micro` function performs a Mantel test to evaluate the correlation between two distance matrices
+#' (e.g., microbial community dissimilarities and environmental distances) based on a specified correlation method.
+#' It also groups the data by a specified factor and provides a visualization of the results.
+#' The function allows customization of the layout of the plots, such as the number of columns and rows.
+#'
+#' @param ps A `phyloseq` object containing the microbial community data and metadata.
+#' @param method A character string specifying the correlation method to be used in the Mantel test.
+#'               Options include `"pearson"`, `"spearman"` (default), and `"kendall"`.
+#' @param group A character string indicating the name of the grouping variable in the metadata.
+#'              This variable will be used to split and analyze the data.
+#' @param ncol An integer specifying the number of columns in the plot layout. Default is 5.
+#' @param nrow An integer specifying the number of rows in the plot layout. Default is 2.
+#'
+#' @return This function returns a list containing the following:
+#' - Mantel test results for each group.
+#' - A visualization of the Mantel test results grouped by the specified factor.
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' @examples
+#' # Example usage:
+#'result <- mantal.micro(ps = ps.16s,method =  "spearman",group = "Group",ncol = gnum,nrow = 1)
+#'data <- result[[1]]
+#'data
+#'p3_7 <- result[[2]]
+#' @export
 
 mantal.micro <- function(ps = ps,
                          method =  "spearman",
@@ -66,6 +59,7 @@ mantal.micro <- function(ps = ps,
     id_dist <- row.names(map)[gru == id[2,i]]
     id_dist = id_dist[1:nrow(dist1)]
     dist2 = dist[id_dist,id_dist]
+    # ?vegan::mantel
     mt <- vegan::mantel(dist1,dist2,method = method)
     R_mantel[i] = mt$statistic
     p_mantel[i] = mt$signif
@@ -83,8 +77,6 @@ mantal.micro <- function(ps = ps,
     Y <- cbind(data.frame(pro.s.r$Yrot), data.frame(pro.s.r$X))
     X <- data.frame(pro.s.r$rotation)
     Y$ID <- rownames(Y)
-
-
 
     p1 <- ggplot(Y) +
       geom_segment(aes(x = X1, y = X2, xend = (X1 + MDS1)/2, yend = (X2 + MDS2)/2),

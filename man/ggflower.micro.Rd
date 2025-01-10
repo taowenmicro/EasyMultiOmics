@@ -52,13 +52,12 @@ ggflower.micro(
 ggplot objects
 }
 \description{
-Microbial related network
+A display format similar to a Venn diagram.
 }
 \examples{
 library(phyloseq)
 library(ggplot2)
 data(ps)
-
 map = as.data.frame(sample_data(ps))
 map$Group1 <- c("A","B","C","D","E","F ")
 sample_data(ps) = map
@@ -116,11 +115,8 @@ p1 <- p + scale_fill_brewer(palette = "Paired")
 
 p1
 }
-\references{
-Yuan J, Zhao J, Wen T, Zhao M, Li R, Goossens P, Huang Q, Bai Y, Vivanco JM, Kowalchuk GA, Berendsen RL, Shen Q
-Root exudates drive the soil-borne legacy of aboveground pathogen infection
-Microbiome 2018,DOI: \url{doi: 10.1186/s40168-018-0537-x}
-}
 \author{
+Contact: Tao Wen \email{2018203048@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+
 Contact: Tao Wen \email{2018203048@njau.edu.cn} Jun Yuan \email{junyuan@njau.edu.cn} Penghao Xie \email{2019103106@njau.edu.cn}
 }

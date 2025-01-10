@@ -1,40 +1,34 @@
-#
-#
-# #--门特尔检验-普氏分析#-----
-#
-# method = "spearman"
-#
-# head(sample_data(ps0))
-# result <- mantal.micro(ps = ps0,method =  "spearman",group = "Group")
-#
-# combn(unique(map$Group),2)
-# result[[2]]
-
-#
-#
-# source("G:\\Shared_Folder\\Function_local\\R_function\\micro/matel_pro_plot.R")
-#
-# #--门特尔检验-普氏分析#-----
-# library(vegan)
-# size = combn(unique(map$Group),2) %>% dim()
-# size
-# result <- mantal.micro(ps = ps,method =  "spearman",group = "Group",
-#                        ncol = size[2],
-#                        nrow = 1
-# )
-# data <- result[[1]]
-#
-# p3_7 <- result[[2]] +  mytheme1
-# p3_7
-#
-#
-# FileName <- paste(betapath,"mantel_pro.csv", sep = "")
-# write.csv(data,FileName)
-# FileName1 <- paste(betapath,"/a2_","Mantel_Pro.pdf", sep = "")
-# ggsave(FileName1 , p3_7, width = 8, height = 8)
-
-
-
+#' @title Mantel Test and Visualization for Metabolites data
+#' @description
+#' The function performs a Mantel test to evaluate the correlation between two distance matrices
+#' (e.g., metabolites composition dissimilarities and environmental distances) based on a specified correlation method.
+#' It also groups the data by a specified factor and provides a visualization of the results.
+#' The function allows customization of the layout of the plots, such as the number of columns and rows.
+#'
+#' @param ps A `phyloseq` object containing the metabolites composition data and metadata.
+#' @param method A character string specifying the correlation method to be used in the Mantel test.
+#'               Options include `"pearson"`, `"spearman"` (default), and `"kendall"`.
+#' @param group A character string indicating the name of the grouping variable in the metadata.
+#'              This variable will be used to split and analyze the data.
+#' @param ncol An integer specifying the number of columns in the plot layout. Default is 5.
+#' @param nrow An integer specifying the number of rows in the plot layout. Default is 2.
+#'
+#' @return This function returns a list containing the following:
+#' - Mantel test results for each group.
+#' - A visualization of the Mantel test results grouped by the specified factor.
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' @examples
+#' \dontrun{
+#' # Example usage:
+#' result <- mantal.ms(ps = ps.16s,method =  "spearman",group = "Group",ncol = 3,nrow = 1)
+#' data <- result[[1]]
+#' data
+#' p3_7 <- result[[2]]
+#' p3_7
+#' }
+#' @export
 mantal.ms <- function(ps = ps,
                          method =  "spearman",
                          group = "Group",

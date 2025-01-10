@@ -1,5 +1,6 @@
-#' Microbial related network
-#'
+#' @title Microbial related network
+#' @description
+#' A display format similar to a Venn diagram.
 #' @param otu otu table of microbiome. data.frame
 #' @param tax taxonmy table of microbiome. data.frame
 #' @param map table.data.frame
@@ -12,11 +13,11 @@
 #' @param b Distance from petal to center
 #' @param lab.leaf The distance from the label to the center of the circle
 #' @param col.cir Center color
+#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
 #' @examples
 #' library(phyloseq)
 #' library(ggplot2)
 #' data(ps)
-#'
 #' map = as.data.frame(sample_data(ps))
 #' map$Group1 <- c("A","B","C","D","E","F ")
 #' sample_data(ps) = map
@@ -75,13 +76,7 @@
 #' p1
 #' @return ggplot objects
 #' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn} Jun Yuan \email{junyuan@@njau.edu.cn} Penghao Xie \email{2019103106@@njau.edu.cn}
-#' @references
-#'
-#' Yuan J, Zhao J, Wen T, Zhao M, Li R, Goossens P, Huang Q, Bai Y, Vivanco JM, Kowalchuk GA, Berendsen RL, Shen Q
-#' Root exudates drive the soil-borne legacy of aboveground pathogen infection
-#' Microbiome 2018,DOI: \url{doi: 10.1186/s40168-018-0537-x}
 #' @export
-
 
 ggflower.micro = function(otu = NULL,tax = NULL,map = NULL,ps = NULL,
                     group = "Group",

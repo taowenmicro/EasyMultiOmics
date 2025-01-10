@@ -35,34 +35,24 @@ ggplot2 object.
 Input otutab and metadata, and manual set metadata column names.
 ggplot2 show line plot, and/or standard error
 }
-\details{
-
-}
 \examples{
-# rare plot with otutab and metadata
-result = alpha_rare_all(otu = otutab, map = metadata, group = "Group", method = "chao1", start = 200, step = 200)
-result[[1]]# output sample curve plot
-result[[2]]# data table
-result[[3]]# output group curve plot
-result[[4]]# output group curve with CI plot
-# rare plot with phyloseq Object
-library(phyloseq)
-ps = phyloseq(otu_table(otutab, taxa_are_rows=TRUE), sample_data(metadata))
-result = alpha_rare_all(ps = ps, group = "Group", method = "chao1", start = 1000, step = 1000)
-result[[4]]# output group curve with CI plot
-}
-\references{
-Yong-Xin Liu, Yuan Qin, Tong Chen, Meiping Lu, Xubo Qian, Xiaoxuan Guo & Yang Bai.
-A practical guide to amplicon and metagenomic analysis of microbiome data.
-Protein Cell, 2020(41), 1-16, DOI: \url{https://doi.org/10.1007/s13238-020-00724-8}
-
-Jingying Zhang, Yong-Xin Liu, Na Zhang, Bin Hu, Tao Jin, Haoran Xu, Yuan Qin, Pengxu Yan, Xiaoning Zhang, Xiaoxuan Guo, Jing Hui, Shouyun Cao, Xin Wang, Chao Wang, Hui Wang, Baoyuan Qu, Guangyi Fan, Lixing Yuan, Ruben Garrido-Oter, Chengcai Chu & Yang Bai.
-NRT1.1B is associated with root microbiota composition and nitrogen use in field-grown rice.
-Nature Biotechnology, 2019(37), 6:676-684, DOI: \url{https://doi.org/10.1038/s41587-019-0104-4}
-}
-\seealso{
-alpha_boxplot alpha_rare
+rare <- mean(phyloseq::sample_sums(ps.16s))/10
+result = alpha.rare.line(ps = ps.16s, group = "Group", method = "Richness", start = 100, step = rare)
+p2_1 <- result[[1]]
+p2_1
+#-- Plot the rarefaction curve for a single sample
+p2_1 <- result[[1]]
+p2_1
+Provide a data table for convenient output
+raretab <- result[[2]]
+head(raretab)
+Display rarefaction curves grouped by categories
+p2_2 <- result[[3]]
+p2_2
+Plot rarefaction curves with standard deviations by groups
+p2_3 <- result[[4]]
+p2_3
 }
 \author{
-Contact: Tao Wen \email{2018203048@njau.edu.cn}, Yong-Xin Liu \email{yxliu@genetics.ac.cn}
+Contact: Tao Wen \email{2018203048@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
 }

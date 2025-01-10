@@ -1,33 +1,54 @@
-#
-# j = "Phylum"
-# j = "Class"
-# j = "Order"
-# j =  "Family"
-# j = "Genus"
-#
-# otu =NULL
-# tax = NULL
-# map = NULL
-# ps = ps1
-#
-# group = "Group"
-# axis_ord = NULL
-# label = FALSE
-# sd = FALSE
-# Top = 10
-#
-# tran = TRUE
-
-# library(phyloseq)
-# library(tidyverse)
-# library(vegan)
-# library(reshape2)
-# library("plyr")
-library(ggalluvial)
-# detach("package:ggalluvial")
-# detach("package:plyr")
-# detach("package:reshape2")
-# library(ggplot2)
+#' @title Generate Bar and Flow Plots for metabolites composition
+#'
+#' @description
+#' This function generates bar plots, alluvial flow plots, and flower plots to visualize metabolites composition  across groups.
+#' The function supports relative abundance transformations, error bars, and optional labeling.
+#'
+#' @param otu A data frame containing metabolites composition data. If `NULL`, the `ps` object is used.
+#' @param tax A data frame containing taxonomy data. If `NULL`, the `ps` object is used.
+#' @param map A data frame containing sample metadata. If `NULL`, the `ps` object is used.
+#' @param tree A phylogenetic tree object. If `NULL`, the `ps` object is used.
+#' @param ps A `phyloseq` object containing  otu, tax, mapping data.
+#' @param group A character string specifying the grouping variable in the sample metadata. Default is `"Group"`.
+#' @param j A character string specifying the taxonomic rank to analyze (e.g., `"Class"`, `"Super_class"`). Default is `"Class"`.
+#' @param axis_ord A character vector specifying the order of x-axis groups. If `NULL`, default order is used.
+#' @param label Logical. If `TRUE`, adds text labels to the plots. Default is `TRUE`.
+#' @param sd Logical. If `TRUE`, adds error bars to the plots. Default is `FALSE`.
+#' @param Top An integer specifying the number of top taxa to display. Taxa not in the top are grouped as `"others"`. Default is `10`.
+#' @param tran Logical. If `TRUE`, transforms data to relative abundances. Default is `TRUE`.
+#'
+#' @return
+#' A list containing:
+#' \describe{
+#'   \item{A bar plot showing the relative abundances of taxa across groups.}
+#'   \item{A data frame with the processed metabolites composition data.}
+#'   \item{An alluvial flow plot visualizing the changes in relative abundances across groups.}
+#'   \item{A flower plot displaying relative abundances in a circular layout.}
+#' }
+#'
+#' @details
+#' The function processes metabolites composition data to compute relative abundances (if `tran = TRUE`) and groups taxa based on the specified rank (`j`).
+#' It visualizes the data as bar plots, alluvial flow plots, and flower plots. The top `Top` taxa are highlighted, and the remaining taxa are grouped as `"others"`.
+#'
+#' @examples
+#' \dontrun{
+#' tax= ps.ms %>% vegan_tax() %>%as.data.frame()
+#' id = tax$Metabolite
+#' tax1 = ann.HMDB (id = id)
+#' tax1 = tax1 %>% distinct(id,.keep_all = TRUE) %>%column_to_rownames("id")
+#' tax$ID = row.names(tax)
+#' tax3 = tax %>% dplyr::left_join(tax1,by = c("Metabolite" = "id.org"))
+#' row.names(tax3) = tax3$metab_id
+#' tax_table(ps.ms) = tax_table(as.matrix(tax3))
+#' result = barMainplot.ms(ps = ps.ms,j = "Class",label = FALSE,sd = FALSE,Top =5)
+#' p4_1 <- result[[1]]
+#' p4_1
+#' databar <- result[[2]]
+#' }
+#'
+#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#'
+#' @export
 
 
 

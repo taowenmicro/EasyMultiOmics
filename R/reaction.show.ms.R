@@ -1,12 +1,31 @@
-# res2 = reaction.show.ms(ps = ps.ms3,dif.method = "wilcox")
-# res2$plots$OE.WT.plot
-# res2$plotdata$OE.WT
+#' @title Perform reaction pathway enrichment analysis
+#'
+#' @description
+#'  This function conducts reaction pathway enrichment analysis based on the
+#'   specified differential method(wilcox,t.test,...) for A phyloseq format file.
+#' @param ps A phyloseq format file used as an alternative for the input containing metabolite composition table,
+#' metabolite classification table, and sample metadata.
+#' @param dif.method The differential method to use for analysis (default is "wilcox")
+#' @return A list containing the following components:
+#' \item {plots} {List of ggplot objects representing the reaction pathway enrichment analysis plots}
+#'     \item {plotdata} {List of data frames containing reaction pathway enrichment analysis results}
+#'   }
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' @export
+#' @examples
+#' ps.ms3 = ps.ms %>% tax_glom_wt("KEGGID")
+#' res3 = reaction.show.ms(ps= ps.ms3,dif.method = "wilcox")
+#' res3$plots$OE.WT.plot
+#' dat=res3$plotdata$OE.WT
+#'
 
 reaction.show.ms = function(
     ps,
     dif.method = "wilcox"
 ){
-  result1 = statSuper(ps = ps,group  = "Group",artGroup = NULL,method = "wilcox")
+  result1 = statSuper(ps = ps,group  = "Group",artGroup = NULL,method = dif.method)
   ps %>% sample_data()
   rank_names(ps)
   group = sample_data(ps)$Group %>% unique()
@@ -31,7 +50,7 @@ reaction.show.ms = function(
     id.tem = tem2 %>% strsplit("[,]") %>%
       sapply( `[`, 1)
 
-    dat = EasyMultiOmics.db::db.compound.reaction.bins
+    dat = db.compound.reaction.bins
     head(dat)
     colnames(dat)[1] = "compound"
 
@@ -45,7 +64,7 @@ reaction.show.ms = function(
     head(allkeggid)
 
 
-    total = dat %>% filter(compound %in% c(paste0("cpd:",allkeggid$ID))) %>% select(2,1)
+    total = dat %>% filter(compound %in% c(paste0("cpd:",allkeggid$ID))) %>% dplyr::select(2,1)
     head(total)
 
 
@@ -107,7 +126,7 @@ reaction.show.ms = function(
       guides(size=guide_legend(title="Count"))+
       labs(x=NULL,y="Pathways")+
       theme(axis.title = element_blank(),
-            axis.text.x=element_text(color="black",angle =0,hjust=0.5,vjust=0.5, margin = margin(b =5)),
+            axis.text.x=element_text(color="black",angle =0,hjust=0.5,vjust=0.5, margin = ggplot2::margin(b =5)),
             axis.text.y=element_text(color="black",angle =0,hjust=1,vjust=0.5),
             panel.background = element_rect(fill = NA,color = NA),
             panel.grid.minor= element_line(size=0.2,color="#e5e5e5"),

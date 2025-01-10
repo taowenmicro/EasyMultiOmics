@@ -1,4 +1,29 @@
-
+#' @title Decisiontree model screening of characteristic metabolites
+#' @description
+#' Decisiontree, one of the machine learning methods, was used to screen for characteristic
+#' metabolites, and the model was evaluated using k-fold cross-validation.
+#' @param ps A phyloseq format file used as an alternative for the input containing metabolite composition table,
+#' metabolite classification table, and sample metadata.
+#' @param top The top metabolites to consider.
+#' @param seed The random seed for reproducibility.
+#' @param k The number of folds for cross-validation.
+#' @return A list object including the following components:
+#' \item{Accuracy}{The average accuracy of the Decisiontree model.}
+#' \item{Importance}{A data frame showing the feature importance ranked in descending order.}
+#' @export
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' @examples
+#' library(dplyr)
+#' library(ggClusterNet)
+#' library(caret)
+#' library(rpart)
+#' res = decisiontree.micro(ps=ps.ms, top = 20, seed = 1010, k = 5)
+#' accuracy = res[[1]]
+#' accuracy
+#' importance = res[[2]]
+#' importance
 
 decisiontree.ms <- function(ps=ps, top = 20, seed = 6358, k = 5) {
   set.seed(seed)

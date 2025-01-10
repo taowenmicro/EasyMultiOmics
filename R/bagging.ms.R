@@ -1,4 +1,29 @@
-
+#' @title Bagging screening of characteristic metabolites
+#' @description
+#' Bagging, one of the machine learning methods, was used to screen for characteristic
+#' metabolites, and the model was evaluated using k-fold cross-validation.
+#' @param ps A phyloseq format file used as an alternative for the input containing metabolite composition table,
+#' metabolite classification table, and sample metadata.
+#' @param top The top metabolites to consider.
+#' @param seed The random seed for reproducibility.
+#' @param k The number of folds for cross-validation.
+#' @return A list object including the following components:
+#' \item{Accuracy}{The average accuracy of the bagging model.}
+#' \item{Importance}{A data frame showing the feature importance ranked in descending order.}
+#' @export
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' @examples
+#' library(ipred)
+#' library(dplyr)
+#' library(ggClusterNet)
+#' library(caret)
+#' res =bagging.micro(ps =ps.ms, top = 100, seed = 1010, k = 5)
+#' accuracy = res[[1]]
+#' accuracy
+#' importance = res[[2]]
+#' importance
 bagging.ms <- function(ps=ps, top = 20, seed = 1010, k = 5) {
   set.seed(seed)
 
@@ -33,13 +58,11 @@ bagging.ms <- function(ps=ps, top = 20, seed = 1010, k = 5) {
     accuracy <- correct_predictions / nrow(fold_test)
     accuracy_values[i] <- accuracy
 
+
     # 提取特征重要性
-    tree_importances <- lapply(a_bagging$mtrees, function(tree) {
-      tree$btree$variable.importance
-    })
-    combined_importance <- do.call(cbind, tree_importances)
-    avg_importance <- rowMeans(combined_importance, na.rm = TRUE)
-    importance_list[[i]] <- avg_importance
+    importance <- caret::varImp(a_bagging)
+    importance$ID <- rownames(importance)
+    importance_list[[i]] <- importance
   }
   #
   # tree$btree$variable.importance
@@ -53,9 +76,12 @@ bagging.ms <- function(ps=ps, top = 20, seed = 1010, k = 5) {
 
   # 合并重要变量
   if (length(importance_list) > 0) {
-    combined_importance <- do.call(cbind, importance_list)
-    avg_importance <- rowMeans(combined_importance, na.rm = TRUE)
-    importance_df <- data.frame(Feature = names(avg_importance), Importance = avg_importance)
+    combined_importance <- importance_list[[1]]
+    for(i in 2:length(importance_list)) {
+      combined_importance <- merge(combined_importance, importance_list[[i]], by = "ID", all = TRUE)
+    }
+    avg_importance <- rowMeans(combined_importance[,-which(colnames(combined_importance) == "ID")], na.rm = TRUE)
+    importance_df <- data.frame(Feature=combined_importance$ID , Importance = avg_importance)
     importance_df <- importance_df[order(importance_df$Importance, decreasing = TRUE), ]
   } else {
     importance_df <- data.frame(Feature = character(0), Importance = numeric(0))

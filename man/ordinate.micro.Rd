@@ -14,13 +14,17 @@ ordinate.micro(
   method = "PCoA",
   Micromet = "adonis",
   pvalue.cutoff = 0.05,
-  pair = TRUE
+  pair = FALSE
 )
 }
 \arguments{
 \item{otu}{OTU/ASV table;}
 
+\item{tax}{taxonomy table;}
+
 \item{map}{Sample metadata;}
+
+\item{ps}{A phyloseq format file used as an alternative for the input containing otu, tax, and map.}
 
 \item{group}{group ID;}
 
@@ -32,7 +36,7 @@ ordinate.micro(
 
 \item{pvalue.cutoff}{Pvalue threshold;}
 
-\item{tree}{tree/nwk file;}
+\item{pair}{A logical value indicating whether to perform pairwise group comparisons. Default is `FALSE`.}
 }
 \value{
 list object including plot, stat table
@@ -49,18 +53,10 @@ The available diversity indices include the following:
 }
 }
 \examples{
-
-BetaDiv(otu = otutab_rare, map = metadata, tree = tree, group = "Group", dist = "bray", method = "PCoA", Micromet = "adonis", pvalue.cutoff = 0.05)
-
-}
-\references{
-Jingying Zhang, Yong-Xin Liu, Na Zhang, Bin Hu, Tao Jin, Haoran Xu, Yuan Qin, Pengxu Yan, Xiaoning Zhang, Xiaoxuan Guo, Jing Hui, Shouyun Cao, Xin Wang, Chao Wang, Hui Wang, Baoyuan Qu, Guangyi Fan, Lixing Yuan, Ruben Garrido-Oter, Chengcai Chu & Yang Bai.
-NRT1.1B is associated with root microbiota composition and nitrogen use in field-grown rice.
-Nature Biotechnology, 2019(37), 6:676-684, DOI: \url{https://doi.org/10.1038/s41587-019-0104-4}
-}
-\seealso{
-beta_pcoa beta_cpcoa
+result = ordinate.micro(ps = ps.16s, group = "Group", dist = "bray",method = "PCoA", Micromet = "anosim",
+pvalue.cutoff = 0.05)
+p3_1 = result[[1]]
 }
 \author{
-Contact: Tao Wen \email{2018203048@njau.edu.cn}, Yong-Xin Liu \email{yxliu@genetics.ac.cn}
+Contact: Tao Wen \email{2018203048@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
 }

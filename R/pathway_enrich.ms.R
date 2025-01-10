@@ -1,16 +1,28 @@
-# ps.ms3 = ps.ms2 %>% tax_glom_wt("KEGG.Compound.ID")
-#
-# res2 = pathway_enrich.ms(ps = ps.ms3,
-#                          dif.method = "wilcox")
-# res2$plots$OE.WT.plot
-# res2$plots$KO.OE.plot
+#' @title Perform KEGG pathway enrichment analysis for metabolite data
+#' @description Through the difference test,
+#' the significantly enriched KEGG functional pathway was identified and visualized.
+#' @param ps A phyloseq format file used as an alternative for the input containing metabolite composition table,
+#' metabolite classification table, and sample metadata.
+#' @param dif.method Method for differential analysis, default is "wilcox".
+#' @return A list containing the following components:
+#' \item {plots} {List of ggplot objects representing the pathway enrichment analysis plots.}
+#' \item {plotdata} {List of data frames containing pathway enrichment analysis results.}
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' @examples
+#' ps.ms3 = ps.ms %>% tax_glom_wt("KEGGID")
+#' res2 = pathway_enrich.ms(ps = ps.ms3,dif.method = "wilcox")
+#' res2$plots$OE.WT.plot
+#' res2$plots$KO.OE.plot
+#' @export
 
 pathway_enrich.ms = function(
     ps,
     dif.method = "wilcox"
 ){
 
-  result1 = statSuper(ps = ps,group  = "Group",artGroup = NULL,method = "wilcox")
+  result1 = statSuper(ps = ps,group  = "Group",artGroup = NULL,method = dif.method)
   ps %>% sample_data()
   rank_names(ps)
   group = sample_data(ps)$Group %>% unique()
@@ -34,7 +46,7 @@ pathway_enrich.ms = function(
     tem2 = tem2[!is.na(tem2)]
     id.tem = tem2 %>% strsplit("[,]") %>%
       sapply( `[`, 1)
-    library(EasyMultiOmics.db)
+    # library(EasyMultiOmics.db)
 
     # dat = read.delim("E:/Shared_Folder/Function_local/R_function/Metagenome_Function/meta.mini.db/db.KEGG/compound.pathway.bins.txt",
     #                  header = TRUE)
@@ -51,7 +63,7 @@ pathway_enrich.ms = function(
     head(allkeggid)
     total = dat %>%
       # filter(compound %in% c(paste0("cpd:",allkeggid$ID))) %>%
-      select(2,1)
+      dplyr::select(2,1)
     head(total)
     dim(total)
 
@@ -109,8 +121,7 @@ pathway_enrich.ms = function(
       guides(size=guide_legend(title="Count"))+
       labs(x=NULL,y=laby) +
       theme(
-        # axis.title = element_blank(),
-        axis.text.x=element_text(color="black",angle =0,hjust=0.5,vjust=0.5, margin = margin(b =5)),
+        axis.text.x=element_text(color="black",angle =0,hjust=0.5,vjust=0.5, margin = ggplot2::margin(b =5)),
         axis.text.y=element_text(color="black",angle =0,hjust=1,vjust=0.5),
         panel.background = element_rect(fill = NA,color = NA),
         panel.grid.minor= element_line(size=0.2,color="#e5e5e5"),

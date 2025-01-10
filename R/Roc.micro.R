@@ -1,34 +1,39 @@
-
-# Roc function
-# You can learn more about package at:
-#
-#   https://github.com/microbiota/amplicon
-
-#' @title Comparison of three machine methods (randomforest,SVM,GLM).
-#' @description Comparison of three machine methods (randomforest,SVM,GLM).
-#' @param otu OTU/ASV table;
-#' @param map Sample metadata;
-#' @param tax taxonomy table
-#' @param ps phyloseq object of microbiome
+#' @title Comparison of ROC curves of three machine methods (randomforest,SVM,GLM).
+#' @description
+#'  Comparison of three machine methods (randomforest,SVM,GLM), and
+#'  these model was evaluated using k-fold cross-validation.
+#' @param otu OTU/ASV table.
+#' @param map Sample metadata.
+#' @param tax taxonomy table.
+#' @param ps phyloseq object of microbiome.
 #' @param Group column name for groupID in map table.
-#' @param repnum Modeling times
-#' @details
-#' @return list contain ggplot object and table.
-#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Yong-Xin Liu \email{yxliu@@genetics.ac.cn}
-#' @references
-#'
-#' Jingying Zhang, Yong-Xin Liu, Na Zhang, Bin Hu, Tao Jin, Haoran Xu, Yuan Qin, Pengxu Yan, Xiaoning Zhang, Xiaoxuan Guo, Jing Hui, Shouyun Cao, Xin Wang, Chao Wang, Hui Wang, Baoyuan Qu, Guangyi Fan, Lixing Yuan, Ruben Garrido-Oter, Chengcai Chu & Yang Bai.
-#' NRT1.1B is associated with root microbiota composition and nitrogen use in field-grown rice.
-#' Nature Biotechnology, 2019(37), 6:676-684, DOI: \url{https://doi.org/10.1038/s41587-019-0104-4}
-#'
+#' @param repnum The number of folds for cross-validation.
+#' @return A list object including the following components:
+#' \item{g2}{Final ROC curve plot of three machine methods.}
+#' \item{AUC}{AUC values for each classification model.}
+#' \item{df}{Combined dataframe with true and predicted values}
+#' \item{rocdata list}{List of ROC curve data for Random Forest, SVM, and GLM}
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
 #' @examples
-#' result = MicroRoc( ps = ps,group  = "Group")
-#' #--提取roc曲线
-#' result[[1]]
-#' #提取AUC值
-#' result[[2]]
+#' library(caret)
+#' library(randomForest)
+#' library(ROCR)
+#' library(e1071)
+#' id = sample_data(ps.16s)$Group %>% unique()
+#' aaa = combn(id,2)
+#' i= 1
+#' group = c(aaa[1,i],aaa[2,i])
+#' pst = ps.16s %>% subset_samples.wt("Group",group) %>%filter_taxa(function(x) sum(x ) > 10, TRUE)
+#' res = Roc.micro( ps = pst %>% filter_OTU_ps(1000),group  = "Group",repnum = 5)
+#' p33.1 =  res[[1]]
+#' p33.1
+#' p33.2 =  res[[2]]
+#' p33.2
+#' dat =  res[[3]]
+#' dat
 #'@export
-#'
 Roc.micro <- function(otu = NULL,tax = NULL,map = NULL,tree = NULL,
                      ps = NULL,group  = "Group",repnum = 5){
 
@@ -59,7 +64,8 @@ Roc.micro <- function(otu = NULL,tax = NULL,map = NULL,tree = NULL,
 
   test = dplyr::select(test,OTUgroup,everything())
   train = test
-  folds <- createFolds(y=test[,1],k=repnum)
+  set.seed(1234)
+  folds <- caret::createFolds(y=test[,1],k=repnum)
   AUC =c()
 
   max=0
@@ -75,7 +81,7 @@ Roc.micro <- function(otu = NULL,tax = NULL,map = NULL,tree = NULL,
     colnames(fold_test) <- gsub("-","_",colnames(fold_test))
     colnames(fold_train) <- gsub("-","_",colnames(fold_train))
 
-    model<-randomForest(OTUgroup~.,data=fold_train, importance=TRUE, proximity=TRUE)
+    model<-randomForest::randomForest(OTUgroup~.,data=fold_train, importance=TRUE, proximity=TRUE)
     print(model)
     model_pre<-predict(model,newdata = fold_test,type="prob")
     fc<-append(fc,as.factor(fold_test$OTUgroup))
@@ -84,7 +90,7 @@ Roc.micro <- function(otu = NULL,tax = NULL,map = NULL,tree = NULL,
 
 
   #- pick data and plot
-  pred <- prediction(mod_pre, fc)
+  pred <- ROCR::prediction(mod_pre, fc)
   perf <- performance(pred,"tpr","fpr")
   x <- unlist(perf@x.values)  ##提取x值
   y <- unlist(perf@y.values)
