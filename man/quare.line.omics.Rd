@@ -18,8 +18,6 @@ quare.line.omics(
 )
 }
 \arguments{
-\item{ps.16s}{A phyloseq object containing microbiome data (default: `ps.16s`).}
-
 \item{ps.ms}{A data frame or tibble containing metabolomics data (default: `ps.ms`).}
 
 \item{group1}{A string specifying the first group for comparison (default: `"micro"`).}
@@ -33,6 +31,8 @@ quare.line.omics(
 \item{method}{A string specifying the statistical test method (e.g., `"spearman"`) (default: `"spearman"`).}
 
 \item{top}{An integer specifying the number of top OTUs or metabolites to consider for analysis (default: 500).}
+
+\item{ps01}{A phyloseq object containing microbiome data (default: `ps.16s`).}
 }
 \value{
 A list containing:

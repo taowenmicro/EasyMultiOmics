@@ -5,8 +5,8 @@
 \title{Paired Volcano Plot for Correlation Analysis Across Different Datasets}
 \usage{
 volcano.line2.omics(
-  ps.16s = ps.16s,
-  ps.ms = ps.ms,
+  ps01 = ps01,
+  ps02 = ps02,
   group1 = "micro",
   group2 = "ms",
   r.threshold = 0.6,
@@ -16,9 +16,9 @@ volcano.line2.omics(
 )
 }
 \arguments{
-\item{ps.16s}{A `phyloseq` object containing microbiome data.}
+\item{ps01}{A `phyloseq` object containing microbiome data.}
 
-\item{ps.ms}{A `phyloseq` object containing metabolomics data.}
+\item{ps02}{A `phyloseq` object containing metabolomics data.}
 
 \item{group1}{Character. Label for the first dataset (e.g., `"micro"` for microbiome).}
 
@@ -45,7 +45,7 @@ Paired Volcano Plot for Correlation Analysis Across Different Datasets
 }
 \examples{
 \dontrun{
- results <- volcano.line2.omics(ps.16s, ps.ms, group1 = "micro", group2 = "ms")
+ results <- volcano.line2.omics(ps01,ps02, group1 = "micro", group2 = "ms")
 
 }
 }
