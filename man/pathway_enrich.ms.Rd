@@ -4,7 +4,7 @@
 \alias{pathway_enrich.ms}
 \title{Perform KEGG pathway enrichment analysis for metabolite data}
 \usage{
-pathway_enrich.ms(ps, dif.method = "wilcox")
+pathway_enrich.ms(ps = ps, dif.method = "wilcox")
 }
 \arguments{
 \item{ps}{A phyloseq format file used as an alternative for the input containing metabolite composition table,

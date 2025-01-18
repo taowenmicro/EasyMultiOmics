@@ -37,3 +37,7 @@ ps.ms_rela <- ps.ms \%>\% scale_micro(method = "rela") \%>\%
  result <- heatmap.ms (ps.ms_rela,label =  FALSE,col_cluster = FALSE,row_cluster =FALSE)
  p19 <- result[[1]]
 }
+\author{
+Tao Wen \email{2018203048@njau.edu.cn},
+Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+}

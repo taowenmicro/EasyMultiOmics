@@ -1,3 +1,33 @@
+#' @title Merge 16S and ITS Microbiome Datasets
+#'
+#' @description
+#' This function combines two phyloseq objects representing 16S rRNA and ITS datasets.
+#' It normalizes the datasets (optional) and merges taxonomic and OTU tables. Users
+#' can choose to retain only taxonomic groupings if needed.
+#'
+#' @param ps16s A phyloseq object containing 16S rRNA dataset. Default is `ps16`.
+#' @param psITS A phyloseq object containing ITS dataset. Default is `psIT`.
+#' @param N16s An integer specifying the number of top OTUs or taxa to retain from the 16S dataset. Default is 100.
+#' @param NITS An integer specifying the number of top OTUs or taxa to retain from the ITS dataset. Default is 100.
+#' @param scale A logical value indicating whether to normalize datasets to relative abundance. Default is `TRUE`.
+#' @param onlygroup A logical value specifying whether to retain only taxonomic group information. Default is `FALSE`.
+#' @param dat1.lab A character string used as a prefix for 16S dataset taxonomic IDs. Default is `"bac"`.
+#' @param dat2.lab A character string used as a prefix for ITS dataset taxonomic IDs. Default is `"fun"`.
+#'
+#' @return
+#' A merged phyloseq object containing OTU table, taxonomy table, and sample metadata.
+#'
+#' @examples
+#' \dontrun{
+#' merged_ps <- merge16S_ITS(ps16s = ps16, psITS = psIT, N16s = 50, NITS = 50, scale = TRUE)
+#' }
+#'
+#'
+#' @export
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#'
 merge16S_ITS=function (ps16s = ps16, psITS = psIT, N16s = 100, NITS = 100,
           scale = TRUE, onlygroup = FALSE, dat1.lab = "bac", dat2.lab = "fun")
 {

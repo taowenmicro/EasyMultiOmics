@@ -32,7 +32,9 @@
 # # p1 +  scale_fill_gradientn(colours =colorRampPalette(RColorBrewer::brewer.pal(11,"Set3"))(60))
 # p2 <- result[[2]]
 # p2
-
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
 
 heatmap.ms <- function(ps_rela= ps_rela,
                       label =  TRUE,

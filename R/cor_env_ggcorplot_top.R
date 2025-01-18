@@ -1,3 +1,44 @@
+#' @title Correlation Analysis and Visualization of Environmental Variables and OTUs
+#'
+#' @description
+#' The `cor_env_ggcorplot_top` function calculates the correlation between environmental variables and top OTUs (or taxa),
+#' and visualizes the results as a heatmap and scatterplot. It also supports hierarchical clustering for both rows and columns.
+#'
+#' @param ps A `phyloseq` object containing OTU/taxa abundance data and sample metadata.
+#' @param jj A taxonomic rank (e.g., "Genus", "Family") for aggregating OTUs. If `NULL`, no aggregation is performed. Default is `NULL`.
+#' @param tran A logical value indicating whether to transform OTU counts into relative abundances. Default is `TRUE`.
+#' @param Top An integer specifying the number of top OTUs to retain based on total abundance. Default is `10`.
+#' @param env1 A data frame of environmental variables, where rows are samples and columns are variables.
+#' @param label A logical value indicating whether to label the rows and columns in the plot. Default is `TRUE`.
+#' @param col_cluster A logical value indicating whether to perform hierarchical clustering on the columns. Default is `TRUE`.
+#' @param row_cluster A logical value indicating whether to perform hierarchical clustering on the rows. Default is `TRUE`.
+#' @param method A character string specifying the correlation method (`"spearman"`, `"pearson"`, or `"kendall"`). Default is `"spearman"`.
+#' @param r.threshold A numeric value specifying the minimum correlation coefficient for displaying results. Default is `0`.
+#' @param p.threshold A numeric value specifying the maximum p-value for displaying results. Default is `0`.
+#' @param theme.size An integer specifying the text size for axis labels and legends. Default is `10`.
+#'
+#' @return
+#' A list containing:
+#' \itemize{
+#'   \item `p1`: A heatmap visualizing the correlation results.
+#'   \item `p2`: A scatterplot-style visualization of the correlation results.
+#'   \item `top10`: A matrix of the top OTUs/taxa retained for the analysis.
+#'   \item `data`: A long-format data frame of the correlation results used for plotting.
+#' }
+#'
+#' @examples
+#' \dontrun{
+#' result <- cor_env_ggcorplot_top(ps = ps, env1 = env1, Top = 5, method = "spearman")
+#'
+#' # Visualize the results
+#' print(result$p1)  # Heatmap
+#' print(result$p2)  # Scatterplot-style visualization
+#' }
+#'
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' @export
 cor_env_ggcorplot_top = function(ps =  ps.tem,
                                  jj = NULL,
                                  tran  =TRUE,
@@ -68,9 +109,11 @@ cor_env_ggcorplot_top = function(ps =  ps.tem,
 
   p1 = ggplot(pcm, aes(y = id, x = variable)) +
     # geom_point(aes(size = value,fill = value), alpha = 0.75, shape = 21) +
-    geom_tile(aes(size = value,fill = value))+
-    scale_size_continuous(limits = c(0.000001, 100), range = c(2,25), breaks = c(0.1,0.5,1)) +
-    labs( y= "", x = "", size = "Relative Abundance (%)", fill = "")  +
+    geom_tile(aes(size = value,fill = value), guide = FALSE)+
+    scale_size_continuous(limits = c(0.000001, 100), range = c(2,25), breaks = c(0.1,0.5,1), guide = FALSE) +
+    labs( y= "", x = "",
+          # size = "Relative Abundance (%)",
+          fill = "")  +
     # scale_fill_manual(values = colours, guide = FALSE) +
     scale_x_discrete(limits = rev(levels(pcm$variable)))  +
     scale_y_discrete(position = "right") +

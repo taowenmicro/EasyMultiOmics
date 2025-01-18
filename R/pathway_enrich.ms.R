@@ -18,7 +18,7 @@
 #' @export
 
 pathway_enrich.ms = function(
-    ps,
+    ps= ps,
     dif.method = "wilcox"
 ){
 
@@ -54,7 +54,13 @@ pathway_enrich.ms = function(
     head(dat)
     colnames(dat)[1] = "compound"
 
-    tax = ps.ms3 %>% tax_table() %>% as.data.frame()
+    # 数据库格式调整
+    head(dat)
+    dat = dat%>%
+      separate_rows(pathway, sep = "\\|")
+
+
+    tax = ps %>% phyloseq::tax_table() %>% as.data.frame()
     head(tax)
     allkeggid <- data.frame(ID = row.names(tax))
     allkeggid$ID = allkeggid$ID%>% strsplit("[,]") %>%
@@ -62,7 +68,7 @@ pathway_enrich.ms = function(
 
     head(allkeggid)
     total = dat %>%
-      # filter(compound %in% c(paste0("cpd:",allkeggid$ID))) %>%
+       filter(compound %in% c(paste0("cpd:",allkeggid$ID))) %>%
       dplyr::select(2,1)
     head(total)
     dim(total)
@@ -113,11 +119,10 @@ pathway_enrich.ms = function(
 
     p = df3 %>%
       ggplot(aes(x = count,y = reorder(V2,count)))+
-      geom_bar(aes(x = count,y = reorder(V2,count),fill=pvalue),stat = "identity",width = 0.8)+
+      geom_bar(aes(x = count,y = reorder(V2,count),fill=pvalue),color = "black",stat = "identity",width = 0.8)+
       # geom_point(aes(color=pvalue,fill=pvalue),pch=21)+
-
       # scale_color_gradientn(colours = (rev(RColorBrewer::brewer.pal(11,"RdBu"))))+
-      # scale_fill_gradientn(colours =(rev(RColorBrewer::brewer.pal(11,"RdBu"))))+
+       scale_fill_gradientn(colours =(rev(RColorBrewer::brewer.pal(11,"RdBu"))))+
       guides(size=guide_legend(title="Count"))+
       labs(x=NULL,y=laby) +
       theme(
@@ -139,6 +144,8 @@ pathway_enrich.ms = function(
         legend.position = c(1,0),
         legend.justification = c(1,0))+
       scale_y_discrete(labels = function(y) str_wrap(y,width=30))
+    p
+
     plot[[i]] = p
     names(plot)[i] = paste(com[2,i],com[1,i],"plot",sep = ".")
 

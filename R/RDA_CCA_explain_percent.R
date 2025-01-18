@@ -1,9 +1,38 @@
-
-
-
-
-
-
+#' @title Calculate and Visualize Environmental Contributions in RDA/CCA
+#'
+#' @description
+#' The `RDA_CCA_explain_percent` function performs Redundancy Analysis (RDA) or Canonical Correspondence Analysis (CCA)
+#' to evaluate the contributions of environmental variables to microbial community variation. The function calculates
+#' the explained and unexplained variance and generates a bar plot to visualize the contribution of individual variables.
+#'
+#' @param ps A `phyloseq` object containing microbial community data, including the OTU table and sample metadata.
+#' @param env.dat A data frame of environmental variables, where rows correspond to samples and columns represent variables.
+#'
+#' @return
+#' A list containing:
+#' \itemize{
+#'   \item `out`: A data frame summarizing the percentage contribution of each environmental variable to the constrained variance.
+#'   \item `exp`: A data frame summarizing the total explained and unexplained variance as proportions.
+#'   \item `p`: A ggplot2 object visualizing the percentage contributions of environmental variables as a horizontal bar plot.
+#' }
+#'
+#' @examples
+#' \dontrun{
+#' library(phyloseq)
+#' library(vegan)
+#' library(ggplot2)
+#' library(tidyr)
+#' result <- RDA_CCA_explain_percent(ps = ps, env.dat = envRDA)
+#'
+#' # Extract results
+#' out <- result[[1]]  # Environmental variable contributions
+#' exp <- result[[2]]  # Explained and unexplained variance
+#' plot <- result[[3]] # Bar plot
+#' }
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' @export
 RDA_CCA_explain_percent = function(ps = ps,env.dat = envRDA){
   #--变量相对丰度标准化编号：ps1_rela
 
@@ -80,7 +109,29 @@ RDA_CCA_explain_percent = function(ps = ps,env.dat = envRDA){
   unexplained.percent = (total.chi - total.constrained) / total.chi;unexplained.percent
   exp = data.frame(ID = c("explained.percent","unexplained.percent"),count = c(explained.percent,unexplained.percent))
   exp
-  return(list(out,exp))
+
+  out=  as.data.frame(out)
+  out$all = explained.percent
+
+  out_long =  pivot_longer(out,cols = everything() , names_to = "Microbe",      # 转换后的变量列名
+                           values_to = "Percentage")
+
+  p= ggplot(out_long, aes(x = reorder(Microbe, Percentage), y = Percentage)) +
+    geom_bar(stat = "identity", fill = "skyblue", color = "black") +
+    coord_flip() +  # 水平显示
+    theme_minimal() +
+    labs(
+      title = "Microbial Percentages",
+      x = "Microbe",
+      y = "Percentage"
+    ) +
+    theme(
+      axis.text = element_text(size = 12, face = "bold"),
+      axis.title = element_text(size = 14, face = "bold"),
+      plot.title = element_text(hjust = 0.5, size = 16, face = "bold")
+    )
+  p
+  return(list(out,exp,p))
 }
 
 # result = RDA_CCA_explain_percent(ps = ps,env.dat = envRDA)

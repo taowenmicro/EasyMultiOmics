@@ -1,3 +1,46 @@
+#' @title Hierarchical Partitioning with Permutations for RDA, CCA, and db-RDA
+#'
+#' @description
+#' The `rdacca.hp.micro.p` function performs hierarchical partitioning with permutation tests to evaluate the contribution of environmental variables to variance in OTU abundance data. The function supports Redundancy Analysis (RDA), Canonical Correspondence Analysis (CCA), and Distance-based Redundancy Analysis (db-RDA). It outputs bar plots and permutation results for each method.
+#'
+#' @param OTU A data frame or matrix of OTU abundance data, where rows represent samples and columns represent OTUs.
+#' @param env A data frame of environmental variables, where rows correspond to samples and columns represent variables.
+#' @param cca A logical value indicating whether to perform hierarchical partitioning using Canonical Correspondence Analysis (CCA). Default is `FALSE`.
+#' @param dbRDA A logical value indicating whether to perform hierarchical partitioning using Distance-based Redundancy Analysis (db-RDA). Default is `FALSE`.
+#' @param rep An integer specifying the number of permutations for the permutation test. Default is `9`.
+#'
+#' @return
+#' A list containing:
+#' \itemize{
+#'   \item `p`: A ggplot2 object visualizing the hierarchical partitioning results for RDA.
+#'   \item `dat`: A data frame containing the hierarchical partitioning results for RDA.
+#'   \item `p1`: A ggplot2 object visualizing the hierarchical partitioning results for CCA (if `cca = TRUE`).
+#'    \item `p2`: A ggplot2 object visualizing the hierarchical partitioning results for db-RDA (if `dbRDA = TRUE`).
+#' }
+#' @details
+#' The function performs hierarchical partitioning for variance decomposition and applies permutation tests to estimate the significance of contributions from each environmental variable. The function supports three methods:
+#' \enumerate{
+#'   \item **RDA (Redundancy Analysis)**:
+#'     - Applies Hellinger transformation to OTU data.
+#'     - Performs permutation-based hierarchical partitioning using `permu.hp`.
+#'     - Generates a bar plot showing the contributions of each environmental variable.
+#'   \item **CCA (Canonical Correspondence Analysis)** (if `cca = TRUE`):
+#'     - Uses the original OTU abundance data without transformation.
+#'     - Performs hierarchical partitioning with permutation tests.
+#'     - Generates a bar plot showing the contributions of each environmental variable.
+#'   \item **db-RDA (Distance-based Redundancy Analysis)** (if `dbRDA = TRUE`):
+#'     - Computes Bray-Curtis distance from the OTU abundance data.
+#'     - Performs hierarchical partitioning with permutation tests.
+#'     - Generates a bar plot showing the contributions of each environmental variable.
+#' }
+#' @examples
+#' \dontrun{
+#' res = rdacca.hp.micro(OTU = ps.tem %>% filter_OTU_ps(500) %>%vegan_otu() %>% as.data.frame(), env = ftab[,1:5], cca = FALSE)
+#' }
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' @export
 
 rdacca.hp.micro.p <- function(OTU = mite,
                               env = env1,
@@ -10,26 +53,27 @@ rdacca.hp.micro.p <- function(OTU = mite,
   permu_hp <- permu.hp(dv =OTU, iv = env, method = 'RDA', type = 'adjR2', permutations = rep)
   permu_hp
   #简单作图
+  print("1")
   permu_hp$Variables <- rownames(permu_hp)
   permu_hp$p <- unlist(lapply(as.character(permu_hp$'Pr(>I)'), function(x) unlist(strsplit(x, ' '))[2]))
   #如需输出层次分割结果
-  dat = permu_hp %>% as.data.frame() %>% arrange(desc(Individual))
+  dat = permu_hp %>% as.data.frame() %>%dplyr:: arrange(desc(Individual))
   dat$id = row.names(dat)
+
   dat$id = factor(dat$id,levels = dat$id)
 
+  print("2")
   p = ggplot(dat) +
     geom_bar(aes(x = id,y = Individual ),stat = "identity",colour="black",fill="#9ACD32" ) +
     geom_text(aes(x = id,y = Individual ,label = `Pr(>I)`), vjust = -0.3) +
     theme_classic()
-
+p
   # filename = paste(hpPath,'Mciro.rda.hp.p.csv',sep = "")
   # write.csv(dat,filename)
   # filename = paste(hpPath,'Micro.rda.hp.p.pdf',sep = "")
   # ggsave(filename,p)
   # filename = paste(hpPath,'Micro.rda.hp.p.jpg',sep = "")
   # ggsave(filename,p)
-
-
 
   ###典范对应分析（CCA）
 
@@ -45,7 +89,7 @@ rdacca.hp.micro.p <- function(OTU = mite,
     permu_hp$Variables <- rownames(permu_hp)
     permu_hp$p <- unlist(lapply(as.character(permu_hp$'Pr(>I)'), function(x) unlist(strsplit(x, ' '))[2]))
     #如需输出层次分割结果
-    dat = permu_hp %>% as.data.frame() %>% arrange(desc(Individual))
+    dat = permu_hp %>% as.data.frame() %>% dplyr::arrange(desc(Individual))
     dat$id = row.names(dat)
     dat$id = factor(dat$id,levels = dat$id)
 
@@ -89,11 +133,11 @@ rdacca.hp.micro.p <- function(OTU = mite,
     permu_hp$Variables <- rownames(permu_hp)
     permu_hp$p <- unlist(lapply(as.character(permu_hp$'Pr(>I)'), function(x) unlist(strsplit(x, ' '))[2]))
     #如需输出层次分割结果
-    dat2 = permu_hp %>% as.data.frame() %>% arrange(desc(Individual))
-    dat2$id = row.names(dat)
-    dat2$id = factor(dat$id,levels = dat$id)
+    dat = permu_hp %>% as.data.frame() %>%dplyr:: arrange(desc(Individual))
+    dat$id = row.names(dat)
+    dat$id = factor(dat$id,levels = dat$id)
 
-    p2 = ggplot(dat) +
+    p = ggplot(dat) +
       geom_bar(aes(x = id,y = Individual ),stat = "identity",colour="black",fill="#9ACD32" ) +
       geom_text(aes(x = id,y = Individual ,label = `Pr(>I)`), vjust = -0.3) +
       theme_classic()
@@ -104,8 +148,8 @@ rdacca.hp.micro.p <- function(OTU = mite,
     # filename = paste(hpPath,'Micro.dbRDA.hp.p.jpg',sep = "")
     # ggsave(filename,p)
   }
-  return(list(p,dat,p1,dat2))
 
+  return(list(p,dat))
 
 }
 

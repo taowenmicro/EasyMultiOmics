@@ -1,14 +1,6 @@
 
-#--main function
-# You can learn more about package at:
-#
-#   https://github.com/microbiota/amplicon
-
 #' @title Random forest modeling for microbiome data
 #' @description Random forest modeling for microbiome data
-#' @param otu OTU/ASV table;
-#' @param map Sample metadata;
-#' @param tax taxonomy table
 #' @param ps phyloseq object of microbiome
 #' @param Group column name for groupID in map table.
 #' @param optimal important OTU number which selected
@@ -16,23 +8,13 @@
 #' @param nrfcvnum Number of cross-validation
 #' @param min Circle diagram inner diameter adjustment
 #' @param max Circle diagram outer diameter adjustment
-#' @details
 #' @return list contain ggplot object and table.
-#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Yong-Xin Liu \email{yxliu@@genetics.ac.cn}
-#' @references
-#'
-#' Jingying Zhang, Yong-Xin Liu, Na Zhang, Bin Hu, Tao Jin, Haoran Xu, Yuan Qin, Pengxu Yan, Xiaoning Zhang, Xiaoxuan Guo, Jing Hui, Shouyun Cao, Xin Wang, Chao Wang, Hui Wang, Baoyuan Qu, Guangyi Fan, Lixing Yuan, Ruben Garrido-Oter, Chengcai Chu & Yang Bai.
-#' NRT1.1B is associated with root microbiota composition and nitrogen use in field-grown rice.
-#' Nature Biotechnology, 2019(37), 6:676-684, DOI: \url{https://doi.org/10.1038/s41587-019-0104-4}
-#'
+#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
 #' @examples
-#' # data form github
-#' result = MicroRF(ps = ps,group  = "Group",optimal = 20,rfcv = TRUE,nrfcvnum = 5,min = -1,max = 5)
+#' result = randomforest.omics(ps = ps03,group  = "Group",optimal = 20,rfcv = TRUE,nrfcvnum = 5,min = -1,max = 5)
 #'@export
 
-
-
-randomforest.omics <- function(otu = NULL,tax = NULL,map = NULL,tree = NULL,
+randomforest.omics <- function(
                               ps = NULL,
                               group  = "Group",
                               optimal = 20,
@@ -44,7 +26,7 @@ randomforest.omics <- function(otu = NULL,tax = NULL,map = NULL,tree = NULL,
                               lab = "id"
 ){
 
-  ps = ggClusterNet::inputMicro(otu,tax,map,tree,ps,group  = group) %>% ggClusterNet::scale_micro()
+ #  ps = ggClusterNet::inputMicro(otu,tax,map,tree,ps,group  = group) %>% ggClusterNet::scale_micro()
   map = as.data.frame(phyloseq::sample_data(ps))
   #-scaleing relative abundancce#----
   mapping = as.data.frame(phyloseq::sample_data(ps))
@@ -79,7 +61,7 @@ randomforest.omics <- function(otu = NULL,tax = NULL,map = NULL,tree = NULL,
   #-提取正确率
   model_Accuracy_rates <- paste(round(100-tail(model_rf$err.rate[,1],1)*100,2),"%",sep = "")
   model_Accuracy_rates = data.frame(ID = "model Accuracy rates",model_Accuracy_rates = model_Accuracy_rates)
-  colnames(model_Accuracy_rates) = c("Random foreest","Fu wilt model")
+  colnames(model_Accuracy_rates) = c("Random foreest","model")
   tab2 <- ggpubr::ggtexttable(Confusion_matrix, rows = NULL)
   tab1 <- ggpubr::ggtexttable(model_Accuracy_rates, rows = NULL)
   library(patchwork)
@@ -117,7 +99,6 @@ randomforest.omics <- function(otu = NULL,tax = NULL,map = NULL,tree = NULL,
   } else{
     tax <- as.data.frame( ggClusterNet::vegan_tax(ps))
   }
-
 
   # head(tax)
   tax$org.id = row.names(tax)
@@ -185,8 +166,8 @@ randomforest.omics <- function(otu = NULL,tax = NULL,map = NULL,tree = NULL,
   p1 <- ggplot(a3, aes(x = MeanDecreaseAccuracy, y = id,
                        fill = !!sym(fill),color = !!sym(fill))) +
     geom_point(size=6,pch=21)+
-    geom_segment(aes(yend=id),xend=0,size=3)+
-    geom_text(aes(x =MeanDecreaseAccuracy*1.1,  label = !!sym(lab)),size = 3,color = "black")
+    geom_segment(aes(yend=id),xend=0,size=3)
+    #geom_text(aes(x =MeanDecreaseAccuracy*1.1,  label = !!sym(lab)),size = 3,color = "black")
 
 
 
@@ -197,13 +178,14 @@ randomforest.omics <- function(otu = NULL,tax = NULL,map = NULL,tree = NULL,
   a3$id = factor(a3$id,levels = a3$id)
   p2 = a3  %>%
     ggplot(aes(x = factor(id), y = MeanDecreaseAccuracy ,label = id)) +
-    geom_bar(stat = 'identity', position = 'dodge',fill = "blue") +
+    geom_bar(stat = 'identity', position = 'dodge',fill =  MeanDecreaseAccuracy) +
     # scale_fill_manual(values = mi)+
     geom_text(hjust = 0, angle = angle1, alpha = 1) +
     coord_polar() +
     ggtitle('') +
     ylim(c(min,max))+
-    theme_void()
+    theme_void()+
+    scale_fill_gradient(low = "#377EB8", high = "#4DAF4A")
   p2
 
   return(list(p1,p2,a3,pn,a2))

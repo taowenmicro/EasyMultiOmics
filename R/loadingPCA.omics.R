@@ -1,21 +1,28 @@
 
+#' @title PCA loading Matrix screening of characteristic multi-omics data
+#' @description
+#' This function conducts PCA analysis on multi-omics data to
+#' extract the loading Matrix, screen for characteristic and visualize them.
+#' The importance of the variables is  sorted according to
+#' the square value of the correlation between the variable and the PC1 axis.
+#' @param ps A phyloseq format file used as an alternative for the input containing otu, tax, and map.
+#' @param Top The top microorganisms to visualize.
+#' @returns A list object containing the following components:
+#' \item{p}{A PCA correlation plot of the selected number of characteristic microorganisms and
+#'  the correlation decreases from top to bottom.}
+#' \item{index}{Data frame containing the PCA load matrix and relative abundance of all microorganisms.}
+#' @export
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' @examples
+#' res = loadingPCA.omics(ps = ps03,Top = 20)
+#' p34.1 = res[[1]]
+#' p34.1
+#' dat = res[[2]]
+#' dat
 
 
-
-#-------PCA载荷挑选#---------
-# pcapath = paste(repath,"/loadingPCA/",sep = "")
-# dir.create(pcapath)
-# res = loadingPCA(ps = ps)
-#
-# p = res[[1]]
-# p
-# dat = res[[2]]
-#
-# filemane = paste(pcapath,"/PCALoading.pdf",sep = "")
-# ggsave(filemane, p, width = 8, height = 6)
-#
-# FileName <- paste(pcapath,"/Loadsing_pca.csv", sep = "")
-# write.csv(dat,FileName,sep = "")
 
 loadingPCA.omics = function(ps = ps,Top = 20){
   count =ps %>%

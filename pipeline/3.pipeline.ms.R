@@ -324,8 +324,6 @@ result <- heatmap.ms (ps_rela= ps.ms_rela,
     result2 = statSuper(ps = ps.ms,group  = "Group",artGroup = NULL,method = "ttext")
     head(result2)
 
-
-
 #21 MuiKwWlx2: 分类化合物分组差异-------
 library(EasyStat)
 library(ggClusterNet)
@@ -791,6 +789,7 @@ rfcvtable = result[[3]]
 rfcvtable
 
 #28 randomforest.ms: 筛选特征代谢物 ----
+?randomforest.ms
 res <- randomforest.ms( ps= ps.ms, group  = "Group", optimal = 50)
 
 p25 = res[[1]]
@@ -801,6 +800,7 @@ dat
 
 
 #29 loadingPCA.ms 载荷矩阵挑选重要代谢物#------
+?loadingPCA.ms
 res = loadingPCA.ms(ps = ps.ms,Top = 20)
 p = res[[1]]
 p
@@ -808,6 +808,8 @@ dat = res[[2]]
 dat
 
 #30 LDA.ms: LDA筛选特征代谢物 -----
+?LDA.ms
+
 tablda = LDA.ms(ps = ps.ms,
                    Top = 100,
                    p.lvl = 0.05,
@@ -816,14 +818,13 @@ tablda = LDA.ms(ps = ps.ms,
                    adjust.p = F)
 
 p35 <- lefse_bar(taxtree = tablda[[2]])
-p
+p35
 dat = tablda[[2]]
 dat
 
 
-
-
 #31 svm.ms:svm筛选特征微生物 ----
+?svm.ms
 res <- svm.ms(ps = pst %>% filter_OTU_ps(20), k = 5)
 AUC = res[[1]]
 AUC
@@ -833,7 +834,8 @@ importance
 #32 xgboost.ms: xgboost筛选特征微生物----
 library(xgboost)
 library(Ckmeans.1d.dp)
-res = xgboost.ms(ps =pst, top = 20  )
+?xgboost.ms
+ res = xgboost.ms(ps =pst, top = 20  )
 accuracy = res[[1]]
 accuracy
 importance = res[[2]]
@@ -841,6 +843,7 @@ importance
 
 
 #33 glm.ms:glm筛选特征微生物----
+?glm.ms
 res <- glm.ms(ps = pst %>% filter_OTU_ps(50), k = 5)
 AUC = res[[1]]
 AUC
@@ -849,73 +852,23 @@ importance
 
 #34 lasso.ms: lasso筛选特征微生物----
 library(glmnet)
+?lasso.ms
 res =lasso.ms (ps =  pst, top = 20, seed = 1010, k = 5)
 accuracy = res[[1]]
 accuracy
 importance = res[[2]]
 importance
 
-
-
-
-#35 decisiontree.ms: 错----
-
-top = 20
-seed = 6358
-set.seed(seed)
-
-ps.cs <- pst %>% filter_OTU_ps(top)
-
-map <- as.data.frame(phyloseq::sample_data(ps.cs))
-otutab <- as.data.frame(t(ggClusterNet::vegan_otu(ps.cs %>% scale_micro()) ))
-colnames(otutab) <- gsub("-", "_", colnames(otutab))
-test <- as.data.frame(t(otutab))
-test$group <- factor(map$Group)
-
-
-#  group
-
-data <-  test
-# 分割数据为训练集和测试集
-
-
-split <- caTools::sample.split(data$group , SplitRatio = 0.7)  # 将数据按照指定比例分割
-train_data <- subset(data, split == TRUE)  # 训练集
-test_data <- subset(data, split == FALSE)
-str(train_data)
-head(train_data)
-# 训练决策树模型
-a_rpart <- rpart(group ~ ., data =train_data, method = 'class',
-                 parms = list(split = 'information'))
-
-
-plot(a_rpart, margin = 0.1)
-text(a_rpart, cex = 0.5)
-a_rpart$cptable
-
-#决策树划分细节概要，各个分支结构等
-summary( a_rpart)
-
-# 得到测试集的预测值
-pred <- predict(a_rpart, newdata =test_data , type = 'class')
-
-
-
-
-#36 naivebayes.ms: bayes筛选特征微生物----
-res = naivebayes.ms(ps=pst, top = 20, seed = 1010, k = 5)
+#35 decisiontree.ms----
+library(rpart)
+res =decisiontree.ms(ps=ps.ms, top = 50, seed = 6358, k = 5)
 accuracy = res[[1]]
 accuracy
 importance = res[[2]]
 importance
 
-
-
-
-
-
-
 #37 nnet.ms 神经网络筛选特征微生物  ------
+?nnet.ms
 res =nnet.ms(ps=pst, top = 100, seed = 1010, k = 5)
 accuracy = res[[1]]
 accuracy
@@ -926,6 +879,7 @@ importance
 
 #38 bagging.micro : Bootstrap Aggregating筛选特征微生物 ------
 library(ipred)
+?bagging.ms
 res =bagging.ms(ps =  pst, top = 20, seed = 1010, k = 5)
 accuracy = res[[1]]
 accuracy
@@ -1052,12 +1006,14 @@ head(res)
 #44 pathway_enrich.ms：通路富集-------
 
 ps.ms3 = ps.ms %>% tax_glom_wt("KEGGID")
+?pathway_enrich.ms
 
-res2 = pathway_enrich.ms(ps = ps.ms3,
-                         dif.method = "wilcox")
+res2 = pathway_enrich.ms(ps = ps.ms3, dif.method = "wilcox")
 
 res2$plots$OE.WT.plot
 res2$plots$KO.OE.plot
+
+res2$plotdata$OE.WT
 
 #45 reaction.show.ms：反应展示-------
 EasyMultiOmics::reaction.show.ms
@@ -1066,6 +1022,7 @@ res3$plots$OE.WT.plot
 res3$plotdata$OE.WT
 
 #46 buplotall.ms：气泡图展示富集分析结果-------
+
 res= buplotall.ms(ps= ps.ms3,dif.method = "wilcox")
 
 res$plots$OE.WT.plot

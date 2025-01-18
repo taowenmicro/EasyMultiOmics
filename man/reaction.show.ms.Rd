@@ -13,7 +13,10 @@ metabolite classification table, and sample metadata.}
 \item{dif.method}{The differential method to use for analysis (default is "wilcox")}
 }
 \value{
-
+{A list containing the following components:
+\item {plots} {List of ggplot objects representing the reaction pathway enrichment analysis plots}
+    \item {plotdata} {List of data frames containing reaction pathway enrichment analysis results}
+  }
 }
 \description{
 This function conducts reaction pathway enrichment analysis based on the

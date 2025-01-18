@@ -28,9 +28,9 @@ statSuper = function(otu = NULL,tax = NULL,map = NULL,tree = NULL ,ps = NULL,
   #--功能函数
   ps = inputMicro(otu,tax,map,tree,ps,group  = group)
   ps
-  sub_design <- as.data.frame(sample_data(ps))
+  sub_design <- as.data.frame(phyloseq::sample_data(ps))
   colnames(sub_design) = "Group"
-  Desep_group <- as.character(levels(sub_design$Group))
+  Desep_group <- as.character(levels(as.factor(sub_design$Group)))
   Desep_group
   if ( is.null(artGroup)) {
     #--构造两两组合#-----
@@ -42,20 +42,20 @@ statSuper = function(otu = NULL,tax = NULL,map = NULL,tree = NULL ,ps = NULL,
   }
   aaa
   #-将NA填充为0#
-  re = otu_table(ps)
+  re = phyloseq::otu_table(ps)
   #--将空缺值填充为0
   re[is.na(re)] <- 0
   otu_table(ps) <- re
 
   #相对丰度转化
-  ps_rela  = transform_sample_counts(ps, function(x) x / sum(x) );ps_rela
+  ps_rela  = phyloseq::transform_sample_counts(ps, function(x) x / sum(x) );ps_rela
 
   #-----------------差异分析过程#-----------------------
   # otu_table = as.data.frame(vegan_otu(ps))
   count = vegan_otu(ps)
   count <- t(count)
   #数据整理形式一######
-  sub_design <- as.data.frame(sample_data(ps))
+  sub_design <- as.data.frame(phyloseq::sample_data(ps))
   sub_design$ID = row.names(sub_design)
 
   # 转换原始数据为百分比，
@@ -87,41 +87,54 @@ statSuper = function(otu = NULL,tax = NULL,map = NULL,tree = NULL ,ps = NULL,
     AA = as.data.frame(AA)
     AAA = AA[as.character(df_filter$ID)]
     head(AAA)
+
+    # 设置重复数
     rep = length(as.character(df_filter$ID))/2
 
     a = as.matrix(AAA)
+
+    id1 = sub_design %>%as.tibble()  %>%filter(Group %in% Desep_group[1]) %>% .$ID
+    id2 = sub_design %>%as.tibble()  %>%filter(Group %in% Desep_group[2]) %>% .$ID
+    head(a)
+
+    # 确保 id1 和 id2 对应的列存在于矩阵 colnames(mat)
+    cols_id1 <- colnames(a)[colnames(a) %in% id1]
+    cols_id2 <- colnames(a)[colnames(a) %in% id2]
+
     ###########开始运行脚本
     if (method == "ttext") {
       for(i in 1:nrow(a)){
-        if(sd(a[i,(1:rep)])==0&&sd(a[i,(rep+1):(rep*2)])==0){
+        #i=1
+        if(sd(a[i, cols_id1, drop = FALSE])==0&&sd(a[i, cols_id2, drop = FALSE])==0){
           Pvalue[i] <-"NA"
           log2_FC[i]<-"NA"
         }else{
-          y=t.test(as.numeric(a[i,(1:rep)]),as.numeric(a[i,(rep+1):(rep*2)]))
+
+        y= t.test( as.numeric(a[i, cols_id1, drop = FALSE]),as.numeric(a[i, cols_id2, drop = FALSE]))
+
+          # y=t.test(as.numeric(a[i,(1:rep)]),as.numeric(a[i,(rep+1):(rep*2)]))
+
           Pvalue[i]<-y$p.value
-          log2_FC[i]<-log2((mean(as.numeric(a[i,(1:rep)]))+0.001)/(mean(as.numeric(a[i,(rep+1):(rep*2)]))+0.001))
+          log2_FC[i]<-log2((mean(as.numeric(a[i, cols_id1, drop = FALSE]))+0.001)/(mean(as.numeric(a[i, cols_id2, drop = FALSE]))+0.001))
           fdr[i]=p.adjust(Pvalue[i], "BH")
         }
       }
     }
-
 
 
     if (method == "wilcox") {
       for(i in 1:nrow(a)){
-        if(sd(a[i,(1:rep)])==0&&sd(a[i,(rep+1):(rep*2)])==0){
+        if(sd(a[i, cols_id1, drop = FALSE])==0&&sd(a[i, cols_id2, drop = FALSE])==0){
           Pvalue[i] <-"NA"
           log2_FC[i]<-"NA"
         }else{
-          y=wilcox.test(as.numeric(a[i,(1:rep)]),as.numeric(a[i,(rep+1):(rep*2)]),exact=FALSE)
+          y=wilcox.test(as.numeric(a[i, cols_id1, drop = FALSE]),as.numeric(a[i, cols_id2, drop = FALSE]),exact=FALSE)
           Pvalue[i]<-y$p.value
-          log2_FC[i]<-log2((mean(as.numeric(a[i,(1:rep)]))+0.001)/(mean(as.numeric(a[i,(rep+1):(rep*2)]))+0.001))
+          log2_FC[i]<-log2((mean(as.numeric(a[i, cols_id1, drop = FALSE]))+0.001)/(mean(as.numeric(a[i, cols_id2, drop = FALSE]))+0.001))
           fdr[i]=p.adjust(Pvalue[i], "BH")
         }
       }
     }
-
-
 
 
     # 在原文件后面加入log2FC，p value和FDR,共3列；
