@@ -137,8 +137,8 @@ for (i in 1:dim(aaa)[2]) {
     )
 
   p2
-  FileName <- paste(oplspath,group1,"_TOP30_VIP.plot", ".pdf", sep = "")
-  ggsave(FileName, p2,width = 12.4/2.54, height =13/2.54)
+  # FileName <- paste(oplspath,group1,"_TOP30_VIP.plot", ".pdf", sep = "")
+  # ggsave(FileName, p2,width = 12.4/2.54, height =13/2.54)
 
   #过拟合检验
   permutation_plot <- reshape2::melt(permutation_data[,c("R2Y.cum.","Q2.cum.","sim")],id="sim")

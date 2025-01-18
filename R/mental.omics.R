@@ -1,5 +1,36 @@
 
-mental.omics= function(ps01= ps01,ps02= ps02,method="spearman" ){
+#' @title Mantel Test for Multi-Omics Data
+#'
+#' @description
+#' The `mantal.omics` function performs Mantel tests between two distance matrices derived from multi-omics data (e.g., microbial and metabolomics datasets). It also computes Procrustes analysis results to assess the similarity of ordination configurations between the datasets.
+#'
+#' @param ps01 A `phyloseq` object containing the first omics dataset (e.g., microbial data).
+#' @param ps02 A `phyloseq` object containing the second omics dataset (e.g., metabolomics data).
+#' @param method A character string specifying the correlation method for the Mantel test. Options are `"spearman"` (default) or `"pearson"`.
+#'
+#' @details
+#' The function performs the following steps:
+#' \enumerate{
+#'   \item Computes Bray-Curtis distance matrices for the two input datasets (`ps01` and `ps02`) using the `vegan::vegdist` function.
+#'   \item Performs Mantel tests to evaluate the correlation between the two distance matrices.
+#'   \item Computes ordination results for both datasets using non-metric multidimensional scaling (NMDS) and performs Procrustes analysis to assess similarity.
+#'   \item Returns a summary table with Mantel and Procrustes test results for all pairwise group comparisons.
+#' }
+#'
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' #' @examples
+#'  \dontrun{
+#' ps_microbial <- ps01  # Replace with your microbial phyloseq object
+#' ps_metabolomics <- ps02  # Replace with your metabolomics phyloseq object
+#'
+#' # Perform Mantel and Procrustes tests
+#' mantel_results <- mantal.omics(ps01 = ps_microbial, ps02 = ps_metabolomics, method = "spearman")
+#' print(mantel_results)
+#' }
+#' @export
+mantal.omics= function(ps01= ps01,ps02= ps02,method="spearman" ){
 dist.01 = ps01 %>%
   scale_micro() %>%
   # tax_glom_wt(j) %>%
@@ -7,8 +38,6 @@ dist.01 = ps01 %>%
   otu_table() %>% t() %>%
   vegan::vegdist(method="bray") %>%
   as.matrix()
-
-
 
 
 dist.02 = ps02 %>%

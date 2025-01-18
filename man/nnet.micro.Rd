@@ -4,7 +4,7 @@
 \alias{nnet.micro}
 \title{Neural network screening of characteristic microorganisms}
 \usage{
-nnet.micro(ps = ps, top = 20, seed = 1010, k = 5)
+\method{nnet}{micro}(ps = ps, top = 20, seed = 1010, k = 5)
 }
 \arguments{
 \item{ps}{A phyloseq format file used as an alternative for the input containing otu, tax, and map.}

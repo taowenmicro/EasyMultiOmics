@@ -1,22 +1,48 @@
-# res = heatmap.line.omics(ps01 = ps.16s,psG = ps.ms)
-# grid.draw(res[[1]])
-# res[[2]]
-# res[[3]]
-# res[[4]]
 
 
+#' This function generates heatmaps for microbiome and metabolomics data, comparing two groups.
+#' It performs scaling, filtering, cross-domain correlation, and visualizes the results in heatmaps
+#' and network plots.
+#'
+#' @param ps01 A phyloseq object containing microbiome data (16S rRNA sequencing data).
+#' @param method.scale A character string specifying the scaling method to use for microbiome data (default: `"rela"`).
+#' @param method.cor A character string specifying the correlation method to use (default: `"spearman"`).
+#' @param ps02 A phyloseq object containing metabolomics data.
+#' @param lab.1 A character string specifying the label for the first group (e.g., "ms").
+#' @param lab.2 A character string specifying the label for the second group (e.g., "trans").
+#' @param top An integer specifying the number of top OTUs or metabolites to consider for analysis (default: 100).
+#' @param cv A numeric value specifying the coefficient of variation threshold for selecting OTUs (default: 50).
+#'
+#' @return A list containing the following elements:
+#'   \item{g}{A ggplot object representing the combined facet heatmap for both groups.}
+#'   \item{p1}{A ggplot object representing the heatmap for the first group.}
+#'   \item{p2}{A ggplot object representing the heatmap for the second group.}
+#'   \item{p3}{A ggplot object representing the joint heatmap for both groups.}
+#'   \item{p4}{A ggplot object for the cross-domain correlation plot.}
+#' @examples
+#' results <- heatmap.line.omics(ps01 =ps.16s,
+#'                               ps02 = ps.ms,
+#'                               lab.1 = "microbe",
+#'                               lab.2 = "metabolite",
+#'                               top = 100,
+#'                               cv = 50)
+#' @export
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#
 heatmap.line.omics = function(ps01 = ps.ms,
-                                    method.scale = "rela",
-                                    method.cor = "spearman",
-                                    ps02 = ps.trans,
-                                    lab.1 = "ms",
-                                    lab.2 = "trans",
-                                    top = 100,
-                                    cv = 50
+                                     method.scale = "rela",
+                                     method.cor = "spearman",
+                                     ps02 = ps.trans,
+                                     lab.1 = "ms",
+                                     lab.2 = "trans",
+                                     top = 100,
+                                      cv = 50
 
 ){
 
-
+  # detach("package:mia", unload = TRUE)
 
   id <- ps01 %>%
     ggClusterNet::scale_micro(method = method.scale) %>%

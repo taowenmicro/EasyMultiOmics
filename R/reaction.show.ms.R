@@ -6,7 +6,7 @@
 #' @param ps A phyloseq format file used as an alternative for the input containing metabolite composition table,
 #' metabolite classification table, and sample metadata.
 #' @param dif.method The differential method to use for analysis (default is "wilcox")
-#' @return A list containing the following components:
+#' @return {A list containing the following components:
 #' \item {plots} {List of ggplot objects representing the reaction pathway enrichment analysis plots}
 #'     \item {plotdata} {List of data frames containing reaction pathway enrichment analysis results}
 #'   }
@@ -53,10 +53,13 @@ reaction.show.ms = function(
     dat = db.compound.reaction.bins
     head(dat)
     colnames(dat)[1] = "compound"
+    # 数据库格式调整
+    head(dat)
+    dat = dat%>%
+      separate_rows(reaction, sep = "\\|")
 
-    tax = ps %>% tax_table() %>% as.data.frame()
+    tax = ps %>%phyloseq::tax_table() %>% as.data.frame()
     head(tax)
-
 
     allkeggid <- data.frame(ID = row.names(tax))
     allkeggid$ID = allkeggid$ID%>% strsplit("[,]") %>%
@@ -121,8 +124,8 @@ reaction.show.ms = function(
       geom_text(aes(x = count,y = reorder(V2,count),label = geneID),hjust = 3)+
       # geom_point(aes(color=pvalue,fill=pvalue),pch=21)+
 
-      # scale_color_gradientn(colours = (rev(RColorBrewer::brewer.pal(11,"RdBu"))))+
-      # scale_fill_gradientn(colours =(rev(RColorBrewer::brewer.pal(11,"RdBu"))))+
+      scale_color_gradientn(colours = (rev(RColorBrewer::brewer.pal(11,"RdBu"))))+
+      scale_fill_gradientn(colours =(rev(RColorBrewer::brewer.pal(11,"RdBu"))))+
       guides(size=guide_legend(title="Count"))+
       labs(x=NULL,y="Pathways")+
       theme(axis.title = element_blank(),

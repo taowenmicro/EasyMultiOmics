@@ -4,7 +4,7 @@
 \alias{nnet.metm}
 \title{Neural network screening of characteristic microorganisms}
 \usage{
-nnet.metm(ps = ps, top = 20, seed = 1010, k = 5)
+\method{nnet}{metm}(ps = ps, top = 20, seed = 1010, k = 5)
 }
 \arguments{
 \item{ps}{A phyloseq format file used as an alternative for the input containing otu, tax, and map.}

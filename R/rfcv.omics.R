@@ -1,35 +1,21 @@
-## rfcv function
-# You can learn more about package at:
-#
-#   https://github.com/microbiota/amplicon
 
-#' @title For cross-validation of microbiome data
-#' @description For cross-validation of microbiome data
-#' @param otu OTU/ASV table;
-#' @param map Sample metadata;
-#' @param tax taxonomy table
-#' @param ps phyloseq object of microbiome
+#' @title For cross-validation of multi-omics data
+#' @description For cross-validation of multi-omics data
+#' @param ps phyloseq object of multi-omics data
 #' @param Group column name for groupID in map table.
 #' @param optimal important OTU number which selected
 #' @param rfcv TURE or FELSE,whether need to do cross-validation
 #' @param nrfcvnum Number of cross-validation
-#' @details
 #' @return list contain ggplot object and table.
-#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Yong-Xin Liu \email{yxliu@@genetics.ac.cn}
-#' @references
-#'
-#' Jingying Zhang, Yong-Xin Liu, Na Zhang, Bin Hu, Tao Jin, Haoran Xu, Yuan Qin, Pengxu Yan, Xiaoning Zhang, Xiaoxuan Guo, Jing Hui, Shouyun Cao, Xin Wang, Chao Wang, Hui Wang, Baoyuan Qu, Guangyi Fan, Lixing Yuan, Ruben Garrido-Oter, Chengcai Chu & Yang Bai.
-#' NRT1.1B is associated with root microbiota composition and nitrogen use in field-grown rice.
-#' Nature Biotechnology, 2019(37), 6:676-684, DOI: \url{https://doi.org/10.1038/s41587-019-0104-4}
-#'
+#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn},  Peng-Hao Xie \email{2019103106@njqu.edu.cn}
 #' @examples
 #' # data form github
-#' result = Micro.rfcv(otu = NULL,tax = NULL,map = NULL,tree = NULL ,ps = ps_rela,group  = "Group",optimal = 20,nrfcvnum = 6)
+#' result = rfcv.omics(ps = ps,group  = "Group",optimal = 20,nrfcvnum = 6)
 #' prfcv = result[[1]]# plot rfcv
 # result[[2]]# plotdata
 #' rfcvtable = result[[3]]# table rfcv
 #'@export
-rfcv.omics = function(otu = NULL,tax = NULL,map = NULL,tree = NULL,
+rfcv.omics = function(
                      ps = NULL,group  = "Group",optimal = 20,nrfcvnum = 5){
 
 

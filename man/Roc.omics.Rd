@@ -2,49 +2,47 @@
 % Please edit documentation in R/Roc.omics.R
 \name{Roc.omics}
 \alias{Roc.omics}
-\title{Comparison of three machine methods (randomforest,SVM,GLM).}
+\title{Comparison of ROC curves of three machine methods (randomforest,SVM,GLM).}
 \usage{
-Roc.omics(
-  otu = NULL,
-  tax = NULL,
-  map = NULL,
-  tree = NULL,
-  ps = NULL,
-  group = "Group",
-  repnum = 5
-)
+Roc.omics(ps = NULL, group = "Group", repnum = 5)
 }
 \arguments{
-\item{otu}{OTU/ASV table;}
+\item{ps}{phyloseq object of microbiome.}
 
-\item{tax}{taxonomy table}
-
-\item{map}{Sample metadata;}
-
-\item{ps}{phyloseq object of microbiome}
-
-\item{repnum}{Modeling times}
+\item{repnum}{The number of folds for cross-validation.}
 
 \item{Group}{column name for groupID in map table.}
 }
 \value{
-list contain ggplot object and table.
+A list object including the following components:
+\item{g2}{Final ROC curve plot of three machine methods.}
+\item{AUC}{AUC values for each classification model.}
+\item{df}{Combined dataframe with true and predicted values}
+\item{rocdata list}{List of ROC curve data for Random Forest, SVM, and GLM}
 }
 \description{
-Comparison of three machine methods (randomforest,SVM,GLM).
+Comparison of three machine methods (randomforest,SVM,GLM), and
+ these model was evaluated using k-fold cross-validation.
 }
 \examples{
-result = MicroRoc( ps = ps,group  = "Group")
-#--提取roc曲线
-result[[1]]
-#提取AUC值
-result[[2]]
-}
-\references{
-Jingying Zhang, Yong-Xin Liu, Na Zhang, Bin Hu, Tao Jin, Haoran Xu, Yuan Qin, Pengxu Yan, Xiaoning Zhang, Xiaoxuan Guo, Jing Hui, Shouyun Cao, Xin Wang, Chao Wang, Hui Wang, Baoyuan Qu, Guangyi Fan, Lixing Yuan, Ruben Garrido-Oter, Chengcai Chu & Yang Bai.
-NRT1.1B is associated with root microbiota composition and nitrogen use in field-grown rice.
-Nature Biotechnology, 2019(37), 6:676-684, DOI: \url{https://doi.org/10.1038/s41587-019-0104-4}
+library(caret)
+library(randomForest)
+library(ROCR)
+library(e1071)
+id = sample_data(ps03)$Group \%>\% unique()
+aaa = combn(id,2)
+i= 1
+group = c(aaa[1,i],aaa[2,i])
+pst =ps03 \%>\% subset_samples.wt("Group",group)
+res = Roc.omics( ps = pst \%>\% filter_OTU_ps(1000),group  = "Group",repnum = 5)
+p33.1 =  res[[1]]
+p33.1
+p33.2 =  res[[2]]
+p33.2
+dat =  res[[3]]
+dat
 }
 \author{
-Contact: Tao Wen \email{2018203048@njau.edu.cn}, Yong-Xin Liu \email{yxliu@genetics.ac.cn}
+Tao Wen \email{2018203048@njau.edu.cn},
+Peng-Hao Xie \email{2019103106@njqu.edu.cn}
 }

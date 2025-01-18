@@ -1,10 +1,42 @@
-RDA_CCA = function(otu = NULL,tax = NULL,map = NULL,
+#' @title Perform Redundancy Analysis (RDA) or Canonical Correspondence Analysis (CCA)
+#'
+#' @description
+#' The `RDA_CCA` function performs Redundancy Analysis (RDA) or Canonical Correspondence Analysis (CCA)
+#' on microbial community data with associated environmental factors. It automatically selects the
+#' appropriate method based on Detrended Correspondence Analysis (DCA) results and allows for stepwise
+#' environmental variable selection to reduce collinearity.
+#'
+#' @param ps A `phyloseq` object containing microbial community data, including OTU table and metadata.
+#' @param env A data frame of environmental variables, where rows correspond to samples.
+#' @param group A character string specifying the column in `ps` metadata used for grouping. Default is `"Group"`.
+#' @param chose.env A logical value indicating whether to perform stepwise selection of environmental variables. Default is `FALSE`.
+#' @details
+#' The function proceeds as follows:
+#' \enumerate{
+#'   \item Normalizes the OTU table to relative abundances.
+#'   \item Aligns environmental data with microbial data based on sample IDs.
+#'   \item Uses DCA to decide whether to apply RDA (if DCA1 < 3) or CCA (if DCA1 > 4).
+#'   \item Optionally performs stepwise variable selection to remove collinear environmental variables based on VIF.
+#'   \item Performs RDA or CCA and computes significance values using permutation tests.
+#'   \item Generates a biplot with sample and environmental variable coordinates.
+#' }
+#'
+#' @examples
+#' \dontrun{
+#' result <- RDA_CCA(ps = ps, env = env, group = "Group" )
+#' }
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' @export
+RDA_CCA = function(
+                  # otu = NULL,tax = NULL,map = NULL,
                    ps = NULL,env = env,group = "Group"
                    ,chose.env = FALSE){
   # library("vegan")
   # library("grid")
 
-  ps = ggClusterNet::inputMicro(otu,tax,map,tree,ps,group  = group)
+  # ps = ggClusterNet::inputMicro(otu,tax,map,tree,ps,group  = group)
   ps
 
   # 相对丰度标准化编号：ps1_rela
@@ -28,7 +60,9 @@ RDA_CCA = function(otu = NULL,tax = NULL,map = NULL,
   rowSums(otu)
   DCA= vegan::decorana(otu)
   xxa = as.data.frame(DCA$rproj)
-  if(max(xxa$DCA1)<=4 & max(xxa$DCA1)>=3){twochiose = "T"}else{twochiose = "F"}
+  if(max(xxa$DCA1)<=4 & max(xxa$DCA1)>=3){twochiose = "T"}else
+    {twochiose = "F"}
+
   if(max(xxa$DCA1) > 4 | twochiose == "T") {
     ##choise CCA
     C.whole = vegan::cca(otu, env.st3)  ##rda(otu, env.st2)

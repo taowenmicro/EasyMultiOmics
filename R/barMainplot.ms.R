@@ -86,6 +86,7 @@ barMainplot.ms = function(otu = NULL,tax = NULL,map = NULL,tree = NULL ,ps = NUL
       tax[i,j]= "others"
     }
   }
+
   phyloseq::tax_table(psdata)= tax
 
   Taxonomies <- psdata %>% # Transform to rel. abundance

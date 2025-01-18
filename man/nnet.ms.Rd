@@ -4,7 +4,7 @@
 \alias{nnet.ms}
 \title{Neural network screening of characteristic metabolites}
 \usage{
-nnet.ms(ps = ps, top = 20, seed = 1010, k = 5)
+\method{nnet}{ms}(ps = ps, top = 20, seed = 1010, k = 5)
 }
 \arguments{
 \item{ps}{A phyloseq format file used as an alternative for the input containing metabolite composition table,
