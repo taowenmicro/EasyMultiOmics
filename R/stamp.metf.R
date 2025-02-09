@@ -1,4 +1,48 @@
-
+#' @title Statistical Comparison of Taxonomic Abundances Between Groups
+#' @description
+#' The `stamp.metf` function identifies significant differences in taxonomic abundances between two groups
+#' using statistical tests such as `t-test` or `Wilcoxon test`. It visualizes the results as bar plots and confidence interval plots.
+#'
+#' @param ps A `phyloseq` object containing microbiome data (metagenome functional composition table, taxonomic table, and sample metadata).
+#' @param Top An integer specifying the maximum number of genes or taxa to analyze. Default is `20`.
+#' @param method A character string indicating the normalization method. Default is `rela`.
+#' @param test.method A character string specifying the statistical test. Options are `"t.test"` (default) for Student's t-test or `"wilcox.test"` for the Wilcoxon rank-sum test.
+#'
+#' @return
+#' A composite plot (`patchwork` object) consisting of three panels:
+#' \itemize{
+#'   \item A bar plot showing mean proportions of taxa between groups.
+#'   \item A confidence interval plot showing the difference in mean proportions with 95% confidence intervals.
+#'   \item A column of adjusted p-values associated with the taxa.
+#' }
+#'
+#' @details
+#' The function performs the following steps:
+#' \itemize{
+#'   \item Aggregates the data at the specified taxonomic rank.
+#'   \item Normalizes the data using the specified method (`rela` by default).
+#'   \item Filters taxa to include only the top `Top` most abundant taxa.
+#'   \item Applies the specified statistical test (`t.test` or `wilcox.test`) for each taxon to compare mean proportions between groups.
+#'   \item Adjusts the p-values using the Bonferroni correction method.
+#'   \item Creates a composite plot visualizing the mean proportions, confidence intervals, and adjusted p-values.
+#' }
+#'
+#' @examples
+#' \dontrun{
+#' ps =ps.kegg %>% filter_OTU_ps(Top = 1000)
+#' allgroup <- combn(unique(sample_data(ps)$Group),2)
+#' ps_sub <- subset_samples(ps,Group %in% allgroup[,1]);ps_sub
+#' res <- stamp.metf(ps = ps_sub,Top = 20)
+#' p19 =res[[1]]
+#' p19
+#' dat1= res[[1]]
+#' dat1
+#' dat2= res[[2]]
+#' dat2
+#' }
+#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#'
+#' @export
 stamp.metf <- function(ps_sub = ps,Top = 20,method = "rela",
                        test.method = "t.test"){
 

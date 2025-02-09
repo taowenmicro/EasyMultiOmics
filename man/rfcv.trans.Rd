@@ -2,7 +2,7 @@
 % Please edit documentation in R/rfcv.trans.R
 \name{rfcv.trans}
 \alias{rfcv.trans}
-\title{For cross-validation of microbiome data}
+\title{For cross-validation of transcriptome functional composition data}
 \usage{
 rfcv.trans(
   otu = NULL,
@@ -16,39 +16,44 @@ rfcv.trans(
 )
 }
 \arguments{
-\item{otu}{OTU/ASV table;}
+\item{otu}{Transcriptome functional composition table.}
 
-\item{tax}{taxonomy table}
+\item{tax}{taxonomy table.}
 
-\item{map}{Sample metadata;}
+\item{map}{Sample metadata.}
 
-\item{ps}{phyloseq object of microbiome}
+\item{ps}{A phyloseq format file used as an alternative for the input containing transcriptome functional composition table, tax, and sample metadata.}
 
-\item{optimal}{important OTU number which selected}
+\item{optimal}{Important gene number which selected to plot.}
 
-\item{nrfcvnum}{Number of cross-validation}
+\item{nrfcvnum}{Number of cross-validation.}
 
-\item{Group}{column name for groupID in map table.}
+\item{Group}{Column name for groupID in map table.}
 
-\item{rfcv}{TURE or FELSE,whether need to do cross-validation}
+\item{rfcv}{TURE or FELSE,whether need to do cross-validation.}
 }
 \value{
 list contain ggplot object and table.
 }
 \description{
-For cross-validation of microbiome data
+For cross-validation of transcriptome functional composition data
 }
 \examples{
-# data form github
-result = Micro.rfcv(otu = NULL,tax = NULL,map = NULL,tree = NULL ,ps = ps_rela,group  = "Group",optimal = 20,nrfcvnum = 6)
-prfcv = result[[1]]# plot rfcv
-rfcvtable = result[[3]]# table rfcv
-}
-\references{
-Jingying Zhang, Yong-Xin Liu, Na Zhang, Bin Hu, Tao Jin, Haoran Xu, Yuan Qin, Pengxu Yan, Xiaoning Zhang, Xiaoxuan Guo, Jing Hui, Shouyun Cao, Xin Wang, Chao Wang, Hui Wang, Baoyuan Qu, Guangyi Fan, Lixing Yuan, Ruben Garrido-Oter, Chengcai Chu & Yang Bai.
-NRT1.1B is associated with root microbiota composition and nitrogen use in field-grown rice.
-Nature Biotechnology, 2019(37), 6:676-684, DOI: \url{https://doi.org/10.1038/s41587-019-0104-4}
+library(phyloseq)
+library(dplyr)
+library(ggplot2)
+library(ROCR)
+library(ggClusterNet)
+library(RColorBrewer)
+# Example with a phyloseq object
+data(ps.trans)
+ps = ps.trans\%>\% filter_taxa(function(x) sum(x) > 5 , TRUE)
+result =rfcv.trans(ps = ps \%>\% filter_OTU_ps(200),group  = "Group",optimal = 20,nrfcvnum = 6)
+prfcv = result[[1]]
+prfcv
+rfcvtable = result[[3]]
+rfcvtable
 }
 \author{
-Contact: Tao Wen \email{2018203048@njau.edu.cn}, Yong-Xin Liu \email{yxliu@genetics.ac.cn}
+Contact: Tao Wen \email{2018203048@njau.edu.cn},  Peng-Hao Xie \email{2019103106@njqu.edu.cn}
 }

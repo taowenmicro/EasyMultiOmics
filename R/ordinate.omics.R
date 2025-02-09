@@ -3,7 +3,6 @@
 #
 #' @title Beta diversity plotting
 #' @description Input otutab, metadata and tree or phyloseq object; support 47 distance type (bray, unifrac, wunifrac ...),  8 ordination method (PCoA, NMDS, ...); output ggplot2 figure, data and statistical test result.
-#'
 #' @param dist distance type, including "unifrac" "wunifrac" "dpcoa" "jsd" "manhattan" "euclidean"   "canberra" "bray" "kulczynski"  "jaccard" "gower" "altGower" "morisita" "horn" "mountford"  "raup" "binomial"  "chao"  "cao" "w"  "-1"  "c" "wb"  "r"   "I"  "e" "t" "me"   "j"  "sor"  "m"   "-2"  "co";
 #' @param group group ID;
 #' @param method DCA, CCA, RDA, NMDS, MDS, PCoA, PCA, LDA;
@@ -25,8 +24,6 @@
 #' pvalue.cutoff = 0.05)
 #'p3_1 = result[[1]]
 #' @export
-#'
-
 
 ordinate.omics= function(ps = NULL,
                           group = "Group", dist = "bray", method ="PCoA",

@@ -1,4 +1,3 @@
-
 #' @title Plotting rarefaction curve for each sample or group
 #' @description Input otutab and metadata, and manual set metadata column names.
 #' ggplot2 show line plot, and/or standard error

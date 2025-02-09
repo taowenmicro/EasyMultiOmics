@@ -75,7 +75,8 @@ merge16S_ITS=function (ps16s = ps16, psITS = psIT, N16s = 100, NITS = 100,
     mapping = as.data.frame(phyloseq::sample_data(ps_16s))
     head(mapping)
     pallps <- phyloseq::phyloseq(phyloseq::otu_table(as.matrix(otu_table),
-                                                     taxa_are_rows = T), phyloseq::sample_data(mapping),
+                                                     taxa_are_rows = TRUE),
+                                 phyloseq::sample_data(mapping),
                                  phyloseq::tax_table(as.matrix(tax_table)))
   }
   else if (is.null(psITS) & !is.null(ps16s)) {
@@ -91,7 +92,7 @@ merge16S_ITS=function (ps16s = ps16, psITS = psIT, N16s = 100, NITS = 100,
     mapping = as.data.frame(sample_data(ps_16s))
     head(mapping)
     pallps <- phyloseq::phyloseq(phyloseq::otu_table(as.matrix(otu_table),
-                                                     taxa_are_rows = T), phyloseq::sample_data(mapping),
+                                                     taxa_are_rows = TRUE), phyloseq::sample_data(mapping),
                                  phyloseq::tax_table(as.matrix(tax_table)))
   }
   else if (!is.null(psITS) & is.null(ps16s)) {
@@ -107,7 +108,7 @@ merge16S_ITS=function (ps16s = ps16, psITS = psIT, N16s = 100, NITS = 100,
     mapping = as.data.frame(phyloseq::sample_data(psITS))
     head(mapping)
     pallps <- phyloseq::phyloseq(phyloseq::otu_table(as.matrix(otu_table),
-                                                     taxa_are_rows = T), phyloseq::sample_data(mapping),
+                                                     taxa_are_rows = TRUE), phyloseq::sample_data(mapping),
                                  phyloseq::tax_table(as.matrix(tax_table)))
   }
   tax = pallps %>% vegan_tax() %>% as.data.frame() %>% dplyr::select(filed,

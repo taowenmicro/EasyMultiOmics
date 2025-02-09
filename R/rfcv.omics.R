@@ -19,7 +19,7 @@ rfcv.omics = function(
                      ps = NULL,group  = "Group",optimal = 20,nrfcvnum = 5){
 
 
-  ps = ggClusterNet::inputMicro(otu,tax,map,tree,ps,group  = group)
+ # ps = ggClusterNet::inputMicro(otu,tax,map,tree,ps,group  = group)
   otutab = as.data.frame((ggClusterNet::vegan_otu(ps)))
   mapping =  sample_data(ps)
   # Set classification info.

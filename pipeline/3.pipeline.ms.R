@@ -46,7 +46,6 @@ head(tax3)
 row.names(tax3) = tax3$metab_id
 tax_table(ps.ms) = phyloseq::tax_table(as.matrix(tax3))
 
-
 #2 ann.kegg2: 代谢物注释KEGG数据库导入文件 ----
 tax2 = ann.kegg(id)
 
@@ -54,8 +53,6 @@ head(tax2)
 #--注释kegg数据库算法2
 tax2 = ann.kegg2(id)
 head(tax2)
-
-
 # tax0 = ps.ms %>% vegan_tax() %>% as.data.frame() #%>% rownames_to_column("ID")
 # head(tax0)
 # tax2 = tax0 %>% left_join(tax,by = "ID") %>% column_to_rownames("ID")
@@ -66,7 +63,6 @@ head(tax2)
 
 
 #3 zone.fill.ms ----
-?zone.fill.ms
 ps.ms2 = zone.fill.ms(ps = ps.ms,method = "repeat")
 
 #4 scale_IS.ms ----
@@ -77,13 +73,11 @@ ps.ms2 = scale_QC.ms(ps = ps.ms,
                      QC = c("OE36_2","OE36_3","OE2_1"))
 
 #6 normalize.ms  ----
-?normalize.ms
 ps.ms2 = normalize.ms(ps = ps.ms,method = "rela")
 
 
 # ordinate analysis
 #7 ordinate.ms:  代谢物排序分析----
-?ordinate.ms
 result = ordinate.ms(ps = ps.ms, group = "Group", dist = "bray",
                         method = "PCoA", Micromet = "anosim", pvalue.cutoff = 0.05,
                         pair = F)
@@ -124,22 +118,17 @@ p3_3 +
   scale_color_manual(values = colset1,guide = F) +
   mytheme1
 
-
 #8 MicroTest.ms:代谢组总体差异检测#-------
-?MicroTest.ms
 dat1 = MicroTest.ms(ps = ps.ms, Micromet = "adonis", dist = "bray")
 dat1
 
 #9 pairMicroTest.ms:两两分组代谢总体水平差异检测#-------
-?pairMicroTest.ms
 dat2 = pairMicroTest.ms(ps= ps.ms, Micromet = "MRPP", dist = "bray")
 dat2
-
 
 #10 mantal.ms:代谢群落差异检测普鲁士分析-----
 map= sample_data(ps.ms)
 head(map)
-?mantal.ms
 result <- mantal.ms(ps = ps.ms,
                        method =  "spearman",
                        group = "Group",
@@ -151,7 +140,6 @@ data
 p3_7 <- result[[2]]
 p3_7
 
-
 #11 plsda.ms:plsda排序分析-----
 library(ggalt)
 library(vegan)
@@ -160,7 +148,6 @@ library(ggplot2)
 library(ggalt)
 library(ggforce)
 library(caret)
-?plsda.ms
 res = plsda.ms(ps=ps.ms,Group = "Group")
 p11 = res [[1]]
 p11
@@ -171,18 +158,14 @@ dat
 library(pacman)
 library(ggsci)
 library(ropls)
-# BiocManager::install("ropls")
-?oplsda.ms
 res = oplsda.ms(ps = ps.ms, ncol=3,nrow = 1)
 
 p12 = res[1]
 dat = res[2]
 
-
 #  metabolite classification
 #13 Ven.Ups.mset.ms: 用于展示共有、特有的代谢物----
 # 分组小于6时使用
-?Ven.Upset.ms
 res = Ven.Upset.ms(ps =  ps.ms,
                         group = "Group",
                         N = 0.5,
@@ -193,7 +176,6 @@ dat = res[[2]]
 dat
 
 #14 ggflower.ms: 花瓣图展示共有特有代谢物------
-?ggflower.ms
 res <- ggflower.ms(ps= ps.ms ,
                        # rep = 1,
                        group = "Group",
@@ -212,11 +194,9 @@ dat = res[[2]]
 dat
 
 
-
 #15 Ms_tern.ms: 三元图展示组成----
 tax_table(ps.ms)
 ps1 = ps.ms %>% filter_OTU_ps(500)
-?Ms_tern.ms
 res = Ms_tern.ms(ps1, color = "Mode")
 p15 = res[[1]]
 p15[[1]] +theme_bw()
@@ -229,22 +209,22 @@ head(dat)
 j = "Class"
 rank.names(ps.ms)
 strbar = c("Super_class","Class" , "Sub_class"  )
-?barMainplot.ms
- result = barMainplot.ms(ps = ps.ms,
+
+result = barMainplot.ms(ps = ps.ms,
                           j = "Class",
                           # axis_ord = axis_order,
                           label = FALSE,
                           sd = FALSE,
                           Top = 12)
-  p4_1 <- result[[1]] +scale_fill_brewer(palette = "Paired")
-  p4_1
-  p4_2  <- result[[3]] +
+p4_1 <- result[[1]] +scale_fill_brewer(palette = "Paired")
+p4_1
+p4_2  <- result[[3]] +
      scale_fill_manual(values = colset3) +
    scale_x_discrete(limits = axis_order)
     # mytheme1
-  p4_2
+p4_2
 
-  databar <- result[[2]] %>%
+databar <- result[[2]] %>%
     dplyr::group_by(Group,aa) %>%
     dplyr::summarise(sum(Abundance)) %>% as.data.frame()
   colnames(databar) = c("Group",j,"Abundance(%)")
@@ -253,8 +233,7 @@ strbar = c("Super_class","Class" , "Sub_class"  )
 
 
 #17 cluMicro.bar.micro: 聚类堆积柱状图展示组成 -----
-  ?cluMicro.bar.ms
-  res <-  cluMicro.bar.ms (dist = "bray",
+res <-  cluMicro.bar.ms (dist = "bray",
                                  ps= ps.ms,
                                  j = "Class",
                                  Top = 10, # 提取丰度前十的物种注释
@@ -264,65 +243,57 @@ strbar = c("Super_class","Class" , "Sub_class"  )
                                  cuttree = length(unique(phyloseq::sample_data(ps.ms)$Group)))
 
 
-  p17.1 = res[[1]]
-  p17.1
-  p17.2 <- res[[2]]
-  p17.2
-  p17.3 <- res[[3]]
-  p17.3
-  p17.4 <- res[[4]]
-  p17.4
-  clubardata <- result[[5]]
-  clubardata
-
-
-
-
+p17.1 = res[[1]]
+p17.1
+p17.2 <- res[[2]]
+p17.2
+p17.3 <- res[[3]]
+p17.3
+p17.4 <- res[[4]]
+p17.4
+clubardata <- result[[5]]
+clubardata
 
 # difference analysis
 #18 cluster_plot.ms:  代谢物 层次聚类--------
-  ?cluster_plot.ms
-  res = cluster_plot.ms (ps= ps.ms,
+res = cluster_plot.ms (ps= ps.ms,
                          hcluter_method = "complete",
                          dist = "bray",cuttree = gnum,
                          row_cluster = TRUE,
                          col_cluster =  TRUE)
 
-  p0 = res[[1]]
-  p0
-  p1 = res[[2]]
-  p1
-  p2 = res[[3]]
-  p2
-  dat = res[4]
-  dat
+p0 = res[[1]]
+p0
+p1 = res[[2]]
+p1
+p2 = res[[3]]
+p2
+dat = res[4]
+dat
 
 #19 heatmap.ms:  热图展示代谢物差异----
 ps.ms_rela <- ps.ms %>% scale_micro(method = "rela") %>%
       tax_glom_wt(ranks = "Class")
-?heatmap.ms
-
 result <- heatmap.ms (ps_rela= ps.ms_rela,
                           label =  TRUE,
                           col_cluster = TRUE,
                           row_cluster =TRUE)
-    p19 <- result[[1]]
-    p19
-    # p1 +  scale_fill_gradientn(colours =colorRampPalette(RColorBrewer::brewer.pal(11,"Set3"))(60))
-    p19.1<- result[[2]]
-    p19.1
-    dat = result[[3]]
-    dat
+p19 <- result[[1]]
+p19
+# p1 +  scale_fill_gradientn(colours =colorRampPalette(RColorBrewer::brewer.pal(11,"Set3"))(60))
+p19.1<- result[[2]]
+p19.1
+dat = result[[3]]
+dat
 
 #20 statSuper:  差异代谢物#----------
  #--非参数检验
-    ?statSuper
-   result1 = statSuper(ps = ps.ms,group  = "Group",artGroup = NULL,method = "wilcox")
-    head(result1)
+result1 = statSuper(ps = ps.ms,group  = "Group",artGroup = NULL,method = "wilcox")
+head(result1)
 
-    #--t检验检验--建议四个重复以上
-    result2 = statSuper(ps = ps.ms,group  = "Group",artGroup = NULL,method = "ttext")
-    head(result2)
+#--t检验检验--建议四个重复以上
+result2 = statSuper(ps = ps.ms,group  = "Group",artGroup = NULL,method = "ttext")
+head(result2)
 
 #21 MuiKwWlx2: 分类化合物分组差异-------
 library(EasyStat)
@@ -511,8 +482,6 @@ for (i in 1:n.fac2) {
   return(plot_list2)
 
 }
-
-
 
 #24 FacetMuiPlotReBoxBar: 单变量统计分析-柱状图结合散点图可视化--------
 
@@ -745,25 +714,6 @@ for (i in 1:n.fac2) {
 
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # biomarker identification-----
 id = sample_data(ps.ms)$Group %>% unique()
 aaa = combn(id,2)
@@ -773,8 +723,6 @@ group = c(aaa[1,i],aaa[2,i])
 
 pst = ps.ms %>% subset_samples.wt("Group",group) %>%
   filter_taxa(function(x) sum(x ) > 10, TRUE)
-
-
 
 #27 rfcv.ms :交叉验证结果-------
 library(randomForest)

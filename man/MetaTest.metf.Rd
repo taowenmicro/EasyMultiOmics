@@ -15,13 +15,13 @@ MetaTest.metf(
 )
 }
 \arguments{
-\item{otu}{OTU/ASV table;}
+\item{otu}{Metagenome functional composition table.}
 
 \item{map}{Sample metadata;}
 
-\item{ps}{alternative input;}
+\item{ps}{A phyloseq format file used as an alternative for the input containing metagenome functional composition table, tax, and sample metadata.}
 
-\item{group}{group ID;}
+\item{group}{Group ID;}
 
 \item{Micromet}{statistics default by adonis, alternative anosim or MRPP;}
 
@@ -48,19 +48,11 @@ The available diversity indices include the following:
 }
 }
 \examples{
-# Input otutab, metadata, and options group, method and distance
-MicroTest(otu = otutab_rare, map = metadata, group = "Group", Micromet = "MRPP", dist = "bray")
-# Input phyloseq format input, and options group, method and distance
-MicroTest(ps = ps, group = "Group", Micromet = "MRPP", dist = "bray")
-}
-\references{
-Jingying Zhang, Yong-Xin Liu, Na Zhang, Bin Hu, Tao Jin, Haoran Xu, Yuan Qin, Pengxu Yan, Xiaoning Zhang, Xiaoxuan Guo, Jing Hui, Shouyun Cao, Xin Wang, Chao Wang, Hui Wang, Baoyuan Qu, Guangyi Fan, Lixing Yuan, Ruben Garrido-Oter, Chengcai Chu & Yang Bai.
-NRT1.1B is associated with root microbiota composition and nitrogen use in field-grown rice.
-Nature Biotechnology, 2019(37), 6:676-684, DOI: \url{https://doi.org/10.1038/s41587-019-0104-4}
-}
-\seealso{
-BetaDiv beta_pcoa beta_cpcoa
+ps =ps.kegg \%>\% filter_OTU_ps(Top = 1000)
+dat1 = MetaTest.metf(ps = ps, Micromet = "adonis", dist = "bray")
+dat1
 }
 \author{
-Contact: Tao Wen \email{2018203048@njau.edu.cn}, Yong-Xin Liu \email{yxliu@genetics.ac.cn}
+Contact: Tao Wen \email{2018203048@njau.edu.cn},
+Peng-Hao Xie \email{2019103106@njqu.edu.cn}
 }

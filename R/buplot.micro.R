@@ -34,7 +34,7 @@
 #'
 #' @export
 buplot.micro <- function(dt  = kk@result,id = id) {
-   data = dt
+  data = dt
   data$GeneCount <- as.numeric(sapply(strsplit(data$GeneRatio, "/"), function(x) as.numeric(x[1])))
   data$TotalGenes <- as.numeric(sapply(strsplit(data$GeneRatio, "/"), function(x) as.numeric(x[2])))
   data$HitRatio <- data$GeneCount / data$TotalGenes

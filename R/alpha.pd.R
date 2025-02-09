@@ -15,10 +15,10 @@
 #' \dontrun{
 #' library(ape)
 #' library(picante)
-#' tab2 = alpha.pd(ps.16s)
+#' tab2 = alpha.pd.micro(ps.16s)
 #' head(tab2)
 #' }
-alpha.pd = function(ps=NULL,group = "Group"){
+alpha.pd.micro = function(ps=NULL,group = "Group"){
   com_2020 <- ps %>% vegan_otu() %>%
     as.data.frame()
 
