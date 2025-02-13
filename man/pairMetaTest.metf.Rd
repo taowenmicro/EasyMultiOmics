@@ -7,32 +7,32 @@
 pairMetaTest.metf(ps = ps, Micromet = "adonis", dist = "bray")
 }
 \arguments{
-\item{ps}{alternative input;}
+\item{ps}{A phyloseq format file used as an alternative for the input containing metagenome functional composition table, tax, and sample metadata.}
 
-\item{Micromet}{statistics default by adonis, alternative anosim or MRPP;}
+\item{Micromet}{Statistics default by adonis, alternative anosim or MRPP;}
 
-\item{dist}{distance type, including "unifrac" "wunifrac" "dpcoa" "jsd" "manhattan" "euclidean"   "canberra" "bray" "kulczynski"  "jaccard" "gower" "altGower" "morisita" "horn" "mountford"  "raup" "binomial"  "chao"  "cao" "w"  "-1"  "c" "wb"  "r"   "I"  "e" "t" "me"   "j"  "sor"  "m"   "-2"  "co";}
+\item{dist}{Distance type, including "unifrac" "wunifrac" "dpcoa" "jsd" "manhattan" "euclidean"   "canberra" "bray" "kulczynski"  "jaccard" "gower" "altGower" "morisita" "horn" "mountford"  "raup" "binomial"  "chao"  "cao" "w"  "-1"  "c" "wb"  "r"   "I"  "e" "t" "me"   "j"  "sor"  "m"   "-2"  "co";}
 
-\item{otu}{OTU/ASV table;}
+\item{otu}{Metagenome functional composition table.}
 
 \item{map}{Sample metadata;}
 
-\item{tree}{tree/nwk file;}
+\item{tree}{Tree/nwk file;}
 
-\item{group}{group ID;}
+\item{group}{Column name for groupID in map table(sample metadata).}
 
 \item{method}{DCA, CCA, RDA, NMDS, MDS, PCoA, PCA, LDA;}
 
-\item{pvalue.cutoff}{Pvalue threshold, default in 0.05;}
+\item{pvalue.cutoff}{Pvalue threshold, default in 0.05.}
 }
 \value{
 stat table
 }
 \description{
-Input phyloseq object, test method and distance type
+Input phyloseq object, test method and distance type.
 }
 \details{
-By default, input phyloseq object include metadata and otutab
+By default, input phyloseq object include metadata and metagenome functional composition table
 The available diversity indices include the following:
 \itemize{
 \item{most used indices: bray unifrac wunifrac}
@@ -40,19 +40,10 @@ The available diversity indices include the following:
 }
 }
 \examples{
-# Input phyloseq format input, and options group, method and distance
-# 生成phyloseq对象
-ps = phyloseq(otu_table(otutab_rare, taxa_are_rows=TRUE), sample_data(metadata))
-pairMicroTest (ps = ps, Micromet = "anosim", dist = "bray")
-}
-\references{
-Jingying Zhang, Yong-Xin Liu, Na Zhang, Bin Hu, Tao Jin, Haoran Xu, Yuan Qin, Pengxu Yan, Xiaoning Zhang, Xiaoxuan Guo, Jing Hui, Shouyun Cao, Xin Wang, Chao Wang, Hui Wang, Baoyuan Qu, Guangyi Fan, Lixing Yuan, Ruben Garrido-Oter, Chengcai Chu & Yang Bai.
-NRT1.1B is associated with root microbiota composition and nitrogen use in field-grown rice.
-Nature Biotechnology, 2019(37), 6:676-684, DOI: \url{https://doi.org/10.1038/s41587-019-0104-4}
-}
-\seealso{
-BetaDiv beta_pcoa beta_cpcoa
+ps =ps.kegg \%>\% filter_OTU_ps(Top = 1000)
+dat2 = pairMicroTest.metf(ps = ps, Micromet = "MRPP", dist = "bray")
+dat2
 }
 \author{
-Contact: Tao Wen \email{2018203048@njau.edu.cn}, Yong-Xin Liu \email{yxliu@genetics.ac.cn}
+Contact: Tao Wen \email{2018203048@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
 }

@@ -1,4 +1,61 @@
-
+#' @title Differential Abundance Analysis Using DESeq2
+#'
+#' @description
+#' The `DESep2Super.metf` function performs differential abundance analysis between transcriptome functional groups using the `DESeq2` package.
+#' It identifies significantly enriched or depleted taxa across multiple group comparisons by calculating log2 fold changes,
+#' raw p-values, and adjusted p-values (FDR). The input data can be provided as a `phyloseq` object or as separate transcriptome functional composition, taxonomic, and metadata tables.
+#'
+#' @param otu A data frame containing gene counts. Optional if `ps` is provided.
+#' @param map A data frame containing sample metadata. Optional if `ps` is provided.
+#' @param tree A phylogenetic tree. Optional if `ps` is provided.
+#' @param tax  transcriptome functional classification table.Optional if `ps` is provided.
+#' @param ps A phyloseq format file used as an alternative for the input containing transcriptome functional composition table, tax, and sample metadata.
+#' @param j A string or integer specifying the taxonomic rank to perform the analysis on.
+#' Can be a numeric rank (1-7), a taxonomic name (e.g., `"Phylum"`), or `"OTU"`. Default is `"meta"`.
+#' @param group A string specifying the grouping variable in the sample metadata. Default is `"Group"`.
+#' @param pvalue A numeric value specifying the significance threshold for adjusted p-values (FDR). Default is `0.05`.
+#' @param artGroup A custom matrix specifying pairwise group comparisons. Optional.
+#' @return
+#' A list containing:
+#' \describe{
+#'   \item{A list of volcano plots for each pairwise comparison.}
+#'   \item{A data frame containing differential abundance results, including log2 fold changes, p-values, adjusted p-values,
+#'   and group-specific normalized abundances.}
+#' }
+#'
+#' @details
+#' The function performs the following steps:
+#' \itemize{
+#'   \item Prepares OTU, taxonomic, and metadata tables from the `phyloseq` object or individual inputs.
+#'   \item Aggregates data to the specified taxonomic rank (if applicable).
+#'   \item Constructs a `DESeq2` dataset object and normalizes OTU counts.
+#'   \item Performs pairwise group comparisons using contrasts in the DESeq2 framework.
+#'   \item Calculates log2 fold changes, raw p-values, and FDR-adjusted p-values for each taxon.
+#'   \item Labels taxa as `"enriched"`, `"depleted"`, or `"nosig"` based on thresholds.
+#'   \item Outputs a combined data frame with differential abundance results, normalized abundances, and taxonomic annotations.
+#' }
+#'
+#' The results include volcano plots that visualize the differential abundance results for each group comparison.
+#' Significant taxa are highlighted, and their log2 fold changes and p-values are displayed.
+#'
+#' @examples
+#' \dontrun{
+#' data(ps.trans)
+#' ps =ps.trans %>% filter_OTU_ps(Top = 1000)
+#' res = DESep2Super.trans(ps = ps,group  = "Group",artGroup = NULL)
+#' p15.1 = res[[1]][1]
+#' p15.1
+#' p15.2 = res[[1]][2]
+#' p15.2
+#' p15.3 = res[[1]][3]
+#' p15.3
+#' dat = res[[2]]
+#' head(dat)
+#' }
+#'
+#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#'
+#' @export
 DESep2Super.trans= function(otu = NULL,
                             tax = NULL,
                             map = NULL,

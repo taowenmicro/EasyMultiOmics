@@ -2,7 +2,7 @@
 % Please edit documentation in R/ordinate.metf.R
 \name{ordinate.metf}
 \alias{ordinate.metf}
-\title{Beta diversity plotting}
+\title{Ordination analysis and plotting}
 \usage{
 ordinate.metf(
   otu = NULL,
@@ -18,49 +18,54 @@ ordinate.metf(
 )
 }
 \arguments{
-\item{otu}{OTU/ASV table;}
+\item{otu}{Metagenome functional composition table.}
 
-\item{map}{Sample metadata;}
+\item{tax}{Metagenome functional classification table.}
 
-\item{group}{group ID;}
+\item{map}{Sample metadata.}
 
-\item{dist}{distance type, including "unifrac" "wunifrac" "dpcoa" "jsd" "manhattan" "euclidean"   "canberra" "bray" "kulczynski"  "jaccard" "gower" "altGower" "morisita" "horn" "mountford"  "raup" "binomial"  "chao"  "cao" "w"  "-1"  "c" "wb"  "r"   "I"  "e" "t" "me"   "j"  "sor"  "m"   "-2"  "co";}
+\item{ps}{A phyloseq format file used as an alternative for the input containing metagenome functional composition table, tax, and sample metadata.}
 
-\item{method}{DCA, CCA, RDA, NMDS, MDS, PCoA, PCA, LDA;}
+\item{group}{Column name for groupID in map table(sample metadata).}
 
-\item{Micromet}{statistics by adonis/anosim/MRPP;}
+\item{dist}{Distance type, including "unifrac","wunifrac","manhattan","euclidean","bray","jaccard"... .}
 
-\item{pvalue.cutoff}{Pvalue threshold;}
+\item{method}{DCA, CCA, RDA, NMDS, MDS, PCoA, PCA, LDA, t-sne.}
 
-\item{tree}{tree/nwk file;}
+\item{Micromet}{Statistics by adonis/anosim/MRPP;}
+
+\item{pvalue.cutoff}{Pvalue threshold.}
+
+\item{pair}{A logical value for whether to perform analysis between any two groups.}
 }
 \value{
-list object including plot, stat table
+A list containing the following components:
+\item{p2}{Standard plot of the ordination results.}
+\item{points}{Data frame with coordinates of samples in the ordination space.}
+\item{p3}{Annotated plot with sample labels.}
+\item{pairResult}{Results of pairwise tests if applicable.}
+\item{title1}{Overall inspection results by anosim or adonis.}
+\item{eig}{Eigenvalues or variance explained by each axis.}
 }
 \description{
-Input otutab, metadata and tree or phyloseq object; support 47 distance type (bray, unifrac, wunifrac ...),  8 ordination method (PCoA, NMDS, ...); output ggplot2 figure, data and statistical test result.
-}
-\details{
-By default, input phyloseq object include metadata, otutab and tree
-The available diversity indices include the following:
-\itemize{
-\item{most used indices: bray, unifrac, wunifrac}
-\item{other used indices: manhattan, euclidean, jaccard ...}
-}
+Input metagenome functional composition table, metadata and tree or phyloseq object;
+support 47 distance type (bray, unifrac, wunifrac ...),
+8 ordination method (PCoA, NMDS, ...);
+output ggplot2 figure, data and statistical test result.
 }
 \examples{
-
-BetaDiv(otu = otutab_rare, map = metadata, tree = tree, group = "Group", dist = "bray", method = "PCoA", Micromet = "adonis", pvalue.cutoff = 0.05)
-
-}
-\references{
-Jingying Zhang, Yong-Xin Liu, Na Zhang, Bin Hu, Tao Jin, Haoran Xu, Yuan Qin, Pengxu Yan, Xiaoning Zhang, Xiaoxuan Guo, Jing Hui, Shouyun Cao, Xin Wang, Chao Wang, Hui Wang, Baoyuan Qu, Guangyi Fan, Lixing Yuan, Ruben Garrido-Oter, Chengcai Chu & Yang Bai.
-NRT1.1B is associated with root microbiota composition and nitrogen use in field-grown rice.
-Nature Biotechnology, 2019(37), 6:676-684, DOI: \url{https://doi.org/10.1038/s41587-019-0104-4}
-}
-\seealso{
-beta_pcoa beta_cpcoa
+data(ps.kegg)
+ps =ps.kegg \%>\% filter_OTU_ps(Top = 1000)
+result = ordinate.metf(ps = ps, group = "Group", dist = "bray",
+method = "PCoA", Micromet = "anosim", pvalue.cutoff = 0.05,pair = F)
+p3_1 = result[[1]]
+p3_1
+p3_2 = result[[3]]
+p3_2
+plotdata =result[[2]]
+head(plotdata)
 }
 \author{
-Contact: Tao Wen \email{2018203048@njau.edu.cn}, Yong-Xin Liu \email{yxliu@genetics.ac.cn}
+Tao Wen \email{2018203048@njau.edu.cn},
+Peng-Hao Xie \email{2019103106@njqu.edu.cn}
 }

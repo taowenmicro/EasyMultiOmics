@@ -66,7 +66,7 @@ randomforest.omics <- function(
   tab1 <- ggpubr::ggtexttable(model_Accuracy_rates, rows = NULL)
   library(patchwork)
   pn <- tab1/tab2
-
+pn
   # if (rfcv) {
   #   result = Micro.rfcv(otu = NULL,tax = NULL,map = NULL,tree = NULL ,ps = ps,group  = "Group",optimal = 20,nrfcvnum = 6)
   #
@@ -168,7 +168,7 @@ randomforest.omics <- function(
     geom_point(size=6,pch=21)+
     geom_segment(aes(yend=id),xend=0,size=3)
     #geom_text(aes(x =MeanDecreaseAccuracy*1.1,  label = !!sym(lab)),size = 3,color = "black")
-
+p1
 
 
   # plot 2
@@ -176,16 +176,18 @@ randomforest.omics <- function(
   a3$iid = paste(1:length(a3$id))
   angle1 = 90 - 360 * ( as.numeric(a3$iid) - 0.5) /length(a3$id)
   a3$id = factor(a3$id,levels = a3$id)
+  head(a3)
+  str(a3)
   p2 = a3  %>%
     ggplot(aes(x = factor(id), y = MeanDecreaseAccuracy ,label = id)) +
-    geom_bar(stat = 'identity', position = 'dodge',fill =  MeanDecreaseAccuracy) +
+    geom_bar(stat = 'identity', position = 'dodge',aes(fill = MeanDecreaseAccuracy)) +
     # scale_fill_manual(values = mi)+
     geom_text(hjust = 0, angle = angle1, alpha = 1) +
     coord_polar() +
     ggtitle('') +
     ylim(c(min,max))+
     theme_void()+
-    scale_fill_gradient(low = "#377EB8", high = "#4DAF4A")
+    scale_fill_gradient(low = "#377EB8", high = "orange")
   p2
 
   return(list(p1,p2,a3,pn,a2))

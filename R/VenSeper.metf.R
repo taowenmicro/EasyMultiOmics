@@ -1,3 +1,41 @@
+#' @title Generate Venn Diagrams and Analyze KEGG Groups
+#' @description
+#' This function creates Venn diagrams to compare microbial groups based on presence/absence thresholds,
+#' and performs detailed analyses for each group. The results include Venn diagrams, bar plots, and
+#' boxplots for visualizing group-specific KEGG data.
+#'
+#' @param ps A `phyloseq` object containing kegg data.
+#' @param group A character string specifying the grouping variable in the sample metadata. Default is `"Group"`.
+#' @param num An integer specifying the threshold for selecting kegg in Venn groups. Default is `6`.
+#'
+#' @return A list containing the following elements:
+#' \describe{
+#'   \item{pa}{A combined bar plot visualization of kegg for each Venn segment.}
+#'   \item{pb}{A combined box plot visualization for the selected kegg in each segment.}
+#'   \item{pc}{A combined relative abundance bar plot for each Venn segment.}
+#'   \item{dat.f}{A list of data frames containing bar plot data for each Venn segment.}
+#'   \item{dat.f2}{A list of data frames containing statistical analysis results for each Venn segment.}
+#' }
+#'
+#' @details
+#' The function performs the following steps:
+#' \itemize{
+#'   \item Extracts OTU presence/absence data for each microbial group defined in the metadata.
+#'   \item Creates a Venn diagram to identify shared and unique OTUs among groups.
+#'   \item For each Venn segment, generates bar plots, performs statistical analyses, and creates boxplots to visualize group-specific differences.
+#'   \item Outputs the processed data and visualizations for further analysis.
+#' }
+#'
+#' Statistical tests are performed to identify significant differences in OTU abundances between groups for each Venn segment. The results are returned as data frames and visualized using boxplots.
+#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njau.edu.cn}
+#' @examples
+#' result = VenSuper.micro(ps = ps.16s,group =  "Group",num = 6)
+#'  p7_1 <- result[[1]]
+#'  p7_1+ scale_fill_manual(values = colset1)+ scale_color_manual(values = colset1,guide = F)
+#'  p7_2 <- result[[3]]
+#'  p7_2
+#'  p8 <- result[[2]]
+
 
 #清空内存
 # rm(list=ls())
@@ -25,7 +63,7 @@
 
 
 
-VenSuper.metf =  function(ps = NULL,group  = "Group",num = 6){
+VenSuper.metf =  function(ps = NULL,group  = "Group",num = 6,j =j){
 
 
   # library (VennDiagram)
@@ -92,12 +130,11 @@ VenSuper.metf =  function(ps = NULL,group  = "Group",num = 6){
   plot3 = list()
   dat.f = list()
   dat.f2 = list()
+
   for (i in 1:length(ven_pick$..set..) ) {
 
     # 查看i是韦恩图哪一个部分的otu
     ven_pick$..set..[[i]]
-
-
     abs = length(unique(mapping$Group))
     abs = 2+abs
     aab = ven_pick[[i,abs]]
@@ -116,13 +153,18 @@ VenSuper.metf =  function(ps = NULL,group  = "Group",num = 6){
     otu$ID = row.names(otu)
     otu1<- dplyr::filter(otu, ID %in% aab)
     head(otu1)
+    nrow(otu1)
+    if(nrow(otu1) ==0) {
+       print("data can't calculate,please check")
+    } else{
+
     row.names(otu1) = otu1$ID
 
     otu1$ID = NULL
     subtab = as.matrix(otu1)
     ps_sub = ps1_rela
     ps_sub <- phyloseq(otu_table(subtab, taxa_are_rows=TRUE),
-                       tax_table(ps_sub),
+                       phyloseq::tax_table(ps_sub),
                        sample_data(ps_sub)
     )
     ps_sub
@@ -146,7 +188,7 @@ VenSuper.metf =  function(ps = NULL,group  = "Group",num = 6){
 
     # 这部分进行堆叠柱状图的出图，但是不能再做标准化了
 
-    result = barMainplot.metf(ps = ps_sub,j = "Level1",axis_ord = NULL,label = FALSE ,sd = FALSE,
+    result = barMainplot.metf(ps = ps_sub,j =j,axis_ord = NULL,label = FALSE ,sd = FALSE,
                                Top = 10,tran = FALSE)
     #提取脱图片
     p = result[[1]]
@@ -213,11 +255,11 @@ VenSuper.metf =  function(ps = NULL,group  = "Group",num = 6){
 
     # filename = paste(path,"/SeqStat_ven_pick_",ven_pick$..set..[[i]],".csv",sep = "")
     # write.csv(PlotresultBox[[2]],filename,quote = FALSE)
-    dat.f2[[i]] = PlotresultBox[[2]]
-    names(dat.f2)[i]  = paste("SeqStat_ven_pick_",ven_pick$..set..[[i]],sep = "")
+    #dat.f2[[i]] = PlotresultBox[[2]]
+   #  names(dat.f2)[i]  = paste("SeqStat_ven_pick_",ven_pick$..set..[[i]],sep = "")
 
     plot1[[i]] =p
-    plot2[[i]] =p2
+    #plot2[[i]] =p2
     plot3[[i]] =p3
 
 
@@ -228,15 +270,16 @@ VenSuper.metf =  function(ps = NULL,group  = "Group",num = 6){
   pa
 
 
-  pb  = ggpubr::ggarrange(plotlist = plot2, common.legend = TRUE, legend="right")
-  pb
+  # pb  = ggpubr::ggarrange(plotlist = plot2, common.legend = TRUE, legend="right")
+  # pb
 
 
   pc  = ggpubr::ggarrange(plotlist = plot3, common.legend = TRUE, legend="right")
   pc
 
+  }
 
-  return(list(pa,pb,pc, dat.f,dat.f2))
+  return(list(pa,pc, dat.f,dat.f2))
 
 }
 

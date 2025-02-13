@@ -47,6 +47,7 @@ decisiontree.omics <- function(ps=ps, top = 20, seed = 6358, k = 5) {
     fold_train <- test[-folds[[i]], ]
 
     # 训练决策树模型
+    fold_train$OTUgroup <- as.factor(fold_train$OTUgroup)
     a_rpart <- rpart(OTUgroup ~ ., data = fold_train, method = 'class')
 
     # 得到测试集的预测值
@@ -56,8 +57,8 @@ decisiontree.omics <- function(ps=ps, top = 20, seed = 6358, k = 5) {
     correct_predictions <- sum(pred == fold_test$OTUgroup)
     accuracy <- correct_predictions / nrow(fold_test)
     accuracy_values[i] <- accuracy
-
-
+   # importance(a_rpart)
+    print(a_rpart)
     importance <- a_rpart$variable.importance
     if (!is.null(importance)) {
       importance_list[[i]] <- importance

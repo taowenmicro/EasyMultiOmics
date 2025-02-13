@@ -1,11 +1,36 @@
-svm.trans <- function(ps=ps, k = 5) {
+#' @title Svm model screening of characteristic genes
+#' @description
+#' This function uses a Support Vector Machine (SVM) to classify different samples based on transcriptome functional composition data
+#' It performs k-fold cross-validation to evaluate the classification accuracy and ranks feature importance using Recursive Feature Elimination (RFE).
+#' @param ps A phyloseq format file used as an alternative for the input containing otu, tax, and map.
+#' @param k The number of folds for cross-validation.
+#' @return A list object including the following components:
+#' \item{AUC}{The average accuracy of the svm model.}
+#' \item{Importance}{A data frame showing the feature importance ranked in descending order.}
+#' @export
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njau.edu.cn}
+#' @examples
+#' library(dplyr)
+#' library(ggClusterNet)
+#' library(caret)
+#' library(e1071)
+#' data(ps.trans)
+#' ps =ps.trans %>% filter_OTU_ps(Top = 1000)
+#' res <- svm.trans(ps = ps%>% filter_OTU_ps(20), k = 5)
+#' AUC = res[[1]]
+#' AUC
+#' importance = res[[2]]
+#' importance
+
+svm.trans<- function(ps=ps, k = 5) {
   # 数据准备
   map <- as.data.frame(phyloseq::sample_data(ps))
   otutab <- as.data.frame(t(ggClusterNet::vegan_otu(ps)))
   colnames(otutab) <- gsub("-", "_", colnames(otutab))
   test <- as.data.frame(t(otutab))
-  test$group <- factor(map$Group)
-  colnames(test) <- paste("OTU", colnames(test), sep = "")
+  test$OTUgroup <- factor(map$Group)
 
   colnames(test) <- gsub("-", "_", colnames(test))
   colnames(test) <- gsub("[/]", "_", colnames(test))
@@ -31,7 +56,7 @@ svm.trans <- function(ps=ps, k = 5) {
     fold_test<-train[folds[[i]],]
     # head(fold_test)
     fold_train<-train[-folds[[i]],]
-    model<-svm(OTUgroup~.,data=fold_train,probability=TRUE)
+    model<-svm(OTUgroup~.,data=fold_train,probability=TRUE,kernel = "radial")
     model
     model_pre<-predict(model,newdata = fold_test,decision.values = TRUE, probability = TRUE)
     fc<-append(fc,as.numeric(fold_test$OTUgroup))
@@ -41,10 +66,6 @@ svm.trans <- function(ps=ps, k = 5) {
     correct_predictions <- sum( model_pre == fold_test$OTUgroup)
     accuracy <- correct_predictions / nrow(fold_test)
     accuracy_values[i] <- accuracy
-    # print(paste("Fold", i, "Accuracy:", round(accuracy, 3)))
-
-
-
   }
 
   # # 计算AUC
@@ -56,7 +77,6 @@ svm.trans <- function(ps=ps, k = 5) {
   control <- rfeControl(functions = caretFuncs, method = "cv", number = k)
   rfe_results <- rfe(train[, -1], train$OTUgroup, sizes = c(1:ncol(train) - 1), rfeControl = control)
   importance <- varImp(rfe_results, scale = FALSE)
-
 
   mean_accuracy <- mean(accuracy_values)
   accuracy_result <- paste("SVM Average Accuracy:", round(mean_accuracy, 3))

@@ -7,6 +7,7 @@ library(ggClusterNet)
 library(ggrepel)
 
 # 定义后续参数-----
+ps.16s =  EasyMultiOmics::ps.16s
 map= sample_data(ps.16s)
 head(map)
 # 提取分组因子数量
@@ -82,7 +83,7 @@ p1_0+
 #2 alpha.pd :用于计算pd多样性#-------
 library(ape)
 library(picante)
-tab2 = alpha.pd(ps16s)
+tab2 = alpha.pd.micro(ps16s)
 head(tab2)
 result = EasyStat::MuiKwWlx2(data = tab2,num = 3)
 result1 = EasyStat::FacetMuiPlotresultBox(data = tab2,num = 3,
@@ -97,7 +98,7 @@ p1_1+
 
 #3 alpha.rare.line:alpha多样性稀释曲线#---------
 rare <- mean(phyloseq::sample_sums(ps.16s))/10
-result = alpha.rare.line(ps = ps.16s, group = "Group", method = "Richness", start = 100, step = rare)
+result = alpha.rare.line.micro(ps = ps.16s, group = "Group", method = "Richness", start = 100, step = rare)
 #-- Plot the rarefaction curve for a single sample
 p2_1 <- result[[1]]
 p2_1
@@ -281,7 +282,6 @@ dat = res[[2]]
 head(dat)
 
 
-
 #14 ven.network.micro:venn 网络----
 result = ven.network.micro(
   ps = ps.16s,
@@ -295,8 +295,7 @@ head(dat)
 
 
 #15 Micro_tern.micro: 三元图展示组成----
-ps1 = ps.16s %>% filter_OTU_ps(500)
-res = Micro_tern.micro(ps1)
+res = Micro_tern.micro(ps.16s %>% filter_OTU_ps(500))
 p15 = res[[1]]
 p15[[1]] +theme_bw()
 
@@ -363,7 +362,6 @@ clubardata <- result[[5]]
 
 
 #18 cir_barplot.micro:环状堆积柱状图 -----
-
 library(ggtree) # j = "Phylum"
 res = cir_barplot.micro(
   ps = ps.16s,
@@ -381,11 +379,9 @@ head(dat)
 res = cir_plot.micro(ps  = ps.16s,Top = 12,rank = 6)
 
 #20 maptree.micro；圈图展示物种组成-----
-
 library(ggraph)
 library(data.tree)
 library(igraph)
-
 tax = ps.16s %>% vegan_tax() %>%
   as.data.frame()
 head(tax)
@@ -442,7 +438,6 @@ dat
 
 
 #24 Microheatmap.micro: 热图展示物种相对丰度差异-----
-
 heatnum = 30
 # map = phyloseq::sample_data(ps)
 # map$ID = row.names(map)
@@ -490,7 +485,6 @@ head(dat)
 res =  EdgerSuper2.micro (ps = ps.16s,group  = "Group",artGroup =NULL, j = "OTU")
 head(res)
 
-
 #26 DESep2Super.micro:DESep2计算差异微生物-----
 res = DESep2Super.micro(ps = ps.16s %>% ggClusterNet::filter_OTU_ps(500),
                         group  = "Group",
@@ -498,8 +492,6 @@ res = DESep2Super.micro(ps = ps.16s %>% ggClusterNet::filter_OTU_ps(500),
                         j = "OTU"
                         # path = diffpath.1
 )
-
-
 p26.1 =  res[[1]][1]
 p26.1
 p26.2 =  res[[1]][2]
@@ -510,7 +502,6 @@ dat =  res[[2]]
 dat
 
 #27 edge_Manhattan.micro: 曼哈顿图展示差异微生物------
-
 res = edge_Manhattan.micro(
   ps = ps.16s%>% ggClusterNet::filter_OTU_ps(500),
   pvalue = 0.05,
@@ -529,7 +520,6 @@ p27.3
 #
 # # map$Group = as.factor(map$Group)
 # sample_data(ps) = map
-
 allgroup <- combn(unique(map$Group),2)
 plot_list <- list()
 for (i in 1:dim(allgroup)[2]) {
@@ -546,11 +536,8 @@ p28.2
 p28.3 = plot_list[[3]]
 p28.3
 
-
 #29 Mui.Group.volcano.micro: 聚类火山图------
-
 res =  EdgerSuper2.micro (ps = ps.16s,group  = "Group",artGroup =NULL, j = "OTU")
-
 res2 = Mui.Group.volcano.micro(res = res)
 
 p29.1 = res2[[1]]
@@ -588,8 +575,6 @@ library(caret)
 library(ROCR) ##用于计算ROC
 library(e1071)
 #32 rfcv.micro :交叉验证结果-------
-
-
 result =rfcv.Micro(ps = ps.16s %>% filter_OTU_ps(100),
                    group  = "Group",optimal = 20,nrfcvnum = 6)
 
@@ -598,7 +583,6 @@ prfcv
 # result[[2]]# plotdata
 rfcvtable = result[[3]]
 rfcvtable
-
 
 #33 Roc.micro:ROC 曲线绘制----
 id = sample_data(ps.16s)$Group %>% unique()
@@ -616,7 +600,6 @@ ps = ps %>% subset_taxa.wt("class","Unassigned",TRUE)
 pst = ps %>% subset_samples.wt("Group",group) %>%
   filter_taxa(function(x) sum(x ) > 10, TRUE)
 res = Roc.micro( ps = pst %>% filter_OTU_ps(1000),group  = "Group",repnum = 5)
-?Roc.micro
 p33.1 =  res[[1]]
 p33.1
 p33.2 =  res[[2]]
@@ -624,20 +607,15 @@ p33.2
 dat =  res[[3]]
 dat
 
-
 #34 loadingPCA.micro: 载荷矩阵筛选特征微生物------
-?loadingPCA.micro
 res = loadingPCA.micro(ps = ps.16s,Top = 20)
 p34.1 = res[[1]]
 p34.1
 dat = res[[2]]
 dat
 
-
 #35 LDA.micro: LDA筛选特征微生物-----
-?p_base.micro
 p1 <- p_base.micro(ps.16s,Top = 100)
-?LDA.micro
 tablda = LDA.micro(ps = ps.16s,
                    Top = 100,
                    p.lvl = 0.05,
@@ -646,22 +624,19 @@ tablda = LDA.micro(ps = ps.16s,
                    adjust.p = F)
 tablda[[1]]
 
-?lefse_bar
 p35 <- lefse_bar(taxtree = tablda[[2]])
 p35
 dat = tablda[[2]]
 dat
 
 #36 svm.micro:svm筛选特征微生物 ----
-?svm.micro
 res <- svm.micro(ps = ps.16s %>% filter_OTU_ps(20), k = 5)
 AUC = res[[1]]
 AUC
 importance = res[[2]]
 importance
 
- #37 glm.micro:glm筛选特征微生物----
-?glm.micro
+#37 glm.micro:glm筛选特征微生物----
 res <- glm.micro(ps = pst %>% filter_OTU_ps(50), k = 5)
 AUC = res[[1]]
 AUC
@@ -672,7 +647,7 @@ importance
 library(xgboost)
 library(Ckmeans.1d.dp)
 library(mia)
-?xgboost.micro
+
 res = xgboost.micro(ps =pst, top = 20  )
 accuracy = res[[1]]
 accuracy
@@ -681,7 +656,6 @@ importance
 
 #39 lasso.micro: lasso筛选特征微生物----
 library(glmnet)
-?lasso.micro
 res =lasso.micro (ps =  pst, top = 20, seed = 1010, k = 5)
 accuracy = res[[1]]
 accuracy
@@ -690,16 +664,13 @@ importance
 
 #40 decisiontree.micro----
 library(rpart)
-?decisiontree.micro
 res =decisiontree.micro(ps=pst, top = 50, seed = 6358, k = 5)
 accuracy = res[[1]]
 accuracy
 importance = res[[2]]
 importance
 
-
 #41 naivebayes.micro: bayes筛选特征微生物----
-?naivebayes.micro
 res = naivebayes.micro(ps=pst, top = 20, seed = 1010, k = 5)
 accuracy = res[[1]]
 accuracy
@@ -707,7 +678,6 @@ importance = res[[2]]
 importance
 
 #42 randomforest.micro: 随机森林筛选特征微生物----
-?randomforest.micro
 res = randomforest.micro( ps = pst,group  = "Group", optimal = 50)
 p42.1 = res[[1]]
 p42.1
@@ -720,7 +690,6 @@ p42.4
 
 #43 bagging.micro : Bootstrap Aggregating筛选特征微生物 ------
 library(ipred)
-?bagging.micro
 ps = pst
 res = bagging.micro(ps =  pst, top = 20, seed = 1010, k = 5)
 accuracy = res[[1]]
@@ -734,7 +703,6 @@ accuracy = res[[1]]
 accuracy
 importance = res[[2]]
 importance
-
 
 #network analysis -----
 #45 network.pip:网络分析主函数--------
@@ -820,7 +788,6 @@ for (i in 1:length(id)) {
     as.data.frame() %>%
     rownames_to_column("ASV.name")
 
-
   # head(dat.f)
   if (i == 1) {
     nodepro2 = nodepro
@@ -830,9 +797,7 @@ for (i in 1:length(id)) {
 }
 head(nodepro2)
 
-
-
-#49 negative.correlation.ratio:网络稳定性-计算负相关的比例#----
+#49 negative.correlation.ratio:网络稳定性-计算负相关的比例----
 res4 = negative.correlation.ratio(ps = ps.16s,
                                   corg = cortab,
                                   # Top = 500,
@@ -842,7 +807,6 @@ res4 = negative.correlation.ratio(ps = ps.16s,
 p5 = res4[[1]]
 p5
 dat6 = res4[[2]]
-
 
 #50 community.stability:网络稳定性-群落稳定性-只有pair样本使用-----
 treat = ps.16s %>% sample_data()
@@ -873,7 +837,6 @@ p7
 dat8  = res6[[2]]
 dat8
 
-
 #52 module.compare.net.pip:网络显著性比较#-----
 dat = module.compare.net.pip(
   ps = NULL,
@@ -888,10 +851,8 @@ dat = module.compare.net.pip(
 res = dat[[1]]
 head(res)
 
-
 #53 module.compare.m:网络稳定性-模块相似性#--------
 library(tidyfst)
-
 res1 = module.compare.m(
   ps = NULL,
   corg = cor,
@@ -977,8 +938,6 @@ dat
 dat2 = result[[4]]
 dat2
 
-
-
 #57 nullModel: 零模型----
 result <- nullModel(ps = psphy,
                     group="Group",
@@ -998,7 +957,6 @@ aovtab <- result[[3]]
 
 
 #58 bNTICul:β最近分类单元指数计算----
-?bNTICul
 result = bNTICul(ps = psphy,
                  group  = "Group",
                  num = 10,
@@ -1009,7 +967,6 @@ head(bNTI)
 
 
 #59 RCbary: RCbary 计算----
-?RCbary
 result = RCbary(ps = psphy ,group  = "Group",num = 10,thread = 1)
 
 RCbary = result[[1]]
@@ -1038,7 +995,6 @@ head(plotdata)
 dat = result[[5]]
 head(dat)
 
-
 # other------
 #61 FEAST.micro:溯源分析----
 result = FEAST.micro(ps = ps.16s,
@@ -1050,11 +1006,9 @@ result = FEAST.micro(ps = ps.16s,
 #62 Plot_FEAST:溯源分析可视化分组----
 p <- Plot_FEAST(data = result)
 p
-#63 FEAST.micro:溯源分析可视化样品----
+#63 MuiPlot_FEAST:溯源分析可视化样品----
 p2 = MuiPlot_FEAST(data = result)
 p2
-
-
 
 # function prediction-----
 library(DOSE)
@@ -1076,7 +1030,7 @@ res = EdgerSuper.metf (ps = ps.kegg,
                        artGroup = NULL)
 dat = res[[2]]
 dat
-KEGG_enrich.metf
+
 #64 KEGG_enrich.micro: taxfun2功能富集分析----
 res2 = KEGG_enrich.micro(ps =  ps.kegg,
                         #  diffpath = diffpath,
@@ -1087,7 +1041,6 @@ dat2= res2$`KO-WT`
 dat3= res2$`OE-WT`
 
 #65 buplotall.micro: taxfun2功能富集分析气泡图----
-
 Desep_group <-ps.kegg %>% sample_data() %>%
   .$Group %>%
   as.factor() %>%
@@ -1105,6 +1058,4 @@ p1 = result[[1]]
 p1
 p2 = result[[2]]
 p2
-
-
 

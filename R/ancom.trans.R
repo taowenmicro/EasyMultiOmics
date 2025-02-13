@@ -1,10 +1,31 @@
-### This script was downloaded May 11 2020 from FrederickHuangLin/Ancom repo on github
-## This script will be used to test ancom2 results
+#' @title  Perform differential analysis using ANCOM
+#' @description This function is used to analyze transcriptome functional composition
+#'  data  by conducting ANCOM analysis to detect significant differences in genes
+#'  abundance between different groups.
+#' @param ps A phyloseq format file used as an alternative for the input containing transcriptome functional composition table, tax, and sample metadata.
+#' @param group Column name for groupID in map table(sample metadata).
+#' @param p_adj_method Select the method for p-value correction("holm", "hochberg", "hommel", "bonferroni", "BH", "BY",
+#' "fdr"),when padjust is `TRUE`. Default is `BH`.
+#' @param ANCOM.value Value used for ANCOM analysis, default is "detected_0.6"
+#' @param alpha Significance level, default is 0.05.
+#' @return A list containing the results of significant differences in gene abundance between different groups.
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' @examples
+#' \dontrun{
+#' data(ps.trans)
+#' ps = ps.trans%>% filter_taxa(function(x) sum(x ) > 5 , TRUE)
+#' dat <- ancom.trans(ps = ps%>% filter_OTU_ps(50), group = "Group",  p_adj_method = "BH",ANCOM.value = "detected_0.6",alpha=0.05)
+#' dat1 = dat$WT_OE
+#' head(dat1)
+#' dat2 = dat$WT_KO
+#' head(dat2)
+#' dat3 = dat$OE_KO
+#' head(dat3)
+#' }
+#' @export
 
-# OTU table should be a matrix/data.frame with each feature in rows and sample in columns.
-# Metadata should be a matrix/data.frame containing the sample identifier.
-
-# Data Pre-Processing
 
 ancom.trans = function(
     ps = ps0,

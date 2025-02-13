@@ -1,18 +1,41 @@
-
-# #---三元图
-# library(ggtern)
-# library(tidyverse)
-# library(ggClusterNet)
-# library(phyloseq)
-#
-#
-# ternpath = paste(otupath,"/ggtern/",sep = "")
-# dir.create(ternpath)
-# Micro_tern(ps = ps,ternpath = ternpath )
-# rank.names(ps)
-Micro_tern.meta = function(ps = ps
-
-){
+#' @title Generate Ternary Plots for Metagenome functional composition data
+#'
+#' @description
+#' This function generates ternary plots for visualizing metagenome functional composition data in three groups.
+#' It uses relative abundance data from a `phyloseq` object and displays metagenome functional composition distribution across specified groupings.
+#'
+#' @param ps A `phyloseq` object containing metagenome functional composition table.
+#'
+#' @return
+#' A list containing the following elements:
+#' \describe{
+#'   \item{plot}{A list of ternary plots (`ggtern` objects) for different group combinations.}
+#'   \item{dataplot}{A data frame with combined genes abundance and taxonomic information.}
+#'   \item{groups}{A matrix showing all possible combinations of three groups used for ternary plots.}
+#' }
+#'
+#' @details
+#' This function performs the following steps:
+#' \itemize{
+#'   \item Standardizes the metagenome functional composition table to relative abundances using `phyloseq::transform_sample_counts`.
+#'   \item Splits the metagenome functional composition data into groups based on the metadata column `Group`.
+#'   \item Computes the mean abundance for each gene within each group.
+#'   \item Generates ternary plots for all possible combinations of three groups using the `ggtern` package.
+#' }
+#'
+#' The plots visualize the relative abundances of genes in three groups, with points sized by their mean abundance and colored by their taxonomic classification (pathway).
+#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' @examples
+#' \dontrun{
+#' ps =ps.kegg %>% filter_OTU_ps(Top = 1000)
+#' ps1 = ps %>% filter_OTU_ps(500)
+#' res = Micro_tern.metf(ps1)
+#' p15 = res[[1]]
+#' dat =  res[[2]]
+#' }
+#'
+#' @export
+Micro_tern.metf = function(ps = ps,color = "Level1"){
 
   ps_rela = phyloseq::transform_sample_counts(ps, function(x) x / sum(x) );ps_rela
 
@@ -32,9 +55,10 @@ Micro_tern.meta = function(ps = ps
   tax = ggClusterNet::vegan_tax(ps)
   otutax = cbind(ven2,tax)
   head(otutax)
-  colnames(otutax)[7]= "KO.1"
 
-  otutax$Level1[otutax$Level1 == "-"] = "Unknown"
+ # colnames(otutax)[7]= "KO.1"
+
+  #otutax$Level1[otutax$Level1 == "-"] = "Unknown"
   otutax
   # i = 1
 
@@ -44,7 +68,7 @@ Micro_tern.meta = function(ps = ps
     y = A[2,i]
     z = A[3,i]
     p <- ggtern::ggtern(data=otutax,aes_string(x = x,y=y,z=z,
-                                               color = "Level1",
+                                               color = color,
                                                size ="mean" ))+
       geom_point() +
      theme_void()+

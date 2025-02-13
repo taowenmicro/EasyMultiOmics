@@ -2,7 +2,7 @@
 % Please edit documentation in R/ggflower.metf.R
 \name{ggflower.metf}
 \alias{ggflower.metf}
-\title{Microbial related network}
+\title{Create a circular flower plot based on metagenome functional composition data}
 \usage{
 ggflower.metf(
   otu = NULL,
@@ -24,103 +24,52 @@ ggflower.metf(
 )
 }
 \arguments{
-\item{otu}{otu table of microbiome. data.frame}
+\item{otu}{Metagenome functional composition table.}
 
-\item{tax}{taxonmy table of microbiome. data.frame}
+\item{tax}{Metagenome functional classification table.}
 
-\item{map}{table.data.frame}
+\item{map}{Sample metadata.}
 
-\item{ps}{phyloseq Object, contains OTU tables, tax table and map table, represented sequences,phylogenetic tree.}
+\item{ps}{A phyloseq format file used as an alternative for the input containing metagenome functional composition table, tax, and sample metadata.}
 
-\item{group}{colnames which selected for show}
+\item{group}{Column name for groupID in map table(sample metadata).}
 
-\item{rep}{repeat number of microbial data.}
+\item{rep}{Repeat number of metagenome functional composition data.}
 
-\item{m1}{Petal shape, square to round to prismatic, the value gradually decreases}
+\item{m1}{Petal shape, square to round to prismatic, the value gradually decreases.}
 
-\item{start}{The rotation angle of the petals, the greater the value, the greater the angle}
+\item{start}{The rotation angle of the petals, the greater the value, the greater the angle.}
 
-\item{a}{The width of the petals}
+\item{a}{The width of the petals.}
 
-\item{b}{Distance from petal to center}
+\item{b}{Distance from petal to center.}
 
-\item{lab.leaf}{The distance from the label to the center of the circle}
+\item{lab.leaf}{The distance from the label to the center of the circle.}
 
-\item{col.cir}{Center color}
+\item{col.cir}{Center color.}
 }
 \value{
-ggplot objects
+A list containing the following components:
+\item{p}{Circular flower plot visualizing the presence or absence of genes across sample groups.}
+\item{ven2}{Processed genes data frame used for plotting.}
 }
 \description{
-Microbial related network
+The ggflower.metf function generates a circular flower plot based on metagenome functional composition data.
+ The plot visualizes the presence or absence of genes
+ across different sample groups in a circular layout.
 }
 \examples{
 library(phyloseq)
 library(ggplot2)
-data(ps)
-
-map = as.data.frame(sample_data(ps))
-map$Group1 <- c("A","B","C","D","E","F ")
-sample_data(ps) = map
-
-p <- ggflower(ps = ps,
-              rep = 3,
-              group = "Group1",
-              start = 1,
-              m1 = 2,
-              a = 0.3,
-              b = 0.3,
-              lab.leaf = 1,
-              col.cir = "yellow",
-              b.cir = 0.8,
-              a.cir = 0.8
-)
-p2 <- p + scale_fill_brewer(palette = "Paired")
-p2
-p <- ggflower(ps = ps,
-              rep = 3,
-              group = "Group1",
-              start = 1,
-              m1 = 1,
-              a = 0.3,
-              b = 1,
-              lab.leaf = 1,
-              col.cir = "yellow"
-)
-p3 <- p + scale_fill_brewer(palette = "Paired")
-
-p3
-p5 <- ggflower(ps = ps,
-               rep = 3,
-               group = "Group1",
-               start = 1,
-               m1 = 2,
-               a = 0.2,
-               b = 1,
-               lab.leaf = 1,
-               col.cir = "yellow"
-)
-p5
-
-p <- ggflower(ps = ps,
-              rep = 3,
-              group = "Group1",
-              start = 30,
-              m1 = 2,
-              a = 0.2,
-              b = 1,
-              lab.leaf = 1,
-              col.cir = "yellow"
-)
-p1 <- p + scale_fill_brewer(palette = "Paired")
-
-p1
-}
-\references{
-Yuan J, Zhao J, Wen T, Zhao M, Li R, Goossens P, Huang Q, Bai Y, Vivanco JM, Kowalchuk GA, Berendsen RL, Shen Q
-Root exudates drive the soil-borne legacy of aboveground pathogen infection
-Microbiome 2018,DOI: \url{doi: 10.1186/s40168-018-0537-x}
+ps =ps.kegg \%>\% filter_OTU_ps(Top = 1000)
+res <- ggflower.metf(ps= ps ,group = "Group",start = 1,
+m1 = 1,a = 0.2, b = 1,lab.leaf = 1col.cir = "yellow",N = 0.5 )
+p14 = res[[1]]
+p14
+dat = res[[2]]
+dat
 }
 \author{
-Contact: Tao Wen \email{2018203048@njau.edu.cn} Jun Yuan \email{junyuan@njau.edu.cn} Penghao Xie \email{2019103106@njau.edu.cn}
+Tao Wen \email{2018203048@njau.edu.cn},
+Peng-Hao Xie \email{2019103106@njqu.edu.cn}
 }

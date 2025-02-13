@@ -1,28 +1,4 @@
-#
-# j = "Phylum"
-# j = "Class"
-# j = "Order"
-# j =  "Family"
-# j = "Genus"
-#
-# otu =NULL
-# tax = NULL
-# map = NULL
-# ps = ps
-#
-# group = "Group"
-# axis_ord = NULL
-# label = FALSE
-# sd = FALSE
-# Top = 10
-#
-# tran = TRUE
 
-# library(phyloseq)
-# library(tidyverse)
-# library(vegan)
-# library(reshape2)
-# library("plyr")
 library(ggalluvial)
 
 tax_glom_f <- function(ps = ps,ranks = "level1") {
@@ -74,8 +50,54 @@ tax_glom_f <- function(ps = ps,ranks = "level1") {
 
 
 
+#' @title Generate Bar and Flow Plots for Metagenome functional composition data
+#'
+#' @description
+#' This function generates bar plots, alluvial flow plots, and flower plots to visualize metagenome functional composition data across groups.
+#' The function supports relative abundance transformations, error bars, and optional labeling.
+#'
+#' @param otu A data frame containing metagenome functional composition table. If `NULL`, the `ps` object is used.
+#' @param tax A data frame containing taxonomy data. If `NULL`, the `ps` object is used.
+#' @param map A data frame containing sample metadata. If `NULL`, the `ps` object is used.
+#' @param tree A phylogenetic tree object. If `NULL`, the `ps` object is used.
+#' @param ps A phyloseq format file used as an alternative for the input containing metagenome functional composition table, tax, and sample metadata.
+#' @param group A character string specifying the grouping variable in the sample metadata. Default is `"Group"`.
+#' @param j A character string specifying the taxonomic rank to analyze (e.g., `"Level1"`, `"Pathway"`). Default is `"Pathway"`.
+#' @param axis_ord A character vector specifying the order of x-axis groups. If `NULL`, default order is used.
+#' @param label Logical. If `TRUE`, adds text labels to the plots. Default is `TRUE`.
+#' @param sd Logical. If `TRUE`, adds error bars to the plots. Default is `FALSE`.
+#' @param Top An integer specifying the number of top taxa to display. Taxa not in the top are grouped as `"others"`. Default is `10`.
+#' @param tran Logical. If `TRUE`, transforms data to relative abundances. Default is `TRUE`.
+#'
+#' @return
+#' A list containing:
+#' \describe{
+#'   \item{A bar plot showing the relative abundances of taxa across groups.}
+#'   \item{A data frame with the processed metagenome functional composition data.}
+#'   \item{An alluvial flow plot visualizing the changes in relative abundances across groups.}
+#'   \item{A flower plot displaying relative abundances in a circular layout.}
+#' }
+#'
+#' @details
+#' The function processes metagenome functional composition data to compute relative abundances (if `tran = TRUE`) and groups taxa based on the specified rank (`j`).
+#' It visualizes the data as bar plots, alluvial flow plots, and flower plots. The top `Top` taxa are highlighted, and the remaining taxa are grouped as `"others"`.
+#'
+#' @examples
+#' \dontrun{
+#' ps =ps.kegg %>% filter_OTU_ps(Top = 1000)
+#' result = barMainplot.metf(ps = ps.ms,j = "Pathway",label = FALSE,sd = FALSE,Top =10)
+#' p4_1 <- result[[1]]
+#' p4_1
+#' p4_2  <- result[[3]]+scale_fill_brewer(palette = "Paired")
+#' p4_2
+#' databar <- result[[2]]
+#' head(databar)
+#' }
+#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#'
+#' @export
 barMainplot.metf = function(otu = NULL,tax = NULL,map = NULL,tree = NULL ,ps = NULL,group  = "Group",
-                            j = "Phylum",axis_ord = NULL,label = TRUE ,sd = FALSE,Top = 10,tran = TRUE){
+                            j = "Pathway",axis_ord = NULL,label = TRUE ,sd = FALSE,Top = 10,tran = TRUE){
 
 
   if (is.null(axis_ord)) {

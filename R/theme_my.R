@@ -107,32 +107,3 @@ return(list(
 
 
 
-package.amp <- function(){
-  #导入R包#-------
-  library(phyloseq)
-  library(tidyverse)
-  library(ggClusterNet)
-  library(EasyStat)
-  library(fs)
-  library(ggthemes)
-  library(RColorBrewer)#调色板调用包
-
-  # library(ggplot2)
-  # library(dplyr)
-  library(magrittr)
-  # library(RColorBrewer)
-  # devtools::install_github("YuLab-SMU/treeio") # 安装1.7以上版本的才能支持MicrobiotaProcess
-  # devtools::install_github("YuLab-SMU/MicrobiotaProcess")
-  # BiocManager::install("treeio")
-  library(MicrobiotaProcess)
-  # library(tibble)
-  library(ggsignif)
-  library(ggtree)
-  library(ggtreeExtra)
-  # library(ggplot2)
-  library(ggstar)
-  library(MicrobiotaProcess)
-  library(ggnewscale)
-  library(grid)
-}
-

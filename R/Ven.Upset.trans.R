@@ -1,14 +1,46 @@
-
-
-# res = Ven.Upset(ps =  ps,
-#     group = "Group",
-#     N = 0.5,
-#     size = 3)
-#
-# res[[1]]
-# res[[2]]
-
-
+#' @title Generate Venn Diagrams and Upset Plots for genes Group Comparisons
+#' @description
+#' This function creates Venn diagrams and Upset plots to compare genes groups based on presence/absence thresholds.
+#'
+#' @param otu A transcriptome functional composition table (optional). If `NULL`, uses the `ps` object.
+#' @param tax A taxonomy table (optional). If `NULL`, uses the `ps` object.
+#' @param map A sample metadata table (optional). If `NULL`, uses the `ps` object.
+#' @param tree A phylogenetic tree (optional). If `NULL`, uses the `ps` object.
+#' @param ps A `phyloseq` object containing transcriptome functional composition data.
+#' @param group A character string specifying the grouping variable in the sample metadata. Default is `"Group"`.
+#' @param N A numeric threshold for presence-absence data. Default is `0.5`.
+#' @param size Numeric. The scaling factor for the Upset plot. Default is `3`.
+#'
+#' @return A list containing:
+#' \describe{
+#'   \item{p}{A `ggVennDiagram` object representing the Venn diagram.}
+#'   \item{p2}{A composite Upset plot.}
+#'   \item{ven2}{A processed binary presence-absence data frame.}
+#'   \item{main_plot}{The main bar plot of the Upset plot.}
+#'   \item{side_plot}{The side bar plot of the Upset plot.}
+#' }
+#' @author
+#' Tao  Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' @examples
+#' \dontrun{
+#' library(phyloseq)
+#' library(dplyr)
+#' library(ggplot2)
+#' library(tidyverse)
+#' # Example with a phyloseq object
+#' data(ps.trans)
+#' ps = ps.trans%>% filter_taxa(function(x) sum(x ) > 5 , TRUE)
+#' res = Ven.Upset.ms(ps =  ps.ms,group = "Group",N = 0.5,size = 3)
+#' p10.1 = res[[1]]
+#' p10.1
+#' p10.2 = res[[2]]
+#' p10.2
+#' p10.3 = res[[4]]
+#' p10.3
+#' dat = res[[3]]
+#' head(dat)}
+#' @export
 Ven.Upset.trans = function(
     otu = NULL,
     tax = NULL,

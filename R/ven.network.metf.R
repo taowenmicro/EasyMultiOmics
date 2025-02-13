@@ -1,45 +1,51 @@
 
-
-# #--维恩网络#-------
-# library(ggClusterNet)
-# library(phyloseq)
-# library(ggrepel)
-#
-# biospath = paste(otupath,"/biospr_network_Ven/",sep = "")
-# dir.create(biospath)
-#
-# result = ven.network(
-#     ps = ps,
-#     N = 0.5,
-#     fill = "Phylum"
-#     )
-#
-# p  = result[[1]]
-#
-# data = result[[2]]
-#
-# filename = paste(biospath,"/","biostr_Ven_network.species.several.pdf",sep = "")
-# ggsave(filename,p,width = (15),height = (12))
-# filename = paste(biospath,"/","biostr_Ven_network.jpg",sep = "")
-# ggsave(filename,p,width = (15),height = (12))
-#
-# filename = paste(biospath,"Ven.network.all.csv",sep = "")
-# write.csv(data,filename)
-#
-#
-# detach("package:ggClusterNet")
-# detach("package:phyloseq")
-
-
-
-
+#' @title Generate a Circular metagenome functional Network
+#'
+#' @description
+#' This function generates a circular metagenome functional composition based on metagenome functional abundance data in a `phyloseq` object.
+#' It uses the `ggClusterNet` package to compute relationships between genes
+#' and visualizes the network with sample-level metadata.
+#' @param ps A phyloseq format file used as an alternative for the input containing metagenome functional composition table, tax, and sample metadata.
+#' @param N Numeric. A threshold for selecting nodes in the network. Default is `0.5`.
+#' @param fill A character string specifying the taxonomic rank used to color the nodes. Default is `"Phylum"`.
+#'
+#' @return
+#' A list containing:
+#' \describe{
+#'   \item{plot}{A `ggplot2` object representing the metagenome functional network.}
+#'   \item{plotdata}{A data frame containing node coordinates and associated metadata.}
+#' }
+#'
+#' @details
+#' This function builds a metagenome functional network using a circular layout. OTUs are placed hierarchically based on their
+#' abundance and relationships with samples. The edges represent connections between genes and sample groups,
+#' while nodes represent metagenome functional taxa or samples.
+#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' The function includes several steps:
+#' \itemize{
+#'   \item Calculates the metagenome functional relationships using `ggClusterNet::div_network`.
+#'   \item Uses a progressive circle packing algorithm to position genes and groups.
+#'   \item Combines abundance data and taxonomic annotations for visualization.
+#'   \item Generates a `ggplot2` plot showing the network with colored nodes and edges.
+#' }
+#' @examples
+#' ps =ps.kegg %>% filter_OTU_ps(Top = 1000)
+#' ps_ven=ps
+#' tax=data.frame(tax_table(ps))
+#' colnames(tax)[[3]]="KOnumber"
+#' tax_table(ps_ven) <- as.matrix(tax)
+#' result = ven.network.metf(ps = ps_ven,N = 0.5,fill = "Pathway")
+#' p14  = result[[1]]
+#' p14
+#' dat = result[[2]]
+#' head(dat)
 ven.network.metf = function(
     ps =ps,
     N = 0.5,
     fill = "Level1"
 ){
 
-  result = ggClusterNet::div_network(ps)
+  result = div_network2(ps)
 
   edge = result[[1]]
   data = result[[3]]

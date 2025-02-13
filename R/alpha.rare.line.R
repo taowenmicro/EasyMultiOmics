@@ -28,7 +28,7 @@
 #' p2_3 <- result[[4]]
 #' p2_3
 #' @export
-alpha.rare.line =function(
+alpha.rare.line.micro =function(
   otu = NULL,
   tax = NULL,
   map = NULL,

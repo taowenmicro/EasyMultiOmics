@@ -1,37 +1,39 @@
-
-#--main function
-# You can learn more about package at:
-#
-#   https://github.com/microbiota/amplicon
-
-#' @title Random forest modeling for microbiome data
-#' @description Random forest modeling for microbiome data
-#' @param otu OTU/ASV table;
-#' @param map Sample metadata;
-#' @param tax taxonomy table
-#' @param ps phyloseq object of microbiome
-#' @param Group column name for groupID in map table.
-#' @param optimal important OTU number which selected
-#' @param rfcv TURE or FELSE,whether need to do cross-validation
-#' @param nrfcvnum Number of cross-validation
-#' @param min Circle diagram inner diameter adjustment
-#' @param max Circle diagram outer diameter adjustment
-#' @details
-#' @return list contain ggplot object and table.
-#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Yong-Xin Liu \email{yxliu@@genetics.ac.cn}
-#' @references
-#'
-#' Jingying Zhang, Yong-Xin Liu, Na Zhang, Bin Hu, Tao Jin, Haoran Xu, Yuan Qin, Pengxu Yan, Xiaoning Zhang, Xiaoxuan Guo, Jing Hui, Shouyun Cao, Xin Wang, Chao Wang, Hui Wang, Baoyuan Qu, Guangyi Fan, Lixing Yuan, Ruben Garrido-Oter, Chengcai Chu & Yang Bai.
-#' NRT1.1B is associated with root microbiota composition and nitrogen use in field-grown rice.
-#' Nature Biotechnology, 2019(37), 6:676-684, DOI: \url{https://doi.org/10.1038/s41587-019-0104-4}
-#'
+#' @title Random forest modeling for metagenome functional composition data
+#' @description
+#' Random forest modeling for metagenome functional composition data was used to screen for characteristic genes.
+#' @param otu Metagenome functional composition table.
+#' @param map Sample metadata.
+#' @param tax metagenome functional classification table.
+#' @param tree Phylogenetic tree.
+#' @param ps A phyloseq format file used as an alternative for the input containing metagenome functional composition data, taxonomy table, and sample metadata.
+#' @param optimal Select the number of important genes to be displayed.
+#' @param rfcv TURE or FALSE,whether need to do cross-validation.
+#' @param nrfcvnum Number of cross-validation.
+#' @param min Circle diagram inner diameter adjustment.
+#' @param group Column name for groupID in map table(sample metadata).
+#' @param max Circle diagram outer diameter adjustment.
+#' @return list contain ggplot object and table:
+#' \item{p1}{A lollipop diagram of the selected number of important genes.}
+#' \item{p2}{A circle diagram of the selected number of important genes.}
+#' \item{a3}{Taxonomic annotation information for the selected number of important genes and their importance.}
+#' \item{pn}{Combined table of model accuracy rates and confusion matrix.}
+#' \item{a2}{Taxonomic annotation information for all genes and their importance.}
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
 #' @examples
-#' # data form github
-#' result = MicroRF(ps = ps,group  = "Group",optimal = 20,rfcv = TRUE,nrfcvnum = 5,min = -1,max = 5)
+#' library(dplyr)
+#' library(ggClusterNet)
+#' library(caret)
+#' library(randomForest)
+#' ps =ps.kegg %>% filter_OTU_ps(Top = 1000)
+#' res <- randomforest.metf( ps= ps, group  = "Group", optimal = 50)
+#' p1 = res[[1]];p1
+#' p2=res[[2]];p2
+#' p3=res[[4]];p3
+#' dat1 =res[[3]];dat1
+#' dat2 =res[[5]];dat2
 #'@export
-
-
-
 randomforest.metf <- function(otu = NULL,tax = NULL,map = NULL,tree = NULL,
                                ps = NULL,
                                group  = "Group",
@@ -80,7 +82,7 @@ randomforest.metf <- function(otu = NULL,tax = NULL,map = NULL,tree = NULL,
   #-提取正确率
   model_Accuracy_rates <- paste(round(100-tail(model_rf$err.rate[,1],1)*100,2),"%",sep = "")
   model_Accuracy_rates = data.frame(ID = "model Accuracy rates",model_Accuracy_rates = model_Accuracy_rates)
-  colnames(model_Accuracy_rates) = c("Random foreest","Fu wilt model")
+  colnames(model_Accuracy_rates) = c("Random foreest","model")
   tab2 <- ggpubr::ggtexttable(Confusion_matrix, rows = NULL)
   tab1 <- ggpubr::ggtexttable(model_Accuracy_rates, rows = NULL)
   library(patchwork)

@@ -4,7 +4,7 @@
 \alias{plsda.ms}
 \title{Perform Partial Least Squares Discriminant Analysis (PLS-DA) on metabolite data}
 \usage{
-plsda.ms(map = NULL, ps = NULL, count = NULL, Group = "Group")
+\method{plsda}{ms}(map = NULL, ps = NULL, count = NULL, Group = "Group")
 }
 \arguments{
 \item{map}{A data frame containing sample metadata.}

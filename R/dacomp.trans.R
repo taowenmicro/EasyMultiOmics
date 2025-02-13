@@ -1,4 +1,28 @@
-
+#' @title  Perform differential analysis using DACOMP
+#' @description This function is used to analyze transcriptome functional composition
+#'  data  by conducting DACOMP analysis to detect significant differences in genes
+#'  abundance between different groups.
+#' @param ps A phyloseq format file used as an alternative for the input containing transcriptome functional composition table, tax, and sample metadata.
+#' @param sd Standard deviation threshold for selecting reference taxa.
+#' @param q_BH Benjamini-Hochberg correction threshold.
+#' @param q_DSFDR DS-FDR correction threshold.
+#' @return A list containing the results of significant differences in genes abundance between different groups.
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}.
+#' @examples
+#' \dontrun{
+#' data(ps.trans)
+#' ps = ps.trans%>% filter_taxa(function(x) sum(x ) > 5 , TRUE)
+#' dat = dacomp.trans (ps =  ps%>% filter_OTU_ps(50) ,sd = 0.6,q_BH =  0.1,q_DSFDR =0.1)
+#' dat1 = dat$WT_OE
+#' head(dat1)
+#' dat2 = dat$WT_KO
+#' head(dat2)
+#' dat3 = dat$OE_KO
+#' head(dat3)
+#' }
+#' @export
 dacomp.trans =  function(ps = ps0,
                          sd = 0.6,
                          q_BH =  0.1,
@@ -18,7 +42,7 @@ dacomp.trans =  function(ps = ps0,
     ps.cs = ps %>% subset_samples.wt("Group" ,id.g[,i])
     otu = ps.cs  %>% vegan_otu()
 
-    result.selected.references = dacomp.select_references(
+    result.selected.references = dacomp::dacomp.select_references(
       X = otu,
       median_SD_threshold = sd, #APPLICATION SPECIFIC
       verbose = F)

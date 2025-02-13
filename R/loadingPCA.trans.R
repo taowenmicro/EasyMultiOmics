@@ -1,4 +1,32 @@
-
+#' @title PCA loading Matrix screening of characteristic genes
+#' @description
+#' This function conducts PCA analysis on transcriptome functional composition data to
+#' extract the loading Matrix, screen for characteristic genes and visualize them.
+#' The importance of the variables is  sorted according to
+#' the square value of the correlation between the variable and the PC1 axis.
+#' @param ps A phyloseq format file used as an alternative for the input containing transcriptome functional composition table,
+#' transcriptome functional classification table, and sample metadata.
+#' @param Top The top genes to visualize.
+#' @returns A list object containing the following components:
+#' \item{p}{A PCA correlation plot of the selected number of characteristic genes and
+#'  the correlation decreases from top to bottom.}
+#' \item{index}{Data frame containing the PCA load matrix and relative abundance of all genes.}
+#' @export
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njau.edu.cn}
+#' @examples
+#' library(dplyr)
+#' library(ggClusterNet)
+#' library(ggplot2)
+#' # Example with a phyloseq object
+#' data(ps.trans)
+#' ps = ps.trans%>% filter_taxa(function(x) sum(x ) > 5 , TRUE)
+#' res = loadingPCA.trans(ps = ps,Top = 20)
+#' p = res[[1]]
+#' p
+#' dat = res[[2]]
+#' dat
 
 
 loadingPCA.trans= function(ps = ps,Top = 20){

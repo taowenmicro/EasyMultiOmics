@@ -1,0 +1,48 @@
+#' @title CNPS Gene-Based Analysis for Phyloseq Object
+#' @description
+#'
+#' This function processes a `phyloseq` object and groups the OTU data based on CNPS gene information.
+#' It returns a list of data frames, each corresponding to a group of CNPS genes from the `EasyMultiOmics.db::db.cnps` database.
+#'
+#' @param ps A `phyloseq` object (default is `ps.kegg`) containing OTU data to be grouped by CNPS genes.
+#'
+#' @return A list of data frames. Each data frame contains OTU data for a specific CNPS gene group.
+#' @details
+#' This function performs the following steps:
+#' \itemize{
+#'   \item Scales the OTU data using the `scale_micro()` function.
+#'   \item Transforms the OTU data into a data frame with samples as rows and features as columns.
+#'   \item Joins the transformed OTU data with the CNPS gene data from `EasyMultiOmics.db::db.cnps`.
+#'   \item Groups the data based on CNPS gene categories and stores each group in a list.
+#' }
+#' @examples
+#' # Assuming you have a phyloseq object `ps`
+#' cnps_results <- cnps_gene(ps)
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' @export
+
+
+cnps_gene <- function(ps=ps.kegg) {
+  otu = ps %>%
+    scale_micro() %>%
+    vegan_otu() %>% t() %>%
+    as.data.frame()
+  otu$ID = row.names(otu)
+  head(otu)
+
+  data = EasyMultiOmics.db::db.cnps
+
+  id  = data$Group %>% unique()
+  data_list = list()
+
+  for (i in 1:length(id)) {
+    # i=3
+    dat = data %>% dplyr::filter(Group %in% id [i])
+    tab = otu %>% inner_join(dat,by = c("ID" = "K.number"))
+    data_list[[i]] = tab
+    names( data_list)[i]= paste(id[i],"gene" , sep = "_")
+  }
+  return(data_list)
+}

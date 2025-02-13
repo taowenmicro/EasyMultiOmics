@@ -1,4 +1,3 @@
-
 #' @title Calculate the diversity for each sample or group
 #' @description
 #' The alpha.omics function calculates alpha diversity indices for multi-omics data.
@@ -22,12 +21,10 @@
 #' Tao Wen \email{2018203048@njau.edu.cn},
 #' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
 #' @export
-#'
 #' @examples
 #' \dontrun{
 #' tab = alpha.omics(ps = ps.16s,group = "Group")
 #' }
-
 
 alpha.omics = function(
                        ps = NULL,

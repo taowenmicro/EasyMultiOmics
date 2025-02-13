@@ -1,34 +1,41 @@
-
-
-# #--维恩网络#-------
-# library(ggClusterNet)
-# library(phyloseq)
-# library(ggrepel)
-#
-# biospath = paste(otupath,"/biospr_network_Ven/",sep = "")
-# dir.create(biospath)
-#
-# result = ven.network(
-#     ps = ps,
-#     N = 0.5,
-#     fill = "Phylum"
-#     )
-#
-# p  = result[[1]]
-#
-# data = result[[2]]
-#
-# filename = paste(biospath,"/","biostr_Ven_network.species.several.pdf",sep = "")
-# ggsave(filename,p,width = (15),height = (12))
-# filename = paste(biospath,"/","biostr_Ven_network.jpg",sep = "")
-# ggsave(filename,p,width = (15),height = (12))
-#
-# filename = paste(biospath,"Ven.network.all.csv",sep = "")
-# write.csv(data,filename)
-#
-#
-# detach("package:ggClusterNet")
-# detach("package:phyloseq")
+#' @title Generate a Circular transcriptome functional Network
+#'
+#' @description
+#' This function generates a circular transcriptome functional composition based on transcriptome functional abundance data in a `phyloseq` object.
+#' It uses the `ggClusterNet` package to compute relationships between genes
+#' and visualizes the network with sample-level metadata.
+#' @param ps A phyloseq format file used as an alternative for the input containing transcriptome functional composition table, tax, and sample metadata.
+#' @param N Numeric. A threshold for selecting nodes in the network. Default is `0.5`.
+#' @param fill A character string specifying the taxonomic rank used to color the nodes. Default is `"Phylum"`.
+#'
+#' @return
+#' A list containing:
+#' \describe{
+#'   \item{plot}{A `ggplot2` object representing the transcriptome functional network.}
+#'   \item{plotdata}{A data frame containing node coordinates and associated metadata.}
+#' }
+#'
+#' @details
+#' This function builds a transcriptome functional network using a circular layout. OTUs are placed hierarchically based on their
+#' abundance and relationships with samples. The edges represent connections between genes and sample groups,
+#' while nodes represent transcriptome functional taxa or samples.
+#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' The function includes several steps:
+#' \itemize{
+#'   \item Calculates the transcriptome functional relationships using `ggClusterNet::div_network`.
+#'   \item Uses a progressive circle packing algorithm to position genes and groups.
+#'   \item Combines abundance data and taxonomic annotations for visualization.
+#'   \item Generates a `ggplot2` plot showing the network with colored nodes and edges.
+#' }
+#' @examples
+#' library(ggClusterNet)
+#' data(ps.trans)
+#' ps = ps.trans%>% filter_taxa(function(x) sum(x ) > 5 , TRUE)
+#' result = ven.network.trans(ps = ps,N = 0.5,fill = "KO_id")
+#' p14  = result[[1]]
+#' p14
+#' dat = result[[2]]
+#' head(dat)
 
 
 div_network2 = function (ps, group = "Group", flour = TRUE, N = 0.5) {
