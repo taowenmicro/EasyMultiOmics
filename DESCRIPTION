@@ -1,11 +1,125 @@
-Package: EasyMultiOmics
 Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Package: EasyMultiOmics
+Title: Easy Tools for Multi-Omics Data Integration and Visualization
+Version: 1.0.0
+Author: WenTao, XiePenghao
+Maintainer: The package maintainer <taowen@njau.edu.cn>
+Description: Tools for analyzing and visualizing multi-omics data,
+    including microbiome and metabolomics integration.
 License: What license is it under?
+Depends: 
+    R (>= 4.3.0)
+Imports:
+    ALDEx2,
+    ANCOMBC,
+    aplot,
+    Boruta,
+    broom,
+    caret,
+    circlize,
+    classInt,
+    clusterProfiler,
+    corncob,
+    cowplot,
+    cluster,
+    dacomp,
+    data.tree,
+    DESeq2,
+    dplyr,
+    dynamicTreeCut,
+    e1071,
+    EasyMultiOmics.db,
+    EasyStat,
+    edgeR,
+    exactRankTests,
+    forcats,
+    fs,
+    ggalluvial,
+    ggClusterNet,
+    ggforce,
+    ggh4x,
+    ggnewscale,
+    ggplot2,
+    ggpubr,
+    ggraph,
+    ggrepel,
+    ggsci,
+    ggstance,
+    ggtern,
+    ggtree,
+    ggtreeExtra,
+    ggupset,
+    ggVennDiagram,
+    glmnet,
+    grid,
+    gridExtra,
+    GSVA,
+    gtable,
+    Hmisc,
+    igraph,
+    impute,
+    KEGGREST,
+    lavaan,
+    limma,
+    MASS,
+    mboost,
+    MetBrewer,
+    mia,
+    microbiome,
+    MicrobiotaProcess,
+    mixOmics,
+    networkD3,
+    nlme,
+    nnet,
+    packcircles,
+    patchwork,
+    pheatmap,
+    phyloseq,
+    piecewiseSEM,
+    plotly,
+    plspm,
+    plyr,
+    ppcor,
+    preprocessCore,
+    psych,
+    purrr,
+    R.utils,
+    randomForest,
+    RColorBrewer,
+    reshape2,
+    ROCR,
+    Rtsne,
+    scales,
+    semPlot,
+    stats,
+    stringr,
+    sunburstR,
+    sva,
+    tibble,
+    tidyfst,
+    tidyr,
+    tidytree,
+    tidyverse,
+    treemap,
+    utils,
+    vegan,
+    VennDiagram,
+    WGCNA
+Suggests: 
+    ape,
+    BiocManager,
+    Ckmeans.1d.dp,
+    ipred,
+    pacman,
+    picante,
+    ropls,
+    rpart,
+    xgboost
+LinkingTo: 
+    Rcpp,
+    RcppArmadillo
 Encoding: UTF-8
 LazyData: true
+NeedsCompilation: no
+Packaged: 2025-02-17 13:46:44 UTC; Administrator
+RoxygenNote: 7.3.2

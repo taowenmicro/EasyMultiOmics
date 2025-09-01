@@ -1,48 +1,32 @@
 #' @title Load Required R Packages for Data Analysis
-#'
 #' @description
-#' The function loads various R libraries commonly used for microbiome analysis, data manipulation,
-#' and visualization. It includes packages like `phyloseq`, `ggClusterNet`, `EasyStat`, and more.
-#' This function is intended to streamline the initial setup for data analysis by loading multiple
-#' libraries in one call, saving time and avoiding repetitive loading of the same libraries in
-#' separate scripts.
-#' @return
-#' This function does not return any value. It is used for loading required libraries.
+#' Checks and installs (if missing) various R packages commonly used for microbiome analysis.
+#' @note
+#' This function will check package availability and attempt to install missing packages from CRAN.
+#' @return Invisibly returns a logical vector indicating which packages were successfully loaded
+#' @export
 #' @examples
 #' \dontrun{
-#' # Load all required packages for microbiome analysis
+#' # Check and load packages
 #' package.amp()
 #' }
-#' @author
-#' Tao Wen \email{2018203048@njau.edu.cn},
-#' Peng-Hao Xie \email{2019103106@njau.edu.cn}
-package.amp <- function(){
-  #导入R包#-------
-  library(phyloseq)
-  library(tidyverse)
-  library(ggClusterNet)
-  library(EasyStat)
-  library(fs)
-  library(ggthemes)
-  library(RColorBrewer)#调色板调用包
+package.amp <- function() {
+  # 包列表
+  pkg_list <- c(
+    "phyloseq", "tidyverse",   "fs",
+    "ggthemes", "RColorBrewer", "magrittr", "ggsignif",
+    "ggtree", "ggtreeExtra", "ggstar", "MicrobiotaProcess",
+    "ggnewscale", "grid", "caret"
+  )
 
-  # library(ggplot2)
-  # library(dplyr)
-  library(magrittr)
-  # library(RColorBrewer)
-  # devtools::install_github("YuLab-SMU/treeio") # 安装1.7以上版本的才能支持MicrobiotaProcess
-  # devtools::install_github("YuLab-SMU/MicrobiotaProcess")
-  # BiocManager::install("treeio")
-  library(MicrobiotaProcess)
-  # library(tibble)
-  library(ggsignif)
-  library(ggtree)
-  library(ggtreeExtra)
-  # library(ggplot2)
-  library(ggstar)
-  library(MicrobiotaProcess)
-  library(ggnewscale)
-  library(grid)
-  library(caret)
+  # 检查并安装缺失包
+  new_pkgs <- pkg_list[!pkg_list %in% installed.packages()[,"Package"]]
+  if(length(new_pkgs)) install.packages(new_pkgs)
+
+  # 加载所有包
+  suppressPackageStartupMessages(
+    sapply(pkg_list, require, character.only = TRUE)
+  )
+
+  invisible(sapply(pkg_list, function(x) x %in% .packages()))
 }
-

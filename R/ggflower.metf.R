@@ -26,7 +26,7 @@
 #' library(ggplot2)
 #' ps =ps.kegg %>% filter_OTU_ps(Top = 1000)
 #' res <- ggflower.metf(ps= ps ,group = "Group",start = 1,
-#' m1 = 1,a = 0.2, b = 1,lab.leaf = 1col.cir = "yellow",N = 0.5 )
+#' m1 = 1,a = 0.2, b = 1,lab.leaf = 1,col.cir = "yellow",N = 0.5 )
 #' p14 = res[[1]]
 #' p14
 #' dat = res[[2]]

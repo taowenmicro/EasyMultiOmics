@@ -6,13 +6,17 @@
 #' @param ps A `phyloseq` object containing the microbial community data and metadata.
 #' @param gnum Calculate the Number of Unique Groups in Sample Metadata
 #'
-#' @author Tao Wen \email{2018203048@@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njau.edu.cn}
+#' @author Tao Wen \email{taowen@@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njau.edu.cn}
 #' @examples
 #' res = theme_my(ps.16s)
 #' mytheme1 = res[[1]]
 #' mytheme2 = res[[2]]
 #' colset1 = res[[3]]
 #' @export
+
+
+
+
 theme_my<- function(ps= ps,gnum=NULL){
 
 #--设定颜色
@@ -70,12 +74,12 @@ mytheme2 = theme_bw() + theme(
 if (gnum <= 9) {
   #设定颜色#------------
   #调用所有这个包中的调色板
-  RColorBrewer::display.brewer.all()
+  # RColorBrewer::display.brewer.all()
   #提取特定个数的调色板颜色，会出图显示
   # RColorBrewer::display.brewer.pal(9,"Set1")
   colset1 <- c(brewer.pal(9,"Set1"))
   colset2 <- brewer.pal(12,"Paired")
-  colset3 <- c(brewer.pal(12,"Set1"),brewer.pal(9,"Pastel1"))
+  colset3 <- c(brewer.pal(9,"Set1"),brewer.pal(9,"Pastel1"))
   colset4 = colset3
 }
 
@@ -88,7 +92,7 @@ if (gnum > 9) {
   # RColorBrewer::display.brewer.pal(9,"Set1")
   colset1 <- colorRampPalette(RColorBrewer::brewer.pal(9,"Set1"))(gnum)
   colset2 <- brewer.pal(12,"Paired")
-  colset3 <- c(brewer.pal(12,"Set1"),brewer.pal(9,"Pastel1"))
+  colset3 <- c(brewer.pal(9,"Set1"),brewer.pal(9,"Pastel1"))
   colset4 = colset3
 }
 

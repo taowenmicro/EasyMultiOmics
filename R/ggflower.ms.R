@@ -26,7 +26,7 @@
 #' library(phyloseq)
 #' library(ggplot2)
 #' res <- ggflower.ms(ps= ps.ms ,rep = 1,group = "Group",start = 1,
-#' m1 = 1,a = 0.2, b = 1,lab.leaf = 1col.cir = "yellow",N = 0.5 )
+#' m1 = 1,a = 0.2, b = 1,lab.leaf = 1,col.cir = "yellow",N = 0.5 )
 #' p14 = res[[1]]
 #' p14
 #' dat = res[[2]]

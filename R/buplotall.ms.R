@@ -32,7 +32,7 @@
 #' Peng-Hao Xie \email{2019103106@njau.edu.cn}
 #' @export
 
-bubble.enrich.ms =function (ps, dif.method = "wilcox") {
+buplotall.ms =function (ps, dif.method = "wilcox") {
   result1 = statSuper(ps = ps, group = "Group", artGroup = NULL,
                       method = "wilcox")
   ps %>% sample_data()

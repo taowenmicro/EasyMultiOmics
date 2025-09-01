@@ -1,27 +1,36 @@
 # 宏基因组物种分析#-----
 rm(list=ls())
-# library(EasyMultiOmics)
+
+# BiocManager::install("MicrobiotaProcess")
+
+library(EasyMultiOmics)
 library(phyloseq)
 library(tidyverse)
 library(ggClusterNet)
 library(ggrepel)
 
-ps.metm=ps.micro %>% filter_OTU_ps(Top = 1000)
 
-# 定义后续参数-----
-map= sample_data(ps.metm)
+# 有效基因数量
+sample_sums(ps.micro)
+
+
+
+## 参数设定-----
+map= sample_data(ps.micro)
 head(map)
 
-phyloseq::tax_table(ps.metm) %>% head()
+phyloseq::tax_table(ps.micro) %>% head()
 # 提取分组因子数量
-gnum = phyloseq::sample_data(ps.metm)$Group %>% unique() %>% length()
+gnum = phyloseq::sample_data(ps.micro)$Group %>% unique() %>% length()
 gnum
 #--设定排序顺序1：按照ps.metm对象中map文件顺序进行
-axis_order =  phyloseq::sample_data(ps.metm)$Group %>%unique();axis_order
+axis_order =  phyloseq::sample_data(ps.micro)$Group %>%unique();axis_order
+col.g =  c("KO" = "#D55E00", "WT" = "#0072B2", "OE" = "#009E73")
 
 #-主题--
 package.amp()
-res = theme_my(ps.metm)
+
+res = theme_my(ps.micro)
 mytheme1 = res[[1]]
 mytheme2 = res[[2]];
 colset1 = res[[3]];colset2 = res[[4]];colset3 = res[[5]];colset4 = res[[6]]
@@ -30,61 +39,104 @@ colset1 = res[[3]];colset2 = res[[4]];colset3 = res[[5]];colset4 = res[[6]]
 #1 alpha.metm: 6中alpha多样性计算#----
 all.alpha = c("Shannon","Inv_Simpson","Pielou_evenness","Simpson_evenness" ,"Richness" ,"Chao1","ACE" )
 #--alpha多样性指标运算
-tab = alpha.metm(ps = ps.metm,group = "Group" )
+tab = alpha.metm(ps = ps.micro,group = "Group" )
 head(tab)
+
+
 data = cbind(data.frame(ID = 1:length(tab$Group),group = tab$Group),tab[all.alpha])
 head(data)
 data$ID = as.character(data$ID)
 # data$Inv_Simpson[is.na(data$Inv_Simpson)]
 # data$Inv_Simpson %>% tail(1000)
 
-result = EasyStat::MuiKwWlx2(data = data,num = 3:6)
-result1 = EasyStat::FacetMuiPlotresultBox(data = data,num = 3:6,
+
+
+
+
+
+result = EasySigR::MuiKwWlx2(data = data,num = 3:6)
+
+result1 = EasySigR::FacetMuiPlotresultBox(data = data,num = 3:6,
                                           result = result,
-                                          sig_show ="abc",ncol = 4 )
-p1_1 = result1[[1]]
+                                          sig_show ="abc",ncol = 4,width = 0.4 )
+
+p1_1 = result1[[1]] +scale_fill_manual(values = col.g)
+
 p1_1+
   ggplot2::scale_x_discrete(limits = axis_order) +
-  mytheme2 +
-  ggplot2::guides(fill = guide_legend(title = NULL)) +
-  ggplot2::scale_fill_manual(values = colset1)
+  # theme_cell()+
+  theme_nature()+
+
+  ggplot2::guides(fill = guide_legend(title = none))
 
 
-res = EasyStat::FacetMuiPlotresultBar(data = data,num = c(3:6),result = result,sig_show ="abc",ncol = 4)
+
+res = EasySigR::FacetMuiPlotresultBar(data = data,num = c(3:6),
+                                      result = result,sig_show ="abc",ncol = 4,
+                            mult.y = 0.3
+
+                            )
 p1_2 = res[[1]]
-p1_2+
+p1_2 +
   ggplot2::scale_x_discrete(limits = axis_order) +
-  mytheme2 +
-  ggplot2::guides(fill = guide_legend(title = NULL)) +
-  ggplot2::scale_fill_manual(values = colset1)
+  mytheme_nature +
+  ggplot2::guides(fill = guide_legend(title = none)) +
+  ggplot2::scale_fill_manual(values = col.g)
 
-res = EasyStat::FacetMuiPlotReBoxBar(data = data,num = c(3:6),result = result,sig_show ="abc",ncol = 3)
+p = p1_2 +
+  ggplot2::scale_x_discrete(limits = axis_order) +
+  mytheme_cell +
+  ggplot2::guides(fill = guide_legend(title = none)) +
+  ggplot2::scale_fill_manual(values = col.g)
+
+# #  推荐保存参数
+# ggsave(
+#   filename = "Figure1.pdf",
+#   plot = p,
+#   width = 10.5,
+#   height = 4.5,
+#   units = "in"
+# )
+
+
+res = FacetMuiPlotReBoxBar(data = data,num = c(3:6),result = result,sig_show ="abc",ncol = 4,
+                           mult.y = 0.3,
+                           lab.yloc = 1.1
+                           )
 p1_3 = res[[1]]
 p1_3+
   ggplot2::scale_x_discrete(limits = axis_order) +
-  mytheme2 +
-  ggplot2::guides(fill = guide_legend(title = NULL)) +
-  ggplot2::scale_fill_manual(values = colset1)
+  mytheme_nature +
+  ggplot2::guides(fill = guide_legend(title = none)) +
+  ggplot2::scale_fill_manual(values = col.g)
 
 #基于输出数据使用ggplot出图
+lab = result1[[2]] %>% distinct(group ,name,.keep_all = TRUE)
 p1_0 = result1[[2]] %>% ggplot(aes(x=group , y=dd )) +
   geom_violin(alpha=1, aes(fill=group)) +
   geom_jitter( aes(color = group),position=position_jitter(0.17), size=3, alpha=0.5)+
   labs(x="", y="")+
   facet_wrap(.~name,scales="free_y",ncol  = 4) +
   # theme_classic()+
-  geom_text(aes(x=group , y=y ,label=stat))
+  geom_text(data = lab,aes(x=group , y=y ,label=stat),alpha = 0.6)
 p1_0+
   ggplot2::scale_x_discrete(limits = axis_order) +
-  mytheme2 +
-  ggplot2::guides(fill = guide_legend(title = NULL)) +
-  ggplot2::scale_fill_manual(values = colset1)
+  mytheme_nature +
+  ggplot2::guides(fill = guide_legend(title = none)) +
+  ggplot2::scale_fill_manual(values = col.g)+
+  ggplot2::scale_color_manual(values = col.g)
 
 #3 alpha_rare.metm:alpha多样性稀释曲线#---------
   rare <- mean(phyloseq::sample_sums(ps.metm))/10
- result = alpha_rare.metm(ps = ps.metm, group = "Group", method = "Richness", start = 100, step = rare)
+
+  library(microbiome)
+  library(vegan)
+
+  result = alpha_rare.metm(ps = ps.micro ,
+                          group = "Group", method = "Shannon", start = 100, step = rare)
+
   #--提供单个样本溪稀释曲线的绘制
-  p2_1 <- result[[1]]
+  p2_1 <- result[[1]] +scale_color_manual(values = col.g)
   p2_1
   ## 提供数据表格，方便输出
   raretab <- result[[2]]
@@ -95,6 +147,8 @@ p1_0+
   #--按照分组绘制标准差稀释曲线
   p2_3 <- result[[4]]
   p2_3
+
+
 
 # beta diversity  -----
 #4 ordinate.metm: 排序分析#----------

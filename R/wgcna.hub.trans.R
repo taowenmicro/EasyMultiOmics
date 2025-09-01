@@ -1,32 +1,32 @@
 #' @title Perform WGCNA analysis on transcriptome functional composition table
-#' @description This function conducts various steps of WGCNA analysis including data preprocessing, module identification,
-#' trait correlation analysis, network visualization, and gene selection based on module-trait relationships.
-#' @param ps A phyloseq format file used as an alternative for the input containing transcriptome
-#' functional composition table, tax, and sample metadata.
-#' @param data_type Transcriptome data type,default is "TPM".
-#' If the input data is counts,log2(counts+1) will be executed;
-#' If the input data is not counts, e.g., TPM、fpkm, there will be not convert again
-#' @param group A string specifying the grouping variable in the sample metadata. Default is `"Group"`.
-#' @param WGCNApath Path to save the results and plots from the analysis process,.
-#' Default is `"NULL"`,this means that the the results and plots of the analysis process don't need to xported.
-#' If you need to export, please modify it to the specified file output path.
-#' @param alltraits Traits data, a data frame or matrix,rows are different samples,cols are different traits.
-#' Default is `"NULL"`,this means that the grouping variable in the sample metadata will be considered the trait that needs attention.
-#' If you have traits data , please modify it to the specified name of your traits data.
-#' @param sample_filter Logical, whether to remove abnormal outlier samples,Default is `"TRUE"`
-#' @param clustsample_thresold Threshold for sample clustering. This parameter only takes effect when sample_filter is true
-#' @param minModuleSize Minimum module size for module identification.Default is `"30"`.
-#' @param MEDissThres Similarity threshold for merging modules.Modules with similarity exceeding this threshold will be merged into one module.Default is `"0.75"`.
-#' @param topnSelect_module  Number of top modules to select, based on the absolute correlation between traits and modules.Default is `"5"`.
-#' @param nSelect_genes Number of genes to select for heatmap.Default is `"400"`.
-#' @return A list containing the top module-trait relationships and selected genes information based on MM and GS.
-#' \item {moduleTraitCor_top}{Data frame containing the selected top modules with all traits.}
-#' \item {xx3}{Data frame containing important genes by MM and GS in the selected top modules with all traits.}
+#' @description This function conducts Weighted Gene Co-expression Network Analysis (WGCNA) including data preprocessing,
+#' module identification, trait correlation analysis, and network visualization.
+#'
+#' @param ps A phyloseq object containing transcriptome functional composition data and sample metadata.
+#' @param data_type Transcriptome data type. Must be either "counts" or "TPM"/"FPKM".
+#' If "counts", will apply log2(counts+1) transformation. Default is "TPM".
+#' @param group Character specifying the grouping variable in sample metadata. Default is "Group".
+#' @param WGCNApath Character specifying output directory path. If NULL (default), no files will be saved.
+#' @param alltraits Optional data frame of additional traits (samples in rows, traits in columns).
+#' Default NULL uses the grouping variable as the sole trait.
+#' @param sample_filter Logical indicating whether to filter outlier samples. Default TRUE.
+#' @param clustsample_threshold Numeric threshold for sample clustering (only if sample_filter=TRUE). Default 50000.
+#' @param minModuleSize Integer specifying minimum module size. Default 30.
+#' @param MEDissThres Numeric threshold (0-1) for merging similar modules. Default 0.75.
+#' @param topnSelect_module Integer specifying number of top modules to select. Default 5.
+#' @param nSelect_genes Integer specifying number of top genes to display. Default 400.
+#'
 #' @export
+#' @importFrom WGCNA blockwiseModules
+#' @importFrom dplyr filter select mutate
+#' @importFrom stats cor hclust as.dist
+#' @importFrom dynamicTreeCut cutreeDynamic
+#'
 #' @examples
 #' \dontrun{
 #' library(WGCNA)
 #' library(dplyr)
+#' data(ps.trans)
 #' res <- wgcna.trans(ps=ps.trans, data_type="TPM",group="Group",WGCNApath=NULL,
 #'                    alltraits=NULL,sample_filter=TRUE,clustsample_thresold=50000,
 #'                    minModuleSize = 30,MEDissThres = 0.25,topnSelect_module=5,
@@ -398,5 +398,5 @@ wgcna.hub.trans <- function(ps=ps.trans, data_type="TPM",group="Group",WGCNApath
       pdf(file=paste(WGCNApath,"/","12_Network heatmap plot_selected genes.pdf",sep = ""),width=9, height=9)}
     TOMplot(plotDiss, selectTree, selectColors, main = "Network heatmap plot, selected genes")
     dev.off()}
-  return(list(moduleTraitCor_top,xx3))
+  return(list(topModules = moduleTraitCor_top, hubGenes = xx3))
 }

@@ -15,16 +15,16 @@
 #' result = alpha.rare.line(ps = ps.16s, group = "Group", method = "Richness", start = 100, step = rare)
 #' p2_1 <- result[[1]]
 #' p2_1
-#' #-- Plot the rarefaction curve for a single sample
+#' # Plot the rarefaction curve for a single sample
 #' p2_1 <- result[[1]]
 #' p2_1
-#' Provide a data table for convenient output
+#' # Provide a data table for convenient output
 #' raretab <- result[[2]]
 #' head(raretab)
-#' Display rarefaction curves grouped by categories
+#' # Display rarefaction curves grouped by categories
 #' p2_2 <- result[[3]]
 #' p2_2
-#' Plot rarefaction curves with standard deviations by groups
+#' # Plot rarefaction curves with standard deviations by groups
 #' p2_3 <- result[[4]]
 #' p2_3
 #' @export

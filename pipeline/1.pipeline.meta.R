@@ -2,7 +2,17 @@
 rm(list=ls())
 library(tidyverse)
 library(data.table)
-library(phyloseq)
+
+# install.packages("BiocManager")
+# library(BiocManager)
+
+# library("devtools")
+# install_github("taowenmicro/ggClusterNet")
+# library(phyloseq)
+# library(BiocManager)
+# install("data.tree")
+
+
 library(ggClusterNet)
 library(EasyStat)
 library(tidyfst)
@@ -16,6 +26,10 @@ ps.kegg =  EasyMultiOmics::ps.kegg
 res = theme_my(ps.kegg)
 mytheme1 = res[[1]]
 mytheme2 = res[[2]];
+
+
+
+
 colset1 = res[[3]];colset2 = res[[4]];colset3 = res[[5]];colset4 = res[[6]]
 # 提取分组因子数量
 gnum = phyloseq::sample_data(ps.kegg)$Group %>% unique() %>% length()

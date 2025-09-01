@@ -14,31 +14,32 @@
 #' result = alpha_rare.metm(ps = ps.16s, group = "Group", method = "Richness", start = 100, step = rare)
 #' p2_1 <- result[[1]]
 #' p2_1
-#' #-- Plot the rarefaction curve for a single sample
+#' # Plot the rarefaction curve for a single sample
 #' p2_1 <- result[[1]]
 #' p2_1
-#' Provide a data table for convenient output
+#' # Provide a data table for convenient output
 #' raretab <- result[[2]]
 #' head(raretab)
-#' Display rarefaction curves grouped by categories
+#' # Display rarefaction curves grouped by categories
 #' p2_2 <- result[[3]]
 #' p2_2
-#' Plot rarefaction curves with standard deviations by groups
+#' # Plot rarefaction curves with standard deviations by groups
 #' p2_3 <- result[[4]]
 #' p2_3
 #' @export
 
 # 稀释曲线函数
-alpha_rare.metm =function(otu = NULL,tax = NULL,map = NULL,tree = NULL ,ps = NULL,method = "Richness",group = "Group", start = 100,step = 100){
+alpha_rare.metm =function(otu = NULL,tax = NULL,map = NULL,tree = NULL ,ps = NULL,method = "Richness",
+                          group = "Group", start = 100,step = 100){
   # 所需R包
-  library(vegan)
-  library(microbiome)
-  library(tidyverse)
+  # library(vegan)
+  # library(microbiome)
+  # library(tidyverse)
 
   # 构建所需子函数
   #----抽平函数，输入对象为Phyloseq对象和抽平数值#----
   phyRare = function(ps = ps,N = 3000){
-    library(phyloseq)
+    # library(phyloseq)
     #---- 提取OTU表函数 #----
     vegan_otu = function(physeq){
       OTU =  otu_table(physeq)
@@ -86,7 +87,7 @@ alpha_rare.metm =function(otu = NULL,tax = NULL,map = NULL,tree = NULL ,ps = NUL
       count = as.data.frame(t(vegan_otu(psRe)))
       # head(count)
       x = t(count) ##转置，行为样本，列为OTU
-      est = estimateR(x)
+      est = vegan::estimateR(x)
       index = est[1, ]
     }
 
@@ -114,7 +115,7 @@ alpha_rare.metm =function(otu = NULL,tax = NULL,map = NULL,tree = NULL ,ps = NUL
     }
   }
 
-  #----稀释结果为整齐的表，为了对应map分组吗？#----
+  #----稀释结果为整齐的表，#----
   for (ii in 1:length(sample_sums(ps))) {
     result$i[result$i > sample_sums(ps)[ii][[1]]]
     df_filter= filter(result, ID ==names(sample_sums(ps)[ii]) &i > sample_sums(ps)[ii][[1]])
@@ -143,7 +144,8 @@ alpha_rare.metm =function(otu = NULL,tax = NULL,map = NULL,tree = NULL ,ps = NUL
                     legend.text = element_text(size = 7,face = "bold")
   )
   p = ggplot(data= result,aes(x = i,y = index,group = ID,colour = Group)) +
-    geom_smooth(span = 0.7, se = FALSE, method = "loess") +
+    geom_smooth(span = 0.7,  method = "loess",span = 0.5,
+                se = FALSE, size = 1.2) +
     labs(x= "",y=method,title="") +theme_bw()+main_theme
 
   #---分组求均值和标准误+se#---

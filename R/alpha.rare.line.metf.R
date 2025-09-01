@@ -33,18 +33,20 @@
 #' #-- Plot the rarefaction curve for a single sample
 #' p2_1 <- result[[1]]
 #' p2_1
-#' Provide a data table for convenient output
+#' #Provide a data table for convenient output
 #' raretab <- result[[2]]
 #' head(raretab)
-#' Display rarefaction curves grouped by categories
+#' #Display rarefaction curves grouped by categories
 #' p2_2 <- result[[3]]
 #' p2_2
-#' Plot rarefaction curves with standard deviations by groups
+#' #Plot rarefaction curves with standard deviations by groups
 #' p2_3 <- result[[4]]
 #' p2_3
 #' }
 #' @export
-alpha_rare.metf =function(
+#'
+#'
+alpha.rare.line.metf =function(
     otu = NULL,
     tax = NULL,
     map = NULL,
