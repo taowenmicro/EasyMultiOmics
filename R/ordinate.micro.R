@@ -1,22 +1,19 @@
 # Beta diversity calculate
-#
-# The function named 'BetaDiv'
 # which do beta-diversity analysis including PCoA, NMDS, LDA, DCA, CCA, RDA, MDS, PCA
 #
-# You can learn more about package at:
-#
-#   https://github.com/microbiota/amplicon
-
 #' @title Beta diversity plotting
 #' @description Input otutab, metadata and tree or phyloseq object; support 47 distance type (bray, unifrac, wunifrac ...),  8 ordination method (PCoA, NMDS, ...); output ggplot2 figure, data and statistical test result.
+#'
 #' @param otu OTU/ASV table;
 #' @param map Sample metadata;
-#' @param tree tree/nwk file;
 #' @param dist distance type, including "unifrac" "wunifrac" "dpcoa" "jsd" "manhattan" "euclidean"   "canberra" "bray" "kulczynski"  "jaccard" "gower" "altGower" "morisita" "horn" "mountford"  "raup" "binomial"  "chao"  "cao" "w"  "-1"  "c" "wb"  "r"   "I"  "e" "t" "me"   "j"  "sor"  "m"   "-2"  "co";
 #' @param group group ID;
 #' @param method DCA, CCA, RDA, NMDS, MDS, PCoA, PCA, LDA;
 #' @param pvalue.cutoff Pvalue threshold;
+#' @param tax taxonomy table;
+#' @param ps A phyloseq format file used as an alternative for the input containing otu, tax, and map.
 #' @param Micromet statistics by adonis/anosim/MRPP;
+#' @param pair A logical value indicating whether to perform pairwise group comparisons. Default is `FALSE`.
 #' @details
 #' By default, input phyloseq object include metadata, otutab and tree
 #' The available diversity indices include the following:
@@ -25,37 +22,17 @@
 #' \item{other used indices: manhattan, euclidean, jaccard ...}
 #' }
 #' @return list object including plot, stat table
-#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Yong-Xin Liu \email{yxliu@@genetics.ac.cn}
-#' @references
-#'
-#' Jingying Zhang, Yong-Xin Liu, Na Zhang, Bin Hu, Tao Jin, Haoran Xu, Yuan Qin, Pengxu Yan, Xiaoning Zhang, Xiaoxuan Guo, Jing Hui, Shouyun Cao, Xin Wang, Chao Wang, Hui Wang, Baoyuan Qu, Guangyi Fan, Lixing Yuan, Ruben Garrido-Oter, Chengcai Chu & Yang Bai.
-#' NRT1.1B is associated with root microbiota composition and nitrogen use in field-grown rice.
-#' Nature Biotechnology, 2019(37), 6:676-684, DOI: \url{https://doi.org/10.1038/s41587-019-0104-4}
-#'
-#' @seealso beta_pcoa beta_cpcoa
+#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
 #' @examples
-#'
-#' BetaDiv(otu = otutab_rare, map = metadata, tree = tree, group = "Group", dist = "bray", method = "PCoA", Micromet = "adonis", pvalue.cutoff = 0.05)
-#'
+#'result = ordinate.micro(ps = ps.16s, group = "Group", dist = "bray",method = "PCoA", Micromet = "anosim",
+#' pvalue.cutoff = 0.05)
+#'p3_1 = result[[1]]
 #' @export
 #'
 
-# otu = NULL
-# map = NULL
-# tree = NULL
-# ps
-# group = "Group1"
-# dist = "bray"
-# method = "NMDS"
-# Micromet = "adonis"
-# pvalue.cutoff = 0.05
-
-
-
-
 ordinate.micro = function(otu = NULL,tax = NULL,map = NULL,ps = NULL,
                    group = "Group", dist = "bray", method ="PCoA",
-                   Micromet = "adonis", pvalue.cutoff = 0.05,pair=TRUE){
+                   Micromet = "adonis", pvalue.cutoff = 0.05,pair = FALSE){
   ps = ggClusterNet::inputMicro(otu,tax,map,tree,ps,group  = group)
   # 求取相对丰度#----
   ps1_rela = phyloseq::transform_sample_counts(ps, function(x) x / sum(x) )

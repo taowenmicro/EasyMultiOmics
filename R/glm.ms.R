@@ -1,3 +1,28 @@
+#' @title Glm model screening of characteristic metabolites
+#' @description
+#' Glm, one of the machine learning methods, was used to screen for characteristic
+#' metabolites, and the model was evaluated using k-fold cross-validation.
+#' @param ps A phyloseq format file used as an alternative for the input containing metabolite composition table,
+#' metabolite classification table, and sample metadata.
+#' @param k The number of folds for cross-validation.
+#' @return A list object including the following components:
+#' \item{AUC}{The average accuracy of the glm model.}
+#' \item{Importance}{A data frame showing the feature importance ranked in descending order.}
+#' @export
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' @examples
+#' library(dplyr)
+#' library(ggClusterNet)
+#' library(caret)
+#' library(ROCR)
+#' pst=subset_samples(ps.ms,Group %in% c("KO" ,"OE"))
+#' res <- glm.ms(ps = pst%>% filter_OTU_ps(50), k = 5)
+#' AUC = res[[1]]
+#' AUC
+#' importance = res[[2]]
+#' importance
 glm.ms <- function(ps = ps, k = 5) {
   # 数据准备
   map <- as.data.frame(phyloseq::sample_data(ps))

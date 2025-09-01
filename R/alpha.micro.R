@@ -1,15 +1,44 @@
 
+#' @title Calculate the diversity for each sample or group
+#' @description
+#' The alpha.micro function calculates alpha diversity indices for microbial communities.
+#' This includes measures such as Shannon diversity, Pielou's evenness, and richness estimates (e.g., Chao1, ACE).
+#'
+#' @param otu OTU/ASV table;
+#' @param tax taxonomy table;
+#' @param map A data frame or matrix containing metadata for samples. Must include at least `ID` and grouping column(s).
+#' @param ps A `phyloseq` object. It must contain an OTU/ASV table (`otu_table`), and sample metadata (`sample_data`).
+#' @param group column name for group, such as "Group".
+#' @param sampling sampling OTU/ASV table with the minisize sequence count;
+#'
+#' @return  A data frame containing alpha diversity indices for each sample, along with the sample metadata. The output includes the following indices:
+#' \itemize{
+#'   \item `Shannon`: Shannon diversity index.
+#'   \item `Inv_Simpson`: Inverse Simpson diversity index.
+#'   \item `Pielou_evenness`: Pielou's evenness index.
+#'   \item `Simpson_evenness`: Simpson's evenness index.
+#'   \item `Richness`: Observed richness (number of species).
+#'   \item `Chao1`: Chao1 richness estimator.
+#'   \item `ACE`: ACE richness estimator.
+#' }
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' tab = alpha.micro(ps = ps.16s,group = "Group")
+#' }
 
 alpha.micro = function(otu = NULL,
                  tax = NULL,
                  map = NULL,
                  ps = NULL,
                  group = "Group",
+                 sampling = TRUE){
 
-                 sampling = TRUE,
-                 Plot = TRUE){
-
-  ps = ggClusterNet::inputMicro(otu,tax,map,tree,ps,group  = group)
+ # ps = ggClusterNet::inputMicro(otu,tax,map,tree,ps,group  = group)
   if (sampling == TRUE) {
     samplesize = min(phyloseq::sample_sums(ps))
     if (samplesize == 0) {

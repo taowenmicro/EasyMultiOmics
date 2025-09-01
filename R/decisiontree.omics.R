@@ -1,3 +1,28 @@
+#' @title Decisiontree model screening of features in multi-omics data
+#' @description
+#' Decisiontree, one of the machine learning methods, was used to screen for characteristic
+#' microorganisms, and the model was evaluated using k-fold cross-validation.
+#' @param ps A phyloseq format file used as an alternative for the input containing otu, tax, and map.
+#' @param top The top microorganisms to consider.
+#' @param seed The random seed for reproducibility.
+#' @param k The number of folds for cross-validation.
+#' @return A list object including the following components:
+#' \item{Accuracy}{The average accuracy of the Decisiontree model.}
+#' \item{Importance}{A data frame showing the feature importance ranked in descending order.}
+#' @export
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' @examples
+#' library(dplyr)
+#' library(ggClusterNet)
+#' library(caret)
+#' library(rpart)
+#' res = decisiontree.omics(ps=ps03, top = 20, seed = 1010, k = 5)
+#' accuracy = res[[1]]
+#' accuracy
+#' importance = res[[2]]
+#' importance
 
 decisiontree.omics <- function(ps=ps, top = 20, seed = 6358, k = 5) {
   set.seed(seed)
@@ -22,6 +47,7 @@ decisiontree.omics <- function(ps=ps, top = 20, seed = 6358, k = 5) {
     fold_train <- test[-folds[[i]], ]
 
     # 训练决策树模型
+    fold_train$OTUgroup <- as.factor(fold_train$OTUgroup)
     a_rpart <- rpart(OTUgroup ~ ., data = fold_train, method = 'class')
 
     # 得到测试集的预测值
@@ -31,8 +57,8 @@ decisiontree.omics <- function(ps=ps, top = 20, seed = 6358, k = 5) {
     correct_predictions <- sum(pred == fold_test$OTUgroup)
     accuracy <- correct_predictions / nrow(fold_test)
     accuracy_values[i] <- accuracy
-
-
+   # importance(a_rpart)
+    print(a_rpart)
     importance <- a_rpart$variable.importance
     if (!is.null(importance)) {
       importance_list[[i]] <- importance

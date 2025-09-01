@@ -1,3 +1,72 @@
+#' @title Differential Abundance Analysis Using DESeq2
+#' @description
+#' The \code{DESep2Super.metf} function performs differential abundance analysis between
+#' metagenome functional groups using the \code{DESeq2} package. It identifies
+#' significantly enriched or depleted taxa across multiple group comparisons by
+#' calculating log2 fold changes, raw p-values, and adjusted p-values (FDR).
+#'
+#' The input data can be provided as a \code{phyloseq} object or as separate
+#' metagenome functional composition, taxonomic, and metadata tables.
+#'
+#' @param otu A data frame containing gene counts. Optional if \code{ps} is provided.
+#' @param map A data frame containing sample metadata. Optional if \code{ps} is provided.
+#' @param tree A phylogenetic tree. Optional if \code{ps} is provided.
+#' @param tax A data frame containing metagenome functional classification table.
+#'   Optional if \code{ps} is provided.
+#' @param ps A \code{phyloseq} object used as an alternative for the input containing
+#'   metagenome functional composition table, tax, and sample metadata.
+#' @param j A string or integer specifying the taxonomic rank to perform the analysis on.
+#'   Can be a numeric rank (1-7), a taxonomic name (e.g., \code{"Phylum"}), or \code{"OTU"}.
+#'   Default is \code{"Genus"}.
+#' @param group A string specifying the grouping variable in the sample metadata.
+#'   Default is \code{"Group"}.
+#' @param pvalue A numeric value specifying the significance threshold for adjusted
+#'   p-values (FDR). Default is \code{0.05}.
+#' @param artGroup A custom matrix specifying pairwise group comparisons. Optional.
+#'
+#' @return
+#' A list containing:
+#' \describe{
+#'   \item{Plots}{A list of volcano plots for each pairwise comparison.}
+#'   \item{Results}{A data frame containing differential abundance results, including
+#'     log2 fold changes, p-values, adjusted p-values, and group-specific normalized
+#'     abundances.}
+#' }
+#'
+#' @details
+#' The function performs the following steps:
+#' \itemize{
+#'   \item Prepares OTU, taxonomic, and metadata tables from the \code{phyloseq} object
+#'     or individual inputs.
+#'   \item Aggregates data to the specified taxonomic rank (if applicable).
+#'   \item Constructs a \code{DESeq2} dataset object and normalizes OTU counts.
+#'   \item Performs pairwise group comparisons using contrasts in the \code{DESeq2} framework.
+#'   \item Calculates log2 fold changes, raw p-values, and FDR-adjusted p-values for each taxon.
+#'   \item Labels taxa as \code{"enriched"}, \code{"depleted"}, or \code{"nosig"} based on thresholds.
+#'   \item Outputs a combined data frame with differential abundance results, normalized
+#'     abundances, and taxonomic annotations.
+#' }
+#'
+#' The results include volcano plots that visualize the differential abundance results
+#' for each group comparison. Significant taxa are highlighted, and their log2 fold
+#' changes and p-values are displayed.
+#'
+#' @examples
+#' \dontrun{
+#' ps <- ps.kegg %>% filter_OTU_ps(Top = 1000)
+#' res <- DESep2Super.metf(ps = ps, group = "Group", artGroup = NULL)
+#' p15.1 <- res[[1]][1]
+#' p15.1
+#' p15.2 <- res[[1]][2]
+#' p15.2
+#' p15.3 <- res[[1]][3]
+#' p15.3
+#' dat <- res[[2]]
+#' head(dat)
+#' }
+#'
+#' @author Contact: Tao Wen \email{2018203048@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njau.edu.cn}
+#' @export
 
 DESep2Super.metf = function(otu = NULL,
                              tax = NULL,
@@ -9,24 +78,19 @@ DESep2Super.metf = function(otu = NULL,
                              pvalue = 0.05,
                              artGroup = NULL
 ){
-
-
   ps = ggClusterNet::inputMicro(otu,tax,map,tree,ps,group  = group)
   # ps = ps %>%
-  #   ggClusterNet::tax_glom_wt(ranks = j)
+  # ggClusterNet::tax_glom_wt(ranks = j)
   if (j %in% c("OTU","gene","meta")) {
     ps = ps
   } else if (j %in% c(1:7)) {
     ps = ps %>%
       ggClusterNet::tax_glom_wt(ranks = j)
   } else if (j %in% c("Kingdom","Phylum","Class","Order","Family","Genus","Species")){
-
   } else {
     ps = ps
     print("unknown j, checked please")
   }
-
-
   Desep_group <- ps %>%
     phyloseq::sample_data() %>%
     .$Group %>%

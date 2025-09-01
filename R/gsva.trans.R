@@ -31,13 +31,13 @@ gsva.trans  = function(ps = ps,
   a <- PATH_ID_NAME$KO %>% unique()
   tab = ps %>% vegan_otu() %>%
     t()
-
+  head(tab)
   map = ps %>% sample_data()
   Desep_group <- as.character(levels(as.factor(map$Group)))
   aaa = combn(Desep_group,2)
 
-  row.names(tab) = gsub("ko:","",row.names(tab))
-  topMatrixGSVA <- gsva(tab,group, min.sz=10, max.sz=999999, abs.ranking=FALSE, verbose=TRUE)
+  row.names(tab) = gsub("ko","",row.names(tab))
+  topMatrixGSVA <- gsva(as.matrix(tab),group, min.sz=10, max.sz=999999, abs.ranking=FALSE, verbose=TRUE)
 
   topMatrixGSVA = topMatrixGSVA %>% as.data.frame()
   topMatrixGSVA$ID = row.names(topMatrixGSVA)

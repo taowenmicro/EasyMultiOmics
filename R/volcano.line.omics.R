@@ -1,28 +1,38 @@
 
-# library(ggnewscale)
-# ps1 = ps.trans %>% filter_OTU_ps(500)
-# ps2 = ps.16s %>% filter_OTU_ps(500)
-#
-#
-# res = volcano.cor.omic(ps1 = ps1,ps2 = ps2,
-#                        lab.1 = "tran",
-#                        lab.2 = "16s",
-#                        group = "Group",
-#                        r.threshold = 0.8,
-#                        p.threshold= 0.05,
-#                        col.point = NULL,
-#                        col.line = NULL,
-#                        method.cor = "pearson",
-#                        n = 50
-# )
-#
-# res[[1]]$WT_OE
-# res[[1]]$WT_KO
-# res[[1]]$OE_KO
-# i = 2
+#' @title Volcano Plot with Correlation and Random Forest Analysis for Omics Data
+#'
+#' @description
+#' This function compares two omics datasets (`ps1` and `ps2`) by generating volcano plots that depict the differential
+#' expression based on log fold changes and significance (p-values). It incorporates statistical analysis (e.g., Pearson
+#' correlation) and visualizes the relationships between the datasets. The plots color points to represent enriched,
+#' depleted, or non-significant variables, and uses edge networks based on correlation values between variables.
+#' Additionally, the function performs Random Forest analysis to evaluate the importance of environmental or experimental
+#' variables influencing the data.
+#'
+#' @examples
+#' \dontrun{
+#' # Assuming 'ps.trans' and 'ps.16s' are valid phyloseq objects with data
+#' ps1 = ps.trans %>% filter_OTU_ps(500)
+#' ps2 = ps.16s %>% filter_OTU_ps(500)
+#'
+#' res = volcano.line.omics(ps1 = ps1, ps2 = ps2,
+#'                           lab.1 = "tran", lab.2 = "16s",
+#'                           group = "Group", r.threshold = 0.8,
+#'                           p.threshold = 0.05, col.point = NULL,
+#'                           col.line = NULL, method.cor = "pearson",
+#'                           n = 50)
+#'
+#' # View the volcano plot results
+#' res[[1]]$WT_OE
+#' res[[1]]$WT_KO
+#' res[[1]]$OE_KO
+#' }
+#' @export
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
 
-
-volcano.cor.omic = function(
+volcano.line.omics = function(
     ps1 = ps1,
     ps2 = ps2,
     lab.1 = "tran",

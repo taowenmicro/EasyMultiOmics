@@ -1,19 +1,56 @@
-
-
-
-# library("DESeq2")
-# pkgs <- c("phyloseq", "structSSI", "dplyr", "reshape2",
-#           "ggplot2", "DESeq2")
-# sapply(pkgs, require, character = TRUE)
-
-# res = DESep2_Meta2(ps = ps,group  = "Group",artGroup =NULL,
-#                    path = diffpath
-# )
-# head(res)
-#
-# filename = paste(diffpath,"/","DESep2_all_gene.csv",sep = "")
-# write.csv(res,filename,quote = F)
-
+#' @title Differential Abundance Analysis Using DESeq2
+#'
+#' @description
+#' The `DESep2Super.micro` function performs differential abundance analysis between microbial groups using the `DESeq2` package.
+#' It identifies significantly enriched or depleted taxa across multiple group comparisons by calculating log2 fold changes,
+#' raw p-values, and adjusted p-values (FDR). The input data can be provided as a `phyloseq` object or as separate OTU, taxonomic, and metadata tables.
+#'
+#' @param otu A data frame containing OTU counts. Optional if `ps` is provided.
+#' @param tax A data frame containing taxonomic annotations. Optional if `ps` is provided.
+#' @param map A data frame containing sample metadata. Optional if `ps` is provided.
+#' @param tree A phylogenetic tree. Optional if `ps` is provided.
+#' @param ps A `phyloseq` object containing microbiome data. If provided, overrides `otu`, `tax`, `map`, and `tree`.
+#' @param j A string or integer specifying the taxonomic rank to perform the analysis on.
+#' Can be a numeric rank (1-7), a taxonomic name (e.g., `"Phylum"`), or `"OTU"`. Default is `"Genus"`.
+#' @param group A string specifying the grouping variable in the sample metadata. Default is `"Group"`.
+#' @param pvalue A numeric value specifying the significance threshold for adjusted p-values (FDR). Default is `0.05`.
+#' @param artGroup A custom matrix specifying pairwise group comparisons. Optional.
+#'
+#' @return
+#' A list containing:
+#' \describe{
+#'   \item{Plots}{A list of volcano plots for each pairwise comparison.}
+#'   \item{Results}{A data frame containing differential abundance results, including log2 fold changes, p-values, adjusted p-values,
+#'   and group-specific normalized abundances.}
+#' }
+#'
+#' @details
+#' The function performs the following steps:
+#' \itemize{
+#'   \item Prepares OTU, taxonomic, and metadata tables from the `phyloseq` object or individual inputs.
+#'   \item Aggregates data to the specified taxonomic rank (if applicable).
+#'   \item Constructs a `DESeq2` dataset object and normalizes OTU counts.
+#'   \item Performs pairwise group comparisons using contrasts in the DESeq2 framework.
+#'   \item Calculates log2 fold changes, raw p-values, and FDR-adjusted p-values for each taxon.
+#'   \item Labels taxa as `"enriched"`, `"depleted"`, or `"nosig"` based on thresholds.
+#'   \item Outputs a combined data frame with differential abundance results, normalized abundances, and taxonomic annotations.
+#' }
+#'
+#' The results include volcano plots that visualize the differential abundance results for each group comparison.
+#' Significant taxa are highlighted, and their log2 fold changes and p-values are displayed.
+#'
+#' @examples
+#' \dontrun{
+#' res = DESep2Super.micro(ps = ps.16s %>%
+#'                         ggClusterNet::filter_OTU_ps(500),
+#'                         group = "Group",
+#'                         artGroup = NULL,
+#'                         j = "OTU")
+#' }
+#'
+#' @author Contact: Tao Wen \email{2018203048@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njau.edu.cn}
+#'
+#' @export
 
 DESep2Super.micro = function(otu = NULL,
                         tax = NULL,

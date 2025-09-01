@@ -1,10 +1,38 @@
-
-
-
-# res = cluster_plot (ps= ps,hcluter_method = "complete",
-#   dist = "bray",cuttree = gnum,row_cluster = T,col_cluster =  T)
-
-cluster.meta = function(
+#' @title Cluster and Visualize metagenome functional composition
+#' @description
+#' This function performs hierarchical clustering and visualizes Metagenome functional composition
+#' using phyloseq data. It provides various visualizations, including clustering dendrograms
+#' and heatmaps, to explore relationships among samples.
+#'
+#' @param ps A `phyloseq` object containing metagenome functional composition data.
+#' @param hcluter_method A string specifying the hierarchical clustering method.
+#' Default is `"complete"`. Options include `"single"`, `"average"`, and `"ward.D"`.
+#' @param dist A string specifying the distance method for clustering.
+#' Default is `"bray"`. Other options include methods available in `phyloseq::distance`.
+#' @param cuttree An integer specifying the number of clusters for cutting the dendrogram.
+#' @param row_cluster Logical. Whether to perform clustering on rows. Default is `TRUE`.
+#' @param col_cluster Logical. Whether to perform clustering on columns. Default is `TRUE`.
+#' @return A list containing the following elements:
+#' \item{p0}{A ggtree plot of the clustering dendrogram.}
+#' \item{p1}{A heatmap showing relative abundances with optional row and column clustering.}
+#' \item{p2}{A heatmap with sample IDs on the y-axis, showing relative abundances.}
+#' \item{tem}{A data frame representing the distance matrix used for clustering.}
+#' @export
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' @examples
+#' ps =ps.kegg %>% filter_OTU_ps(Top = 1000)
+#' res = cluster.metf(ps= ps,hcluter_method = "complete",dist = "bray",cuttree = 3,row_cluster = TRUE,col_cluster =  TRUE)
+#' p4 = res[[1]]
+#' p4
+#' p4_1 = res[[2]]
+#' p4_1
+#' p4_2 = res[[3]]
+#' p4_2
+#' dat = res[[4]]# cluster distance
+#' head(dat)
+cluster.metf = function(
     ps= ps,
     hcluter_method = "complete",
     dist = "bray",
@@ -100,7 +128,7 @@ cluster.meta = function(
 
 
 
-  if (col_cluster ==  T) {
+  if (col_cluster ==  TRUE) {
     p1 <- p1  %>%
       aplot::insert_left(ggtree_plot, width=.2)
     p2 <- p2  %>%
@@ -109,7 +137,7 @@ cluster.meta = function(
 
 
 
-  if (row_cluster ==  T) {
+  if (row_cluster ==  TRUE) {
     p1 <- p1  %>%
       aplot::insert_top(ggtree_plot_col, height=.2)
     p2 <- p2  %>%

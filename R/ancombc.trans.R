@@ -1,3 +1,27 @@
+#' @title  Perform differential analysis using ANCOMBC
+#' @description This function is used to analyze transcriptome functional composition
+#'  data  by conducting ANCOMBC analysis (Analysis of Compositions of Microbiomes with Bias Correction) to detect significant differences in genes
+#'  abundance between different groups.
+#' @param ps A phyloseq format file used as an alternative for the input containing transcriptome functional composition table, tax, and sample metadata.
+#' @param group Column name for groupID in map table(sample metadata).
+#' @param alpha Significance level, default is 0.05.
+#' @return A list containing the results of significant differences in genes abundance between different groups.
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njau.edu.cn}.
+#' @examples
+#' \dontrun{
+#' data(ps.trans)
+#' ps = ps.trans%>% filter_taxa(function(x) sum(x ) > 5 , TRUE)
+#' dat = ancombc.trans(ps = ps%>% filter_OTU_ps(50),group =  "Group",alpha = 0.05)
+#' dat1 = dat$WT_OE
+#' head(dat1)
+#' dat2 = dat$WT_KO
+#' head(dat2)
+#' dat3 = dat$OE_KO
+#' head(dat3)
+#' }
+#' @export
 ancombc.trans= function(
     ps = ps,
     group = "Group",
@@ -19,16 +43,13 @@ ancombc.trans= function(
     Desep_group = aaa[,i]
     print( Desep_group)
     ps.cs = ps %>% subset_samples.wt("Group" ,id.g[,i])
-
-
-
-  tse = mia::makeTreeSummarizedExperimentFromPhyloseq(ps.cs)
+   tse = mia::makeTreeSummarizedExperimentFromPhyloseq(ps.cs)
 
   out = ancombc(data = tse,
                 assay_name = "counts",
                 tax_level = NULL,
                 phyloseq = NULL,
-                formula = group,# 微生物群落数据受到那些变量影响，用公式来写
+                formula = "Group",# 微生物群落数据受到那些变量影响，用公式来写
                 p_adj_method = "holm",
                 prv_cut = 0.10,
                 lib_cut = 1000,

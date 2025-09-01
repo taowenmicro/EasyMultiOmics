@@ -47,7 +47,59 @@ tax_glom_trans <- function(ps = ps,ranks = "pathway") {
   )
   return(pscon)
 }
-
+#' @title Generate Bar and Flow Plots for Transcriptome Functional Composition Data
+#'
+#' @description
+#' This function generates bar plots, alluvial flow plots, and flower plots to visualize transcriptome functional composition data across groups.
+#' The function supports relative abundance transformations, error bars, and optional labeling.
+#'
+#' @param otu A data frame containing transcriptome functional composition table. If `NULL`, the `ps` object is used.
+#' @param tax A data frame containing taxonomy data. If `NULL`, the `ps` object is used.
+#' @param map A data frame containing sample metadata. If `NULL`, the `ps` object is used.
+#' @param tree A phylogenetic tree object. If `NULL`, the `ps` object is used.
+#' @param ps A phyloseq format file used as an alternative for the input containing transcriptome functional composition table, tax, and sample metadata.
+#' @param group A character string specifying the grouping variable in the sample metadata. Default is `"Group"`.
+#' @param j A character string specifying the taxonomic rank to analyze (e.g., `"Level1"`, `"Pathway"`). Default is `"Pathway"`.
+#' @param axis_ord A character vector specifying the order of x-axis groups. If `NULL`, default order is used.
+#' @param label Logical. If `TRUE`, adds text labels to the plots. Default is `TRUE`.
+#' @param sd Logical. If `TRUE`, adds error bars to the plots. Default is `FALSE`.
+#' @param Top An integer specifying the number of top taxa to display. Taxa not in the top are grouped as `"others"`. Default is `10`.
+#' @param tran Logical. If `TRUE`, transforms data to relative abundances. Default is `TRUE`.
+#'
+#' @return
+#' A list containing:
+#' \describe{
+#'   \item{Bar Plot}{A bar plot showing the relative abundances of taxa across groups.}
+#'   \item{Processed Data}{A data frame with the processed transcriptome functional composition data.}
+#'   \item{Alluvial Flow Plot}{An alluvial flow plot visualizing the changes in relative abundances across groups.}
+#'   \item{Flower Plot}{A flower plot displaying relative abundances in a circular layout.}
+#' }
+#'
+#' @details
+#' The function processes transcriptome functional composition data to compute relative abundances (if `tran = TRUE`) and groups taxa based on the specified rank (`j`).
+#' It visualizes the data as bar plots, alluvial flow plots, and flower plots. The top `Top` taxa are highlighted, and the remaining taxa are grouped as `"others"`.
+#'
+#' @examples
+#' \dontrun{
+#' library(phyloseq)
+#' library(dplyr)
+#' library(ggplot2)
+#' library(tidyverse)
+#' library(ggClusterNet)
+#' library(RColorBrewer)
+#' # Example with a phyloseq object
+#' data(ps.trans)
+#' ps = ps.trans %>% filter_taxa(function(x) sum(x) > 5, TRUE)
+#' result = barMainplot.trans(ps = ps, j = "level2", label = FALSE, sd = FALSE, Top = 10)
+#' p4_1 <- result[[1]]
+#' p4_2 <- result[[3]] + scale_fill_brewer(palette = "Paired")
+#' databar <- result[[2]]
+#' head(databar)
+#' }
+#'
+#' @author Contact: Tao Wen \email{2018203048@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njau.edu.cn}
+#'
+#' @export
 
 
 barMainplot.trans = function(otu = NULL,tax = NULL,map = NULL,tree = NULL ,ps = NULL,group  = "Group",

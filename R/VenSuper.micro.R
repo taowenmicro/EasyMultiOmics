@@ -1,9 +1,44 @@
+#' @title Generate Venn Diagrams and Analyze Microbial Groups
+#' @description
+#' This function creates Venn diagrams to compare microbial groups based on presence/absence thresholds,
+#' and performs detailed analyses for each group. The results include Venn diagrams, bar plots, and
+#' boxplots for visualizing group-specific OTU data.
+#'
+#' @param ps A `phyloseq` object containing microbiome data.
+#' @param group A character string specifying the grouping variable in the sample metadata. Default is `"Group"`.
+#' @param num An integer specifying the threshold for selecting OTUs in Venn groups. Default is `6`.
+#'
+#' @return A list containing the following elements:
+#' \describe{
+#'   \item{pa}{A combined bar plot visualization of microbial compositions for each Venn segment.}
+#'   \item{pb}{A combined box plot visualization for the selected microbial groups in each segment.}
+#'   \item{pc}{A combined relative abundance bar plot for each Venn segment.}
+#'   \item{dat.f}{A list of data frames containing bar plot data for each Venn segment.}
+#'   \item{dat.f2}{A list of data frames containing statistical analysis results for each Venn segment.}
+#' }
+#'
+#' @details
+#' The function performs the following steps:
+#' \itemize{
+#'   \item Extracts OTU presence/absence data for each microbial group defined in the metadata.
+#'   \item Creates a Venn diagram to identify shared and unique OTUs among groups.
+#'   \item For each Venn segment, generates bar plots, performs statistical analyses, and creates boxplots to visualize group-specific differences.
+#'   \item Outputs the processed data and visualizations for further analysis.
+#' }
+#'
+#' Statistical tests are performed to identify significant differences in OTU abundances between groups for each Venn segment. The results are returned as data frames and visualized using boxplots.
+#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njau.edu.cn}
+#' @examples
+#' result = VenSuper.micro(ps = ps.16s,group =  "Group",num = 6)
+#'  p7_1 <- result[[1]]
+#'  p7_1+ scale_fill_manual(values = colset1)+ scale_color_manual(values = colset1,guide = F)
+#'  p7_2 <- result[[3]]
+#'  p7_2
+#'  p8 <- result[[2]]
+
 
 #清空内存
 # rm(list=ls())
-
-
-
 # ps = readRDS("./ps_liu.rds")
 # result =VenSeper(ps,num = 6,path = "./phyloseq_3-4_ven")
 # # 提取韦恩图中全部部分的otu极其丰度做门类柱状图
@@ -34,8 +69,9 @@ VenSuper.micro =  function(ps = NULL,group  = "Group",num = 6){
   mapping = as.data.frame(sample_data(ps))
   ps1 = ps
   ps1
-  ps1_rela  = transform_sample_counts(ps1, function(x) x / sum(x) );ps1_rela
 
+  ps1_rela  = transform_sample_counts(ps1, function(x) x / sum(x) );ps1_rela
+  print("1")
 
 
   aa = vegan_otu(ps1)
@@ -92,6 +128,7 @@ VenSuper.micro =  function(ps = NULL,group  = "Group",num = 6){
   plot3 = list()
   dat.f = list()
   dat.f2 = list()
+  #i=1
   for (i in 1:length(ven_pick$..set..) ) {
 
     # 查看i是韦恩图哪一个部分的otu
@@ -121,8 +158,9 @@ VenSuper.micro =  function(ps = NULL,group  = "Group",num = 6){
     otu1$ID = NULL
     subtab = as.matrix(otu1)
     ps_sub = ps1_rela
-    ps_sub <- phyloseq(otu_table(subtab, taxa_are_rows=TRUE),
-                       tax_table(ps_sub),
+    print("2")
+    ps_sub <- phyloseq::phyloseq(otu_table(subtab, taxa_are_rows=TRUE),
+                                 phyloseq::tax_table(ps_sub),
                        sample_data(ps_sub)
                        )
     ps_sub
@@ -148,6 +186,7 @@ VenSuper.micro =  function(ps = NULL,group  = "Group",num = 6){
 
     result = barMainplot.micro(ps = ps_sub,j = "Phylum",axis_ord = NULL,label = FALSE ,sd = FALSE,
                          Top = 10,tran = FALSE)
+    print("3")
     #提取脱图片
     p = result[[1]]
     # 提取作图数据，也就是这部分ven包含otu的数量

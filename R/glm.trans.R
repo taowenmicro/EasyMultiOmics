@@ -1,13 +1,36 @@
+#' @title Glm model screening of characteristic genes
+#' @description
+#' Glm, one of the machine learning methods, was used to screen for characteristic
+#' genes, and the model was evaluated using k-fold cross-validation.
+#' @param ps A phyloseq format file used as an alternative for the input containing transcriptome functional composition table,
+#' transcriptome functional classification table, and sample metadata.
+#' @param k The number of folds for cross-validation.
+#' @return A list object including the following components:
+#' \item{AUC}{The average accuracy of the glm model.}
+#' \item{Importance}{A data frame showing the feature importance ranked in descending order.}
+#' @export
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njau.edu.cn}
+#' @examples
+#' library(dplyr)
+#' library(ggClusterNet)
+#' library(caret)
+#' library(ROCR)
+#' data(ps.trans)
+#' ps =ps.trans %>% filter_OTU_ps(Top = 100)
+#' pst=ps%>%subset_samples(ps,Group %in% c("KO" ,"OE"))
+#' res <- glm.trans(ps = pst %>% filter_OTU_ps(50), k = 5)
+#' AUC = res[[1]]
+#' AUC
+#' importance = res[[2]]
+#' importance
 glm.trans <- function(ps = ps, k = 5) {
   # 数据准备
   map <- as.data.frame(phyloseq::sample_data(ps))
   otutab <- as.data.frame(t(ggClusterNet::vegan_otu(ps)))
-  colnames(otutab) <- gsub("-", "_", colnames(otutab))
   test <- as.data.frame(t(otutab))
-  test$group <- factor(map$Group)
-  test$group
-
-  colnames(test) <- paste("OTU", colnames(test), sep = "")
+  test$OTUgroup <- factor(map$Group)
 
   colnames(test) <- gsub("-", "_", colnames(test))
   colnames(test) <- gsub("[/]", "_", colnames(test))
@@ -22,7 +45,7 @@ glm.trans <- function(ps = ps, k = 5) {
 
   test <- dplyr::select(test, OTUgroup, everything())
   train <- test
-
+  set.seed(1234)
   folds <- createFolds(y = test$OTUgroup, k = k)
 
   fc <- as.numeric()
@@ -54,11 +77,11 @@ glm.trans <- function(ps = ps, k = 5) {
   summary_model <- summary(model)
   coefficients <- summary_model$coefficients
   importance <- data.frame(
-    Feature = rownames(coefficients),
-    Coefficient = coefficients[, 1],
-    Std_Error = coefficients[, 2],
-    z_value = coefficients[, 3],
-    p_value = coefficients[, 4]
+    Feature = rownames(coefficients)[-1],
+    Coefficient = coefficients[-1, 1],
+    Std_Error = coefficients[-1, 2],
+    z_value = coefficients[-1, 3],
+    p_value = coefficients[-1, 4]
   )
 
   # 按照绝对系数大小排序特征重要性
@@ -68,5 +91,3 @@ glm.trans <- function(ps = ps, k = 5) {
   # 输出结果
   list(AUC = auc_result, Importance = importance)
 }
-
-

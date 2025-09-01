@@ -1,22 +1,25 @@
-
-
-
-
-#-------PCA载荷挑选#---------
-# pcapath = paste(repath,"/loadingPCA/",sep = "")
-# dir.create(pcapath)
-# res = loadingPCA(ps = ps)
-#
-# p = res[[1]]
-# p
-# dat = res[[2]]
-#
-# filemane = paste(pcapath,"/PCALoading.pdf",sep = "")
-# ggsave(filemane, p, width = 8, height = 6)
-#
-# FileName <- paste(pcapath,"/Loadsing_pca.csv", sep = "")
-# write.csv(dat,FileName,sep = "")
-
+#' @title PCA loading Matrix screening of characteristic microorganisms
+#' @description
+#' This function conducts PCA analysis on microbiome data to
+#' extract the loading Matrix, screen for characteristic microorganisms and visualize them.
+#' The importance of the variables is  sorted according to
+#' the square value of the correlation between the variable and the PC1 axis.
+#' @param ps A phyloseq format file used as an alternative for the input containing otu, tax, and map.
+#' @param Top The top microorganisms to visualize.
+#' @returns A list object containing the following components:
+#' \item{p}{A PCA correlation plot of the selected number of characteristic microorganisms and
+#'  the correlation decreases from top to bottom.}
+#' \item{index}{Data frame containing the PCA load matrix and relative abundance of all microorganisms.}
+#' @export
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' @examples
+#' res = loadingPCA.micro(ps = ps.16s,Top = 20)
+#' p34.1 = res[[1]]
+#' p34.1
+#' dat = res[[2]]
+#' dat
 loadingPCA.micro = function(ps = ps,Top = 20){
   count =ps %>%
     ggClusterNet::vegan_otu() %>% t()
@@ -41,9 +44,7 @@ loadingPCA.micro = function(ps = ps,Top = 20){
   index$id = row.names(index)
   ##手动选择10个最终要的变量 PCA载荷矩阵挑选37个成分提取差异.txt
   index$PCone = index$PC1^2
-  top = index %>% arrange(desc(PCone)) %>%
-    head(Top)
-
+  top = index %>% arrange(desc(PCone)) %>%head(Top)
   head(top)
   top$ID  = top$id
   head(top)

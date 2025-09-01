@@ -1,4 +1,32 @@
-
+#' @title Construct Co-occurrence Network for CNPS Data
+#' @description This function constructs a co-occurrence network from CNPS gene
+#' @param ps A phyloseq object containing OTU/ASV abundance data and taxonomy information
+#' @param dat A data frame containing additional metadata or gene annotation information
+#' @param id.0 Character string specifying the prefix for node IDs in the network (default: "C")
+#'
+#' @return A list containing network analysis results. Typically includes:
+#' \itemize{
+#'   \item Network graph object
+#'   \item Node and edge attributes
+#'   \item Network visualization
+#' }
+#' @examples
+#' \dontrun{
+#' # Example usage:
+#' dat = db.cnps
+#' network_result <- CNPS.network(
+#'     ps = ps.trans,
+#'     dat = dat,
+#'     id.0 = "G")
+#'
+#' # Visualize the network
+#' plot(network_result$graph)
+#' }
+#'
+#' @export
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njau.edu.cn}
 CNPS.network = function(
     ps = ps,
     dat = dat,
@@ -34,7 +62,7 @@ CNPS.network = function(
 
 
   gru3 = map.t$Group %>% unique() %>% as.character()
-  n = 2
+  n = 1
   for (n in 1:length(gru3)) {
     ps.t4 = ps.t2 %>% subset_samples.wt("Group",gru3[n]) %>%
       filter_taxa(function(x) sum(x ) > 0, TRUE)
@@ -51,7 +79,7 @@ CNPS.network = function(
     dim(cor)
     igraph = make_igraph(cor)
     library(igraph)
-    dat = net_properties.4(igraph,n.hub = F)
+    # dat = net_properties.4(igraph,n.hub = F)
     head(dat,n = 16)
     # write.csv(dat,paste(path,"/network",id.0,"_",gru3[n],
     #                     "node_properties.csv",sep = ""),quote = F)
@@ -67,7 +95,6 @@ CNPS.network = function(
       edge2 = edge %>% filter(weight != 0)
       tem = c(edge2$OTU_2,edge2$OTU_1) %>% unique()
       cor2 = cor[tem,tem]
-
 
       netClu = data.frame(ID = row.names(cor2),group =rep(1,length(row.names(cor2)))[1:length(row.names(cor2))] )
       netClu$group = as.factor(netClu$group)

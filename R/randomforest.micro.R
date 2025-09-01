@@ -1,9 +1,4 @@
 
-#--main function
-# You can learn more about package at:
-#
-#   https://github.com/microbiota/amplicon
-
 #' @title Random forest modeling for microbiome data
 #' @description Random forest modeling for microbiome data
 #' @param otu OTU/ASV table;
@@ -16,21 +11,11 @@
 #' @param nrfcvnum Number of cross-validation
 #' @param min Circle diagram inner diameter adjustment
 #' @param max Circle diagram outer diameter adjustment
-#' @details
 #' @return list contain ggplot object and table.
-#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Yong-Xin Liu \email{yxliu@@genetics.ac.cn}
-#' @references
-#'
-#' Jingying Zhang, Yong-Xin Liu, Na Zhang, Bin Hu, Tao Jin, Haoran Xu, Yuan Qin, Pengxu Yan, Xiaoning Zhang, Xiaoxuan Guo, Jing Hui, Shouyun Cao, Xin Wang, Chao Wang, Hui Wang, Baoyuan Qu, Guangyi Fan, Lixing Yuan, Ruben Garrido-Oter, Chengcai Chu & Yang Bai.
-#' NRT1.1B is associated with root microbiota composition and nitrogen use in field-grown rice.
-#' Nature Biotechnology, 2019(37), 6:676-684, DOI: \url{https://doi.org/10.1038/s41587-019-0104-4}
-#'
+#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
 #' @examples
-#' # data form github
-#' result = MicroRF(ps = ps,group  = "Group",optimal = 20,rfcv = TRUE,nrfcvnum = 5,min = -1,max = 5)
+#' result = randomforest.micro(ps = ps,group  = "Group",optimal = 20,rfcv = TRUE,nrfcvnum = 5,min = -1,max = 5)
 #'@export
-
-
 
 randomforest.micro <- function(otu = NULL,tax = NULL,map = NULL,tree = NULL,
                     ps = NULL,
@@ -80,7 +65,7 @@ randomforest.micro <- function(otu = NULL,tax = NULL,map = NULL,tree = NULL,
   #-提取正确率
   model_Accuracy_rates <- paste(round(100-tail(model_rf$err.rate[,1],1)*100,2),"%",sep = "")
   model_Accuracy_rates = data.frame(ID = "model Accuracy rates",model_Accuracy_rates = model_Accuracy_rates)
-  colnames(model_Accuracy_rates) = c("Random foreest","Fu wilt model")
+  colnames(model_Accuracy_rates) = c("Random forest","model")
   tab2 <- ggpubr::ggtexttable(Confusion_matrix, rows = NULL)
   tab1 <- ggpubr::ggtexttable(model_Accuracy_rates, rows = NULL)
   library(patchwork)
@@ -198,7 +183,7 @@ randomforest.micro <- function(otu = NULL,tax = NULL,map = NULL,tree = NULL,
   a3$id = factor(a3$id,levels = a3$id)
   p2 = a3  %>%
     ggplot(aes(x = factor(id), y = MeanDecreaseAccuracy ,label = id)) +
-    geom_bar(stat = 'identity', position = 'dodge',fill = "blue") +
+    geom_bar(stat = 'identity', position = 'dodge',fill = "#A6CEE3") +
     # scale_fill_manual(values = mi)+
     geom_text(hjust = 0, angle = angle1, alpha = 1) +
     coord_polar() +
@@ -211,110 +196,7 @@ randomforest.micro <- function(otu = NULL,tax = NULL,map = NULL,tree = NULL,
 }
 
 
-## rfcv function
-# You can learn more about package at:
-#
-#   https://github.com/microbiota/amplicon
 
-#' @title For cross-validation of microbiome data
-#' @description For cross-validation of microbiome data
-#' @param otu OTU/ASV table;
-#' @param map Sample metadata;
-#' @param tax taxonomy table
-#' @param ps phyloseq object of microbiome
-#' @param Group column name for groupID in map table.
-#' @param optimal important OTU number which selected
-#' @param rfcv TURE or FELSE,whether need to do cross-validation
-#' @param nrfcvnum Number of cross-validation
-#' @details
-#' @return list contain ggplot object and table.
-#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Yong-Xin Liu \email{yxliu@@genetics.ac.cn}
-#' @references
-#'
-#' Jingying Zhang, Yong-Xin Liu, Na Zhang, Bin Hu, Tao Jin, Haoran Xu, Yuan Qin, Pengxu Yan, Xiaoning Zhang, Xiaoxuan Guo, Jing Hui, Shouyun Cao, Xin Wang, Chao Wang, Hui Wang, Baoyuan Qu, Guangyi Fan, Lixing Yuan, Ruben Garrido-Oter, Chengcai Chu & Yang Bai.
-#' NRT1.1B is associated with root microbiota composition and nitrogen use in field-grown rice.
-#' Nature Biotechnology, 2019(37), 6:676-684, DOI: \url{https://doi.org/10.1038/s41587-019-0104-4}
-#'
-#' @examples
-#' # data form github
-#' result = Micro.rfcv(otu = NULL,tax = NULL,map = NULL,tree = NULL ,ps = ps_rela,group  = "Group",optimal = 20,nrfcvnum = 6)
-#' prfcv = result[[1]]# plot rfcv
-# result[[2]]# plotdata
-#' rfcvtable = result[[3]]# table rfcv
-#'@export
-# Micro.rfcv = function(otu = NULL,tax = NULL,map = NULL,tree = NULL,
-#                       ps = NULL,group  = "Group",optimal = 20,nrfcvnum = 5){
-#
-#
-#   ps = ggClusterNet::inputMicro(otu,tax,map,tree,ps,group  = group)
-#   otutab = as.data.frame((ggClusterNet::vegan_otu(ps)))
-#   # Set classification info.
-#   otutab$group = factor(mapping$Group)
-#   colnames(otutab) <- gsub("-","_",colnames(otutab))
-#   # rfcv for select···
-#   n = ncol(otutab)-1
-#   myotutab_t= otutab[1:n]
-#   set.seed(315)
-#   result= rfcv(myotutab_t, otutab$group, cv.fold=5, scale = "log", step = 0.9)
-#   # with(result, plot(n.var, error.cv, log="x", type="o", lwd=2))
-#   result1 = result
-#   error.cv = data.frame(num = result$n.var, error.1 =  result$error.cv)
-#   for (i in 316:(314+ nrfcvnum)){
-#     print(i)
-#     set.seed(i)
-#     result= rfcv(myotutab_t, otutab$group, cv.fold=5, scale = "log", step = 0.9)
-#     error.cv = cbind(error.cv, result$error.cv)
-#   }
-#   n.var = error.cv$num
-#   error.cv = error.cv[,2:6]
-#   colnames(error.cv) = paste('err',1:5,sep='.')
-#   err.mean = apply(error.cv,1,mean)
-#   allerr = data.frame(num=n.var,err.mean=err.mean,error.cv)
-#   head(allerr)
-#   data <- gather(allerr, key = "group", value = "value",-num)
-#   head(data)
-#
-#   p <- ggplot() +
-#     geom_line(data = data,aes(x = num, y = value,group = group), colour = 'grey') +
-#     geom_line(aes(x = allerr$num, y = allerr$err.mean), colour = 'black') +
-#     coord_trans(x = "log2") +
-#     scale_x_continuous(breaks = c(1, 2, 5, 10, 20, 30, 50, 100, 200)) + # , max(allerr$num)
-#     labs(title=paste('Training set (n = ', dim(otutab)[1],')', sep = ''),
-#          x='Number of families ', y='Cross-validation error rate') +
-#     annotate("text", x = optimal, y = max(allerr$err.mean), label=paste("optimal = ", optimal, sep=""))
-#   return(list(plot = p,plotdata = data,origdata = allerr))
-# }
-
-
-# Roc function
-# You can learn more about package at:
-#
-#   https://github.com/microbiota/amplicon
-
-#' @title Comparison of three machine methods (randomforest,SVM,GLM).
-#' @description Comparison of three machine methods (randomforest,SVM,GLM).
-#' @param otu OTU/ASV table;
-#' @param map Sample metadata;
-#' @param tax taxonomy table
-#' @param ps phyloseq object of microbiome
-#' @param Group column name for groupID in map table.
-#' @param repnum Modeling times
-#' @details
-#' @return list contain ggplot object and table.
-#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Yong-Xin Liu \email{yxliu@@genetics.ac.cn}
-#' @references
-#'
-#' Jingying Zhang, Yong-Xin Liu, Na Zhang, Bin Hu, Tao Jin, Haoran Xu, Yuan Qin, Pengxu Yan, Xiaoning Zhang, Xiaoxuan Guo, Jing Hui, Shouyun Cao, Xin Wang, Chao Wang, Hui Wang, Baoyuan Qu, Guangyi Fan, Lixing Yuan, Ruben Garrido-Oter, Chengcai Chu & Yang Bai.
-#' NRT1.1B is associated with root microbiota composition and nitrogen use in field-grown rice.
-#' Nature Biotechnology, 2019(37), 6:676-684, DOI: \url{https://doi.org/10.1038/s41587-019-0104-4}
-#'
-#' @examples
-#' result = MicroRoc( ps = ps,group  = "Group")
-#' #--提取roc曲线
-#' result[[1]]
-#' #提取AUC值
-#' result[[2]]
-#'@export
 MicroRoc <- function(otu = NULL,tax = NULL,map = NULL,tree = NULL,
                      ps = NULL,group  = "Group",repnum = 5){
 

@@ -1,3 +1,32 @@
+#' This function merges two `phyloseq` objects (representing microbiome and metabolomics data) into a single `phyloseq` object.
+#' It allows for scaling, filtering, and merging of OTU tables, taxonomic tables, and sample data. Additionally, the user can
+#' specify whether to merge the taxonomic tables or just the sample group information.
+#'
+#' @param ps1 A `phyloseq` object containing microbiome data (e.g., 16S rRNA sequencing data).
+#' @param ps2 A `phyloseq` object containing metabolomics data (e.g., ITS sequencing or functional data).
+#' @param N1 An integer specifying the number of top OTUs to select from `ps1` (default: 100).
+#' @param N2 An integer specifying the number of top OTUs to select from `ps2` (default: 100).
+#' @param scale A logical value indicating whether to scale the OTU counts in the microbiome (`ps1`) and metabolomics (`ps2`) data (default: `TRUE`).
+#' @param onlygroup A logical value indicating whether to merge only the group information in the taxonomic table, without merging the full taxonomic information (default: `FALSE`).
+#' @param dat1.lab A character string specifying the label for the first dataset (default: `"bac"` for bacteria).
+#' @param dat2.lab A character string specifying the label for the second dataset (default: `"fun"` for fungi or functional data).
+#'
+#' @return A `phyloseq` object containing the merged OTU table, taxonomic table, and sample data from `ps1` and `ps2`.
+#'   If `onlygroup = TRUE`, the taxonomic table will only contain the group information, while the OTU table will be fully merged.
+#'
+#' @examples
+#' merged_data <- merge.ps(ps1 = microbiome_data,
+#'                         ps2 = metabolomics_data,
+#'                         N1 = 100,
+#'                         N2 = 100,
+#'                         scale = TRUE,
+#'                         onlygroup = FALSE,
+#'                         dat1.lab = "microbe",
+#'                         dat2.lab = "metabolite")
+#' @export
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
 merge.ps <- function(ps1 ,
                      ps2,
                      N1 = 100,

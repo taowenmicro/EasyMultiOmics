@@ -1,3 +1,26 @@
+#' @title Neural network screening of features in multi-omics data
+#' @description
+#' A neural network, one of the machine learning methods, was used to screen for characteristic
+#' microorganisms, and the model was evaluated using k-fold cross-validation.
+#' @param ps A phyloseq format file used as an alternative for the input containing otu, tax, and map.
+#' @param top The top microorganisms to consider.
+#' @param seed The random seed for reproducibility.
+#' @param k The number of folds for cross-validation.
+#' @return A list object including the following components:
+#' \item{Accuracy}{The average accuracy of the neural network model.}
+#' \item{Importance}{A data frame showing the feature importance ranked in descending order.}
+#' @export
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' @examples
+#' library(dplyr)
+#' library(ggClusterNet)
+#' res =nnet.omics(ps=ps, top = 100, seed = 1010, k = 5)
+#' accuracy = res[[1]]
+#' accuracy
+#' importance = res[[2]]
+#' importance
 
 
 nnet.omics <- function(ps=ps, top = 20, seed = 1010, k = 5) {

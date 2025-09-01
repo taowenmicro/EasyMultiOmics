@@ -1,37 +1,37 @@
-
-
-# #--维恩网络#-------
-# library(ggClusterNet)
-# library(phyloseq)
-# library(ggrepel)
-#
-# biospath = paste(otupath,"/biospr_network_Ven/",sep = "")
-# dir.create(biospath)
-#
-# result = ven.network(
-#     ps = ps,
-#     N = 0.5,
-#     fill = "Phylum"
-#     )
-#
-# p  = result[[1]]
-#
-# data = result[[2]]
-#
-# filename = paste(biospath,"/","biostr_Ven_network.species.several.pdf",sep = "")
-# ggsave(filename,p,width = (15),height = (12))
-# filename = paste(biospath,"/","biostr_Ven_network.jpg",sep = "")
-# ggsave(filename,p,width = (15),height = (12))
-#
-# filename = paste(biospath,"Ven.network.all.csv",sep = "")
-# write.csv(data,filename)
-#
-#
-# detach("package:ggClusterNet")
-# detach("package:phyloseq")
-
-
-
+#' @title Generate a Circular Microbial Network
+#'
+#' @description
+#' This function generates a circular microbial network based on microbial abundance data in a `phyloseq` object.
+#' It uses the `ggClusterNet` package to compute relationships between operational taxonomic units (OTUs)
+#' and visualizes the network with sample-level metadata.
+#' @param ps A `phyloseq` object containing microbiome data.
+#' @param N Numeric. A threshold for selecting nodes in the network. Default is `0.5`.
+#' @param fill A character string specifying the taxonomic rank used to color the nodes. Default is `"Phylum"`.
+#'
+#' @return
+#' A list containing:
+#' \describe{
+#'   \item{plot}{A `ggplot2` object representing the microbial network.}
+#'   \item{plotdata}{A data frame containing node coordinates and associated metadata.}
+#' }
+#'
+#' @details
+#' This function builds a microbial network using a circular layout. OTUs are placed hierarchically based on their
+#' abundance and relationships with samples. The edges represent connections between OTUs and sample groups,
+#' while nodes represent microbial taxa or samples.
+#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' The function includes several steps:
+#' \itemize{
+#'   \item Calculates the microbial relationships using `ggClusterNet::div_network`.
+#'   \item Uses a progressive circle packing algorithm to position OTUs and groups.
+#'   \item Combines abundance data and taxonomic annotations for visualization.
+#'   \item Generates a `ggplot2` plot showing the network with colored nodes and edges.
+#' }
+#' @examples
+#' result = ven.network.micro(ps = ps.16s,N = 0.5,fill = "Phylum")
+#' p14  = result[[1]]
+#' p14
+#' dat = result[[2]]
 
 ven.network.micro = function(
   ps =ps,

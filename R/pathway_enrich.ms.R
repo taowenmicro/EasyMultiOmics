@@ -1,16 +1,31 @@
-# ps.ms3 = ps.ms2 %>% tax_glom_wt("KEGG.Compound.ID")
-#
-# res2 = pathway_enrich.ms(ps = ps.ms3,
-#                          dif.method = "wilcox")
-# res2$plots$OE.WT.plot
-# res2$plots$KO.OE.plot
-
+#' @title Perform KEGG pathway enrichment analysis for metabolite data
+#' @description Through the difference test, the significantly enriched KEGG functional pathway was identified and visualized.
+#' @param ps A phyloseq format file used as an alternative for the input containing metabolite composition table, metabolite classification table, and sample metadata.
+#' @param dif.method Method for differential analysis, default is "wilcox".
+#' @return
+#' A list containing the following components:
+#' \describe{
+#'   \item{Plots}{List of ggplot objects representing the pathway enrichment analysis plots.}
+#'   \item{Plotdata}{List of data frames containing pathway enrichment analysis results.}
+#' }
+#'
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njau.edu.cn}
+#' @examples
+#' \dontrun{
+#' ps.ms3 = ps.ms %>% tax_glom_wt("KEGGID")
+#' res2 = pathway_enrich.ms(ps = ps.ms3, dif.method = "wilcox")
+#' res2$Plots$OE.WT.plot
+#' res2$Plots$KO.OE.plot
+#' }
+#' @export
 pathway_enrich.ms = function(
-    ps,
+    ps= ps,
     dif.method = "wilcox"
 ){
 
-  result1 = statSuper(ps = ps,group  = "Group",artGroup = NULL,method = "wilcox")
+  result1 = statSuper(ps = ps,group  = "Group",artGroup = NULL,method = dif.method)
   ps %>% sample_data()
   rank_names(ps)
   group = sample_data(ps)$Group %>% unique()
@@ -34,7 +49,7 @@ pathway_enrich.ms = function(
     tem2 = tem2[!is.na(tem2)]
     id.tem = tem2 %>% strsplit("[,]") %>%
       sapply( `[`, 1)
-    library(EasyMultiOmics.db)
+    # library(EasyMultiOmics.db)
 
     # dat = read.delim("E:/Shared_Folder/Function_local/R_function/Metagenome_Function/meta.mini.db/db.KEGG/compound.pathway.bins.txt",
     #                  header = TRUE)
@@ -42,7 +57,13 @@ pathway_enrich.ms = function(
     head(dat)
     colnames(dat)[1] = "compound"
 
-    tax = ps.ms3 %>% tax_table() %>% as.data.frame()
+    # 数据库格式调整
+    head(dat)
+    dat = dat%>%
+      separate_rows(pathway, sep = "\\|")
+
+
+    tax = ps %>% phyloseq::tax_table() %>% as.data.frame()
     head(tax)
     allkeggid <- data.frame(ID = row.names(tax))
     allkeggid$ID = allkeggid$ID%>% strsplit("[,]") %>%
@@ -50,8 +71,8 @@ pathway_enrich.ms = function(
 
     head(allkeggid)
     total = dat %>%
-      # filter(compound %in% c(paste0("cpd:",allkeggid$ID))) %>%
-      select(2,1)
+       filter(compound %in% c(paste0("cpd:",allkeggid$ID))) %>%
+      dplyr::select(2,1)
     head(total)
     dim(total)
 
@@ -81,8 +102,8 @@ pathway_enrich.ms = function(
     head(tab)
 
     df2 = df %>% left_join(tab,by = c("ID2" = "V1")) %>%
-      distinct(ID2,.keep_all = TRUE) %>%
-      arrange(desc(count))
+    dplyr::  distinct(ID2,.keep_all = TRUE) %>%
+      dplyr::arrange(desc(count))
     head(df2)
     res[[i]] = df2
     names(res)[i] = paste(com[2,i],com[1,i],sep = ".")
@@ -101,16 +122,14 @@ pathway_enrich.ms = function(
 
     p = df3 %>%
       ggplot(aes(x = count,y = reorder(V2,count)))+
-      geom_bar(aes(x = count,y = reorder(V2,count),fill=pvalue),stat = "identity",width = 0.8)+
+      geom_bar(aes(x = count,y = reorder(V2,count),fill=pvalue),color = "black",stat = "identity",width = 0.8)+
       # geom_point(aes(color=pvalue,fill=pvalue),pch=21)+
-
       # scale_color_gradientn(colours = (rev(RColorBrewer::brewer.pal(11,"RdBu"))))+
-      # scale_fill_gradientn(colours =(rev(RColorBrewer::brewer.pal(11,"RdBu"))))+
+       scale_fill_gradientn(colours =(rev(RColorBrewer::brewer.pal(11,"RdBu"))))+
       guides(size=guide_legend(title="Count"))+
       labs(x=NULL,y=laby) +
       theme(
-        # axis.title = element_blank(),
-        axis.text.x=element_text(color="black",angle =0,hjust=0.5,vjust=0.5, margin = margin(b =5)),
+        axis.text.x=element_text(color="black",angle =0,hjust=0.5,vjust=0.5, margin = ggplot2::margin(b =5)),
         axis.text.y=element_text(color="black",angle =0,hjust=1,vjust=0.5),
         panel.background = element_rect(fill = NA,color = NA),
         panel.grid.minor= element_line(size=0.2,color="#e5e5e5"),
@@ -128,6 +147,8 @@ pathway_enrich.ms = function(
         legend.position = c(1,0),
         legend.justification = c(1,0))+
       scale_y_discrete(labels = function(y) str_wrap(y,width=30))
+    p
+
     plot[[i]] = p
     names(plot)[i] = paste(com[2,i],com[1,i],"plot",sep = ".")
 

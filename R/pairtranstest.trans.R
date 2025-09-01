@@ -1,12 +1,3 @@
-# Beta diversity statistics in pair
-#
-# The function named 'pairMicroTest'
-# which call adonis, anosim or MRPP to test beta-diversity. It usually called by BetaDiv.
-#
-# You can learn more about package at:
-#
-#   https://github.com/microbiota/amplicon
-
 #' @title Beta diversity statistics by adonis/anosim/MRPP in pair
 #' @description Input phyloseq object, test method and distance type
 #' @param otu OTU/ASV table;
@@ -27,21 +18,16 @@
 #' \item{other used indices: dpcoa jsd manhattan euclidean canberra kulczynski jaccard gower altGower morisita horn mountford raup binomial chao cao w -1 c wb r I e t me j sor m -2 co}
 #' }
 #' @return stat table
-#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Yong-Xin Liu \email{yxliu@@genetics.ac.cn}
-#' @references
-#'
-#' Jingying Zhang, Yong-Xin Liu, Na Zhang, Bin Hu, Tao Jin, Haoran Xu, Yuan Qin, Pengxu Yan, Xiaoning Zhang, Xiaoxuan Guo, Jing Hui, Shouyun Cao, Xin Wang, Chao Wang, Hui Wang, Baoyuan Qu, Guangyi Fan, Lixing Yuan, Ruben Garrido-Oter, Chengcai Chu & Yang Bai.
-#' NRT1.1B is associated with root microbiota composition and nitrogen use in field-grown rice.
-#' Nature Biotechnology, 2019(37), 6:676-684, DOI: \url{https://doi.org/10.1038/s41587-019-0104-4}
-#'
-#' @seealso BetaDiv beta_pcoa beta_cpcoa
+#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
 #' @examples
+#' data(ps.trans)
+#' ps = ps.trans%>% filter_taxa(function(x) sum(x ) > 5 , TRUE)
+#' otutab_rare=data.frame(phyloseq::otu_table(ps))
+#' metadata=data.frame(phyloseq::sample_data(ps))
+#' # Input otutab, metadata, and options group, method and distance
+#' pairtranstest.trans(otu = otutab_rare, map = metadata, group = "Group", Micromet = "MRPP", dist = "bray")
 #' # Input phyloseq format input, and options group, method and distance
-#' # 生成phyloseq对象
-#' ps = phyloseq(otu_table(otutab_rare, taxa_are_rows=TRUE), sample_data(metadata))
-#' pairMicroTest (ps = ps, Micromet = "anosim", dist = "bray")
-#' @export
-# pairMicroTest(ps = ps, Micromet = "anosim", dist = "bray")
+#' pairtranstest.trans(ps = ps, group = "Group", Micromet = "MRPP", dist = "bray")
 pairtranstest.trans = function(ps = ps, Micromet = "adonis", dist = "bray"){
 
   ps1_rela  = phyloseq::transform_sample_counts(ps, function(x) x / sum(x) );ps1_rela

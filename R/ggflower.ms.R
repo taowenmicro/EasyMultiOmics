@@ -1,85 +1,36 @@
-#' Microbial related network
-#'
-#' @param otu otu table of microbiome. data.frame
-#' @param tax taxonmy table of microbiome. data.frame
-#' @param map table.data.frame
-#' @param ps phyloseq Object, contains OTU tables, tax table and map table, represented sequences,phylogenetic tree.
-#' @param group colnames which selected for show
+#' @title Create a circular flower plot based on metabolite data
+#' @description
+#'  The ggflower.ms function generates a circular flower plot based on metabolite data.
+#'  The plot visualizes the presence or absence of metabolites
+#'  across different sample groups in a circular layout.
+#' @param otu otu table of metabolite,data.frame.
+#' @param tax taxonmy table of metabolite,data.frame.
+#' @param map Sample metadata.
+#' @param ps A phyloseq format file used as an alternative for the input containing metabolite composition table,
+#' metabolite classification table, and sample metadata.
+#' @param group column name for groupID in map table(sample metadata).
 #' @param rep repeat number of microbial data.
-#' @param m1 Petal shape, square to round to prismatic, the value gradually decreases
-#' @param start The rotation angle of the petals, the greater the value, the greater the angle
-#' @param a The width of the petals
-#' @param b Distance from petal to center
-#' @param lab.leaf The distance from the label to the center of the circle
-#' @param col.cir Center color
+#' @param m1 Petal shape, square to round to prismatic, the value gradually decreases.
+#' @param start The rotation angle of the petals, the greater the value, the greater the angle.
+#' @param a The width of the petals.
+#' @param b Distance from petal to center.
+#' @param lab.leaf The distance from the label to the center of the circle.
+#' @param col.cir Center color.
+#' @return A list containing the following components:
+#' \item{p}{Circular flower plot visualizing the presence or absence of metabolites across sample groups.}
+#' \item{ven2}{Processed metabolite data frame used for plotting.}
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
 #' @examples
 #' library(phyloseq)
 #' library(ggplot2)
-#' data(ps)
-#'
-#' map = as.data.frame(sample_data(ps))
-#' map$Group1 <- c("A","B","C","D","E","F ")
-#' sample_data(ps) = map
-#'
-#' p <- ggflower(ps = ps,
-#'               rep = 3,
-#'               group = "Group1",
-#'               start = 1,
-#'               m1 = 2,
-#'               a = 0.3,
-#'               b = 0.3,
-#'               lab.leaf = 1,
-#'               col.cir = "yellow",
-#'               b.cir = 0.8,
-#'               a.cir = 0.8
-#' )
-#' p2 <- p + scale_fill_brewer(palette = "Paired")
-#' p2
-#' p <- ggflower(ps = ps,
-#'               rep = 3,
-#'               group = "Group1",
-#'               start = 1,
-#'               m1 = 1,
-#'               a = 0.3,
-#'               b = 1,
-#'               lab.leaf = 1,
-#'               col.cir = "yellow"
-#' )
-#' p3 <- p + scale_fill_brewer(palette = "Paired")
-#'
-#' p3
-#' p5 <- ggflower(ps = ps,
-#'                rep = 3,
-#'                group = "Group1",
-#'                start = 1,
-#'                m1 = 2,
-#'                a = 0.2,
-#'                b = 1,
-#'                lab.leaf = 1,
-#'                col.cir = "yellow"
-#' )
-#' p5
-#'
-#' p <- ggflower(ps = ps,
-#'               rep = 3,
-#'               group = "Group1",
-#'               start = 30,
-#'               m1 = 2,
-#'               a = 0.2,
-#'               b = 1,
-#'               lab.leaf = 1,
-#'               col.cir = "yellow"
-#' )
-#' p1 <- p + scale_fill_brewer(palette = "Paired")
-#'
-#' p1
-#' @return ggplot objects
-#' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn} Jun Yuan \email{junyuan@@njau.edu.cn} Penghao Xie \email{2019103106@@njau.edu.cn}
-#' @references
-#'
-#' Yuan J, Zhao J, Wen T, Zhao M, Li R, Goossens P, Huang Q, Bai Y, Vivanco JM, Kowalchuk GA, Berendsen RL, Shen Q
-#' Root exudates drive the soil-borne legacy of aboveground pathogen infection
-#' Microbiome 2018,DOI: \url{doi: 10.1186/s40168-018-0537-x}
+#' res <- ggflower.ms(ps= ps.ms ,rep = 1,group = "Group",start = 1,
+#' m1 = 1,a = 0.2, b = 1,lab.leaf = 1col.cir = "yellow",N = 0.5 )
+#' p14 = res[[1]]
+#' p14
+#' dat = res[[2]]
+#' dat
 #' @export
 
 

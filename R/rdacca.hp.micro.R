@@ -1,5 +1,51 @@
-
-rdacca.hp.micro <- function(ps,
+#' @title Hierarchical Partitioning for RDA, CCA, and db-RDA
+#'
+#' @description
+#' The `rdacca.hp.micro` function performs hierarchical partitioning to decompose the variance explained by environmental variables in redundancy analysis (RDA), canonical correspondence analysis (CCA), and distance-based redundancy analysis (db-RDA). It provides visualizations of individual contributions and outputs detailed hierarchical partitioning results.
+#'
+#' @param OTU A data frame or matrix of OTU abundance data, where rows represent samples and columns represent OTUs.
+#' @param env A data frame of environmental variables, where rows correspond to samples and columns are variables.
+#' @param cca A logical value indicating whether to perform hierarchical partitioning in canonical correspondence analysis (CCA). Default is `FALSE`.
+#'
+#' @return
+#' A list containing:
+#' \itemize{
+#'   \item `p`: A ggplot2 object visualizing the hierarchical partitioning results for RDA.
+#'   \item `dat`: A data frame containing hierarchical partitioning results for RDA or CCA.
+#'   \item `p1`: A ggplot2 object visualizing the hierarchical partitioning results for db-RDA.
+#'   \item `dat2`: A data frame containing hierarchical partitioning results for db-RDA.
+#' }
+#'
+#' @details
+#' The function performs the following steps:
+#' \enumerate{
+#'   \item **RDA (Redundancy Analysis)**:
+#'     - Standardizes the OTU data using Hellinger transformation.
+#'     - Conducts RDA and calculates the adjusted R² for each environmental variable using hierarchical partitioning.
+#'     - Visualizes the individual contributions of environmental variables in a bar plot.
+#'   \item **CCA (Canonical Correspondence Analysis)** (if `cca = TRUE`):
+#'     - Uses the original OTU abundance matrix without transformation.
+#'     - Performs CCA and calculates the adjusted R² for each environmental variable.
+#'     - Visualizes the contributions of environmental variables in a bar plot.
+#'   \item **db-RDA (Distance-based RDA)**:
+#'     - Computes Bray-Curtis distances from the OTU data.
+#'     - Performs db-RDA and calculates the adjusted R² for each environmental variable using hierarchical partitioning.
+#'     - Visualizes the contributions of environmental variables in a bar plot.
+#' }
+#'
+#' @examples
+#' \dontrun{
+#' res = rdacca.hp.micro(OTU = ps.tem %>% filter_OTU_ps(500) %>%vegan_otu() %>% as.data.frame(), env = ftab[,1:5], cca = FALSE)
+#' p3_rda = res[[1]]
+#' dat1 = res[[2]]
+#' p3_db_rda  = res[[3]]
+#' dat2 = res[[4]]
+#' }
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' @export
+rdacca.hp.micro <- function(
                             OTU = mite,
                             env = env1,
                             #hpPath = hpPath,
@@ -13,11 +59,11 @@ rdacca.hp.micro <- function(ps,
   # mite.rda.hp
   # plot(mite.rda.hp)
   #如需输出层次分割结果
-  dat = mite.rda.hp$Hier.part %>% as.data.frame() %>% arrange(desc(Individual))
+  dat = mite.rda.hp$Hier.part %>% as.data.frame() %>%dplyr:: arrange(desc(Individual))
   dat$id = row.names(dat)
   dat$id = factor(dat$id,levels = dat$id)
   p = ggplot(dat) + geom_bar(aes(x = id,y = Individual ),stat = "identity",colour="black",fill="#9ACD32" ) + theme_classic()
-
+p
   ###典范对应分析（CCA）
 
   #不同于 RDA，CCA 中的物种丰度一般不做 Hellinger 转化处理，可直接使用原始丰度矩阵
@@ -58,10 +104,10 @@ rdacca.hp.micro <- function(ps,
   #本示例计算校正后的 R2，db-RDA 默认使用 Ezekiel 公式计算调校正后的 R2
   mite.cap.hp <- rdacca.hp(mite.bray, env, method = 'dbRDA', type = 'adjR2', scale = FALSE)
   #输出层次分割结果
-  dat2 = mite.cap.hp$Hier.part %>% as.data.frame() %>% arrange(desc(Individual))
+  dat2 = mite.cap.hp$Hier.part %>% as.data.frame() %>%dplyr:: arrange(desc(Individual))
   dat2$id = row.names(dat)
   dat2$id = factor(dat$id,levels = dat$id)
-  p1 = ggplot(dat) + geom_bar(aes(x = id,y = Individual ),stat = "identity",colour="black",fill="#9ACD32" ) + theme_classic()
+  p1 = ggplot(dat) + geom_bar(aes(x = id,y = dat$`I.perc(%)`  ),stat = "identity",colour="black",fill="#9ACD32" ) + theme_classic()
   p1
   return(list(p,dat,p1,dat2))
 

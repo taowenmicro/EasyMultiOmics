@@ -1,15 +1,36 @@
+#' @title Calculate the diversity for each sample or group
+#' @description
+#' The alpha.omics function calculates alpha diversity indices for multi-omics data.
+#' This includes measures such as Shannon diversity, Pielou's evenness, and richness estimates (e.g., Chao1, ACE).
+#'
+#' @param ps A `phyloseq` object. It must contain an OTU/ASV table (`otu_table`), and sample metadata (`sample_data`).
+#' @param group column name for group, such as "Group".
+#' @param sampling sampling OTU/ASV table with the minisize sequence count;
+#'
+#' @return  A data frame containing alpha diversity indices for each sample, along with the sample metadata. The output includes the following indices:
+#' \itemize{
+#'   \item `Shannon`: Shannon diversity index.
+#'   \item `Inv_Simpson`: Inverse Simpson diversity index.
+#'   \item `Pielou_evenness`: Pielou's evenness index.
+#'   \item `Simpson_evenness`: Simpson's evenness index.
+#'   \item `Richness`: Observed richness (number of species).
+#'   \item `Chao1`: Chao1 richness estimator.
+#'   \item `ACE`: ACE richness estimator.
+#' }
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' @export
+#' @examples
+#' \dontrun{
+#' tab = alpha.omics(ps = ps.16s,group = "Group")
+#' }
 
-
-alpha.omics = function(otu = NULL,
-                       tax = NULL,
-                       map = NULL,
+alpha.omics = function(
                        ps = NULL,
                        group = "Group",
+                       sampling = TRUE){
 
-                       sampling = TRUE,
-                       Plot = TRUE){
-
-  ps = ggClusterNet::inputMicro(otu,tax,map,tree,ps,group  = group)
   if (sampling == TRUE) {
     samplesize = min(phyloseq::sample_sums(ps))
     if (samplesize == 0) {

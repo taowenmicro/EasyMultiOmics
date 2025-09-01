@@ -55,16 +55,13 @@ Plot.CompareWithCK.micro <- function(
   abun = 0.001,
   cpu = 6
   ){
-
   res = EdgerSuper.micro(ps = ps,group  = "Group",artGroup = NULL,
                       j = j)
-
   result= res [[2]]
   map = sample_data(ps)
   x <- 1: nrow(result)
   results <- lapply(x,func)
   res.df <- do.call('c',results) # 整合结果
-
   result$TF = res.df
   # 计算微生物的平均丰度
   result$mean <- result %>%
@@ -154,18 +151,15 @@ print("1")
   plotdata$level3 = c
   plotdata$ID = factor(plotdata$ID,levels = unique(plotdata$ID)[length( unique(plotdata$ID)):1])
   head(plotdata)
-  plotdata$treat
-  p <- ggplot(plotdata) +　
-    geom_bar(aes(y = ID,x = abundance,group = treat,fill = treat),stat = "identity",
-             color  = "black",size = 0.5) +
+  p <- ggplot(plotdata)+
+       geom_bar(aes(y = ID,x = abundance,group = treat,fill = treat),stat = "identity",
+                    color  = "black",size = 0.5) +
     geom_vline(aes(xintercept=0), colour="black") +
     geom_text(aes(y = ID,x = label_y,label = level3),color = "white") +
     labs(title = paste0(CK,"_Abundance"),y = "ASV of microbiome",
-         x = paste0("Relative abundance")) + theme_bw()  +
+         x = paste0("Relative abundance")) + theme_bw() +
     scale_fill_manual(values = RColorBrewer::brewer.pal(9,"Set1"))
-
   p
-
   return(list(p,plotdata))
 }
 

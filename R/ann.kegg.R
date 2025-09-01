@@ -1,4 +1,19 @@
-
+#' @title Retrieve KEGG metabolite information based on input metabolite IDs
+#' @description
+#' This function matches the input metabolite ID to allMetabolites in the KEGG database by formatting it,
+#' and finally outputs its storage ID in the KEGG database.
+#' @param id The metabolite ID for which KEGG information is to be retrieved.
+#' @return A data frame with KEGG IDs and matched metabolite names for input metabolite IDs.
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' @examples
+#' library(dplyr)
+#' tax= ps.ms %>% vegan_tax() %>%as.data.frame()
+#' id = tax$Metabolite
+#' tax2 = ann.kegg(id)
+#' head(tax2)
+#' @export
 ann.kegg = function(id){
   mk = db.ms.kegg
 
@@ -10,10 +25,8 @@ ann.kegg = function(id){
   B = c()
   for (i in 1:length(id2)) {
     a = id2[i]
-    tem = mk %>% dplyr::filter(str_detect(allMetabolites,`a`))
+    tem = mk %>% dplyr::filter(str_detect(allMetabolites , stringr::fixed(a)))
     tem
-
-    print(id2[i])
     if (dim(tem)[1] ==0) {
       A[i] = ""
       A[i] = ""
@@ -31,9 +44,22 @@ ann.kegg = function(id){
   return(tax)
 }
 
-
-#--第二种匹配模式#------
-
+#' @title Another matching mode for retrieving KEGG metabolite information based on input metabolite IDs
+#' @description
+#' This function matches the input metabolite ID to common names in the KEGG database by formatting it,
+#' and finally outputs its storage ID in the KEGG database.
+#' @param id The metabolite ID for which KEGG information is to be retrieved.
+#' @return A data frame with KEGG IDs and matched metabolite names for input metabolite IDs.
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' @examples
+#' library(dplyr)
+#' tax= ps.ms %>% vegan_tax() %>%as.data.frame()
+#' id = tax$Metabolite
+#' tax2 = ann.kegg2(id)
+#' head(tax2)
+#' @export
 ann.kegg2 = function(id,repath){
   mk =db.ms.kegg
   head(mk)
@@ -74,8 +100,24 @@ ann.kegg2 = function(id,repath){
   return(tax)
 }
 
-
-
+#' @title  Match KEGG metabolites based on input metabolite(s) ID, KEGG database
+#' @description
+#' The match_KEGG function performs custom matching operations for retrieving
+#' KEGG metabolite information based on the input match criteria, target column, and target matrix.
+#' @param match The metabolite(s) to be matched.
+#' @param target_column The target column for matching in the metabolite database.
+#' @param target_matrix The matrix containing  the metabolite database.
+#' @return A list of matched KEGG metabolites based on the input metabolite(s) ID, KEGG database.
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' @examples
+#' library(dplyr)
+#' tax= ps.ms %>% vegan_tax() %>%as.data.frame()
+#' id = tax$Metabolite
+#' tax2 = ann.kegg2(id)
+#' head(tax2)
+#' @export
 match_KEGG = function(match, target_column, target_matrix) {
   match = tolower(match)
   match = unique(match)

@@ -1,27 +1,42 @@
-
-# result = sankey.m.Group(
-#     ps = ps,
-#     rank = 6,
-#     Top = 50,
-#
-#
-# )
-#
-# p = result[[1]]
-# dat = result[[2]]
-#
-# FileName <-paste(snapath,"/sankey_Group.csv", sep = "")
-# write.csv(dat,FileName,sep = "")
-#
-# saveNetwork(p,paste(snapath,"/sankey_Group.html", sep = ""))
-# library(webshot)
-# # webshot::install_phantomjs()
-# # webshot(paste(snapath,"/sankey1.html", sep = "") ,paste(snapath,"/sankey1.png", sep = ""))
-# webshot(paste(snapath,"/sankey_Group.html", sep = "") , paste(snapath,"/sankey_Group.pdf", sep = ""))
-#
-
-
-
+#' @title Generate Group-Level Taxonomic Sankey Diagram for Microbial Data
+#'
+#' @description
+#' This function creates group-level Sankey diagrams to visualize taxonomic transitions from higher to lower taxonomic levels (e.g., Kingdom to Genus).
+#' It generates interactive Sankey diagrams for grouped microbial data based on the specified taxonomic rank and top OTUs.
+#'
+#' @param ps A `phyloseq` object containing microbiome data.
+#' @param rank A numeric value specifying the taxonomic rank for aggregation. Default is `6` (e.g., Genus level).
+#' @param Top An integer specifying the number of top OTUs to include based on abundance. Default is `50`.
+#'
+#' @return
+#' A list containing:
+#' \describe{
+#'   \item{SankeyDiagram}{An interactive Sankey diagram generated with `networkD3::sankeyNetwork`.}
+#'   \item{Data}{A data frame containing the Sankey diagram links and node data.}
+#' }
+#'
+#' @details
+#' The function performs the following steps:
+#' \itemize{
+#'   \item Extracts OTU and taxonomic data from the `phyloseq` object.
+#'   \item Aggregates taxonomic information up to the specified rank and filters the top `Top` OTUs by abundance.
+#'   \item Calculates mean abundance values for each taxonomic level within groups.
+#'   \item Builds source-target relationships for taxonomic transitions between levels (e.g., Kingdom → Phylum, Phylum → Class).
+#'   \item Generates an interactive Sankey diagram visualizing taxonomic transitions and their relative abundances at the group level.
+#' }
+#'
+#' The Sankey diagram is interactive and allows users to explore taxonomic transitions and their abundances across groups.
+#'
+#' @examples
+#' \dontrun{
+#' result = sankey.m.Group.micro(ps = ps.16s %>% subset_taxa.wt("Species", "Unassigned", TRUE), rank = 6, Top = 50)
+#' p = result$SankeyDiagram
+#' dat = result$Data
+#' }
+#'
+#' @author Contact: Tao Wen \email{2018203048@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njau.edu.cn}
+#'
+#' @export
 
 sankey.m.Group.micro  = function(
     ps = ps,
@@ -31,7 +46,7 @@ sankey.m.Group.micro  = function(
   ){
 
   map = sample_data(ps) %>% as.tibble()
-  map$ID = row.names(map)
+  # map$ID = row.names(map)
   otu =  ps %>% vegan_otu() %>%
     as.data.frame()
   otu$ID = row.names(otu)
@@ -43,13 +58,15 @@ sankey.m.Group.micro  = function(
   tax$taxid = row.names(tax)
   head(tax)
 
-
+  #print("1")
+  map$ID%in% otu$ID
   data = map %>% as.tibble() %>%
     inner_join(otu) %>%
-    gather( taxa, count, starts_with("ASV_")) %>%
+    gather( taxa, count, starts_with("ASV")) %>%
     inner_join(tax,by = c("taxa" = "taxid") )
-  data
 
+    data
+ #print("4")
 
   tax = ps %>%
     ggClusterNet::tax_glom_wt(ranks = rank) %>%

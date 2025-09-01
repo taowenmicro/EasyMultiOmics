@@ -1,3 +1,33 @@
+#' @title k-Nearest Neighbors (k-NN) Classification for Microbial Community Data
+#'
+#' @description
+#' The `knn.micro` function applies the k-Nearest Neighbors (k-NN) algorithm to classify microbial community data.
+#' It uses a Centered Log-Ratio (CLR) transformation for compositional data and performs k-fold cross-validation to evaluate model accuracy.
+#' Additionally, it computes feature importance by assessing the impact of each feature on classification accuracy.
+#'
+#' @param ps A `phyloseq` object containing microbial community data, including the OTU table and sample metadata.
+#' @param seed An integer used to set the random seed for reproducibility. Default is `6358`.
+#' @param k An integer specifying the number of folds for k-fold cross-validation. Default is `5`.
+#' @param top An integer specifying the number of top OTUs to retain based on abundance. Default is `20`.
+#'
+#' @return
+#' A list containing:
+#' \itemize{
+#'   \item `Accuracy`: A string reporting the average k-NN classification accuracy across all folds.
+#'   \item `Importance`: A data frame with feature importance metrics, showing the classification accuracy when using each feature individually.
+#' }
+#'
+#' @examples
+#' \dontrun{
+#' res = knn.micro(ps =pst, top = 20,k =5 )
+#' accuracy = res[[1]]
+#' importance = res[[2]]
+#' }
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' @export
+#'
 knn.micro <- function(ps =ps, seed = 6358, k = 5,top = 20) {
   set.seed(seed)
 

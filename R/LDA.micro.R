@@ -1,22 +1,32 @@
-
-
-
-
-# p1 <- p_base(ps,Top = 100)
-#
-#
-# tablda = LDA_Micro(ps = ps,Top = 100,p.lvl = 0.05,lda.lvl = 2,seed = 11, adjust.p = T)
-#
-# # 注释树
-#
-# p2 <- clade.anno_wt(p1, tablda[[1]], alpha=0.3,anno.depth = 7)
-#
-# ggsave("./cs6.pdf",p2,width = 15,height = 10)
-
-
-
-
-
+#' @title Perform LDA analysis on microbiome data
+#' @description
+#' This function performs LDA analysis on microbiome data to
+#' identify Characteristic microorganisms at different taxonomic levels.
+#' @param ps A phyloseq format file used as an alternative for the input containing otu, tax, and map.
+#' @param group column name for groupID in map table(sample metadata).
+#' @param p.lvl p-value threshold for the Characteristic microorganisms.
+#' @param lda.lvl  LDA score threshold for the Characteristic microorganisms.
+#' @param seed The random seed for reproducibility.
+#' @param adjust.p Logical indicating whether to adjust p-values.
+#' @param Top The top microorganisms to convert and visualize.
+#' @returns A list object containing the following components:
+#' \item{lefse_lists}{Data frame containing LDA analysis results.}
+#' \item{taxtree}{Data frame containing taxonomic information and LDA results.}
+#' @export
+#' @author
+#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' @examples
+#' tablda = LDA.micro(ps = ps.16s,
+#' Top = 100,
+#' p.lvl = 0.05,
+#' lda.lvl = 1,
+#' seed = 11,
+#' adjust.p = F)
+#' dat1=tablda[[1]]
+#' head(dat1)
+#' dat2 = tablda[[2]]
+#' head(dat2)
 
 LDA.micro = function(ps = ps,
                      group = "Group",
@@ -340,89 +350,6 @@ clade.anno_wt <- function(gtree, anno.data, alpha = 0.2, anno.depth = 5, anno.x 
   gtree <- gtree + stable.p+ pleg + plot_layout(design = layout)
 
 
-}
-
-
-lefse_bar = function(taxtree = tablda[[2]]){
-  # taxtree = tablda[[2]]
-  taxtree$ID = row.names(taxtree)
-  head(taxtree)
-  taxtree$ID = gsub("_Rank_",";",taxtree$ID)
-  taxtree <- taxtree %>%
-    arrange(class,LDAscore)
-  taxtree$ID = factor(taxtree$ID,levels=taxtree$ID)
-  taxtree$class = factor(taxtree$class,levels = unique(taxtree$class))
-
-  pbar <- ggplot(taxtree) + geom_bar(aes(y =ID, x = LDAscore,fill = class),stat = "identity") +
-    scale_fill_manual(values = unique(taxtree$color))  +
-    scale_x_continuous(limits = c(0,max(taxtree$LDAscore)*1.2))
-  return(pbar)
-}
-
-
-
-
-
-
-lefse_bar2 = function(ps = pst,taxtree = tablda[[2]]){
-  taxtree = tablda[[2]]
-  taxtree$ID = row.names(taxtree)
-  head(taxtree)
-  taxtree$ID = gsub("_Rank_",";",taxtree$ID)
-
-  taxtree$rankid = sapply(strsplit(taxtree$ID, "__"), `[`, 1)
-  tem = taxtree %>% filter(rankid %in% c("st"))
-  tem$ASV = sapply(strsplit(tem$ID, "st__"), `[`, 2)
-  row.names(tem) = tem$Genus
-  tem$ID = tem$ASV
-  tem <- tem %>%
-    arrange(class,LDAscore)
-  tem$ID = factor(tem$ID,levels=tem$ID)
-  tem$class = factor(tem$class,levels = unique(tem$class))
-  head(tem)
-
-  tax.t = ps %>% subset_taxa.wt("OTU",as.character(tem$ID)) %>% vegan_tax() %>% as.data.frame() %>%
-    rownames_to_column("ID")
-  head(tax.t)
-  tem = tem %>% left_join(tax.t,by = c("ASV"= "ID"))
-  tem$ID2 = paste0(tem$Genus,"(",tem$ID,")")
-  if (unique(tem$class) %>% length() == 2) {
-    # a = unique(tem$class)
-    # tem2 = tem %>% filter(class == a[2]) %>% mutate(LDAscore2 = LDAscore * -1)
-    # tem$LDAscore[tem$class == a[2]] = tem2$LDAscore2
-    # pbar <- ggplot(tem) + geom_bar(aes(y =ID, x = LDAscore,fill = class),stat = "identity") +
-    #   scale_fill_manual(values = unique(taxtree$color)) + theme_classic()
-    tem$just = 1
-    a = unique(tem$class) %>% as.character()
-    tem2 = tem %>% filter(class == a[2]) %>% mutate(LDAscore2 = LDAscore * -1,
-                                                    just2 = just *0
-    )
-    tem$LDAscore[tem$class == a[2]] = tem2$LDAscore2
-    tem$just[tem$class == a[2]] = tem2$just2
-    head(tem)
-
-    pbar <- ggplot(tem) + geom_bar(aes(y =ID, x = LDAscore,fill = class),stat = "identity") +
-      scale_fill_manual(values = unique(taxtree$color))  +
-      geom_text(aes(y =ID, x =0,label = ID2),hjust = tem$just) +
-      theme_classic()+
-      theme(axis.text.y = element_blank(),
-            axis.ticks.y = element_blank(),
-            axis.title.y = element_blank(),
-            axis.line.y = element_blank()
-      )
-
-  } else{
-    pbar <- ggplot(tem) + geom_bar(aes(y =ID2, x = LDAscore,fill = class),stat = "identity") +
-      scale_fill_manual(values = unique(taxtree$color)) +
-      scale_x_continuous(limits = c(0,max(taxtree$LDAscore)*1.2)) +
-      theme_classic()+
-      theme(axis.text.y = element_blank(),
-            axis.ticks.y = element_blank(),
-            axis.title.y = element_blank(),
-            axis.line.y = element_blank()
-      )
-  }
-  return(pbar)
 }
 
 

@@ -1,9 +1,32 @@
-# res = KEGG_enrich.tran(ps = ps.trans,method.diff = md[4])
-# res$plots[[1]]$`KO-OE`
+#' @title KEGG Pathway Enrichment Analysis with Differential Expression
+#' @description
+#'
+#' This function performs KEGG pathway enrichment analysis using KEGG Orthology (KO)
+#' terms. It analyzes differential expression results from the `EdgerSuper.trans()` function
+#' and identifies significantly enriched KEGG pathways. The function also generates
+#' various plots to visualize the KEGG enrichment results, including bubble and bar plots.
+#'
+#' @param ps A Phyloseq object containing OTU table and sample data. The default is `ps`,
+#' which assumes that the Phyloseq object is provided externally.
+#' @param method.diff A string specifying the method for differential analysis. The default
+#' is `md[4]`, which should be set appropriately based on the method you wish to use.
+#'
+#' @return A list containing:
+#' \itemize{
+#'   \item \code{plots}: A list of generated plots, including bubble and bar plots for
+#'   KEGG pathway enrichment.
+#'   \item \code{plotdata}: A list of data used for plotting, including enriched pathway
+#'   information.
+#' }
+#'
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' result <- KEGG_enrich.trans(ps = ps.trans)
+#' }
 
-
-##------------------------------------------------KEGG富集------------------------------------
-KEGG_enrich.tran <- function(ps = ps,
+KEGG_enrich.trans <- function(ps = ps,
                              method.diff = md[4]
 ){
 
@@ -134,11 +157,13 @@ KEGG_enrich.tran <- function(ps = ps,
     # }
 
     if (length(num.t) < 5) {
+
     } else{
 
       #-绘制富集气泡图
       print("1")
-      result = buplot(dt  = plot_GO,dif = dif,id = id)
+      ?buplot
+      result = buplot.micro(dt  = plot_GO,id = id)
       print("1")
 
       p3 = result[[1]]
