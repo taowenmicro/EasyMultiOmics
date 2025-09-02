@@ -10,29 +10,33 @@ License: What license is it under?
 Depends: 
     R (>= 4.3.0)
 Imports:
+    agricolae,
     ALDEx2,
     ANCOMBC,
     aplot,
     Boruta,
     broom,
+    car,
     caret,
     circlize,
     classInt,
     clusterProfiler,
     corncob,
     cowplot,
-    cluster,
     dacomp,
     data.tree,
     DESeq2,
     dplyr,
     dynamicTreeCut,
     e1071,
+    EasyMultiOmics.db,
+    EasyStat,
     edgeR,
     exactRankTests,
     forcats,
     fs,
     ggalluvial,
+    ggClusterNet,
     ggforce,
     ggh4x,
     ggnewscale,
@@ -41,6 +45,7 @@ Imports:
     ggraph,
     ggrepel,
     ggsci,
+    ggsignif,
     ggstance,
     ggtern,
     ggtree,
@@ -65,6 +70,8 @@ Imports:
     microbiome,
     MicrobiotaProcess,
     mixOmics,
+    multcomp,
+    multcompView,
     networkD3,
     nlme,
     nnet,
@@ -101,10 +108,7 @@ Imports:
     utils,
     vegan,
     VennDiagram,
-    WGCNA,
-    EasyStat,
-    ggClusterNet,
-    EasyMultiOmics.db
+    WGCNA
 Suggests: 
     ape,
     BiocManager,
@@ -115,13 +119,13 @@ Suggests:
     ropls,
     rpart,
     xgboost
-Remotes:
-  github::taowenmicro/ggClusterNet,
-  github::taowenmicro/EasyMultiOmics.db,
-  github::taowenmicro/EasyStat
 LinkingTo: 
     Rcpp,
     RcppArmadillo
+Remotes:
+    github::taowenmicro/EasyMultiOmics.db,
+    github::taowenmicro/EasyStat,
+    github::taowenmicro/ggClusterNet
 Encoding: UTF-8
 LazyData: true
 NeedsCompilation: no

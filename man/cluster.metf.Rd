@@ -4,7 +4,7 @@
 \alias{cluster.metf}
 \title{Cluster and Visualize metagenome functional composition}
 \usage{
-\method{cluster}{metf}(
+cluster.metf(
   ps = ps,
   hcluter_method = "complete",
   dist = "bray",

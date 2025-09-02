@@ -1,7 +1,7 @@
 
 #  EasyMultiOmics中的数据介绍
 library(EasyMultiOmics)
-
+?count_to_mass
 # 宏基因组中的微生物群落相关表格
 data("ps.micro")
 # 宏基因组中的kegg功能注释相关表格

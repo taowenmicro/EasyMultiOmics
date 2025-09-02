@@ -15,7 +15,7 @@ plot_ranked_otu_metrics(
   col_importance = "Importance",
   col_degree = "Degree",
   col_betweenness = "Betweenness",
-  legend_title = "log2FC\\n(blue = negative, red = positive)",
+  legend_title = "log2FC(blue = negative, red = positive)",
   palette_low = "#2166AC",
   palette_mid = "white",
   palette_high = "#B2182B",
@@ -49,7 +49,7 @@ plot_ranked_otu_metrics(
 \item{col_betweenness}{Name of the betweenness column. Default `"Betweenness"`.}
 
 \item{legend_title}{Title for the fill legend. Default
-`"log2FC\n(blue = negative, red = positive)"`.}
+`"log2FC(blue = negative, red = positive)"`.}
 
 \item{palette_low, palette_mid, palette_high}{Colors for the diverging palette.
 Defaults are `#2166AC`, `"white"`, `#B2182B`.}
