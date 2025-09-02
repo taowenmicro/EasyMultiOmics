@@ -1,5 +1,6 @@
 # EasyMultiOmics: A Multi-Omics Analysis Framework Based on Cross-Omics Interaction Algorithm
 
+![](https://github.com/XinyangTeng/tengxinyang/blob/main/%E5%9B%BE%E7%89%87/logo.png)
 ## Main features:
 
 *   Provides a comprehensive multi-omics analysis pipeline with emphasis on count data and mass spectrometry data integration.
