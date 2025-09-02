@@ -22,8 +22,6 @@
 #' }
 #'
 #' @export
-#' @importFrom stats sd mean quantile cumsum filter
-#' @importFrom utils head
 #'
 #' @examples
 #' \dontrun{

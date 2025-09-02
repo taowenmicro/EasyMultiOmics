@@ -4,7 +4,7 @@
 #' microbiome and metabolome data, including cross-omics alignment,
 #' association analysis, and intelligent feature selection.
 #'
-#' @docType package
+#' _PACKAGE
 #' @name MultiOmicsIntegration
 NULL
 
@@ -96,7 +96,7 @@ multi_omics_alignment <- function(microbiome_data,
 #'
 #' @export
 #' @importFrom phyloseq otu_table tax_glom
-#' @importFrom vegan vegdist
+
 find_associated_metabolites <- function(phyloseq_obj,
                                         metabolome_mat,
                                         target_microbe_name,

@@ -28,14 +28,11 @@ Imports:
     dplyr,
     dynamicTreeCut,
     e1071,
-    EasyMultiOmics.db,
-    EasyStat,
     edgeR,
     exactRankTests,
     forcats,
     fs,
     ggalluvial,
-    ggClusterNet,
     ggforce,
     ggh4x,
     ggnewscale,
@@ -104,7 +101,10 @@ Imports:
     utils,
     vegan,
     VennDiagram,
-    WGCNA
+    WGCNA,
+    EasyStat,
+    ggClusterNet,
+    EasyMultiOmics.db
 Suggests: 
     ape,
     BiocManager,
@@ -115,6 +115,10 @@ Suggests:
     ropls,
     rpart,
     xgboost
+Remotes:
+  github::taowenmicro/ggClusterNet,
+  github::taowenmicro/EasyMultiOmics.db,
+  github::taowenmicro/EasyStat
 LinkingTo: 
     Rcpp,
     RcppArmadillo

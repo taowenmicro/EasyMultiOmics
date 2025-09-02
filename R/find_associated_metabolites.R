@@ -4,18 +4,8 @@
 #' through integrated multi-dimensional analysis including correlation, network topology,
 #' differential expression, and machine learning approaches.
 #'
-#' @docType package
+#' _PACKAGE
 #' @name MicrobiomeMetabolomeAnalysis
-#' @import phyloseq
-#' @import tidyverse
-#' @import vegan
-#' @import randomForest
-#' @import glmnet
-#' @import igraph
-#' @import limma
-#' @import mixOmics
-#' @importFrom stats cor cor.test p.adjust median sd var lm predict prcomp dist
-#' @importFrom utils head
 NULL
 
 #' Find Associated Metabolites with Target Microbe
@@ -129,7 +119,7 @@ find_associated_metabolites <- function(phyloseq_obj,
 #' through integrated multi-dimensional analysis including correlation, network topology,
 #' differential expression, and machine learning approaches.
 #'
-#' @docType package
+#' _PACKAGE
 #' @name MicrobiomeMetabolomeAnalysis
 #' @import phyloseq
 #' @import tidyverse
@@ -138,8 +128,6 @@ find_associated_metabolites <- function(phyloseq_obj,
 #' @import glmnet
 #' @import igraph
 #' @import limma
-#' @import mixOmics
-#' @importFrom stats cor cor.test p.adjust median sd var lm predict prcomp dist
 #' @importFrom utils head
 NULL
 

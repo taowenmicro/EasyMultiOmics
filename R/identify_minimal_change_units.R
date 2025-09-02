@@ -86,11 +86,6 @@
 #' @seealso \code{\link{plot_change_units}} for visualization of results
 #'
 #' @export
-#' @importFrom phyloseq otu_table tax_table sample_data taxa_sums nsamples ntaxa prune_taxa tax_glom taxa_are_rows
-#' @importFrom microbiome transform
-#' @importFrom dplyr group_by filter ungroup arrange select mutate
-#' @importFrom purrr map_dfr
-#' @importFrom stats wilcox.test p.adjust
 identify_minimal_change_units <- function(physeq,
                                           group_col,
                                           levels = c("Species", "Genus", "Family", "Order", "Class", "Phylum"),

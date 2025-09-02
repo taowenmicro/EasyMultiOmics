@@ -18,9 +18,6 @@
 #' The function does not alter which groups are considered significantly different —
 #' it only reassigns letter labels to reflect the relative magnitude of group means.
 #'
-#' @importFrom dplyr mutate select
-#' @importFrom stringr str_split
-#' @importFrom purrr map_dbl map_chr
 #'
 #' @examples
 #' library(dplyr)

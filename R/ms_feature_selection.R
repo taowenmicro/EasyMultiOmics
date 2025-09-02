@@ -3,9 +3,8 @@
 #' 针对非靶向代谢组（MS）数据的特征挑选流水线：缺失与批次/漂移校正、归一化、QC 稳定性过滤、
 #' 差异分析（limma）、机器学习重要性（RF/GBM/Boruta）、相关网络、综合加权排名。
 #'
-#' @docType package
+#' _PACKAGE
 #' @name MSFeatureSelection
-#' @importFrom stats median sd var prcomp quantile model.matrix loess predict wilcox.test
 #' @importFrom utils write.csv
 #' @importFrom limma lmFit eBayes topTable makeContrasts contrasts.fit
 #' @importFrom sva ComBat

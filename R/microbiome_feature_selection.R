@@ -4,18 +4,16 @@
 #' integrated analysis including differential abundance, machine learning
 #' importance, network topology, and abundance patterns.
 #'
-#' @docType package
+#' _PACKAGE
 #' @name MicrobiomeFeatureSelection
 #' @import phyloseq
 #' @import DESeq2
 #' @import randomForest
 #' @import igraph
 #' @import microbiome
-#' @importFrom tidyverse %>% full_join arrange
-#' @importFrom vegan vegdist
+#' @importFrom dplyr full_join arrange
 #' @importFrom caret train trainControl varImp
 #' @importFrom Hmisc rcorr
-#' @importFrom stats p.adjust wilcox.test median sd
 #' @importFrom utils write.csv head
 NULL
 
