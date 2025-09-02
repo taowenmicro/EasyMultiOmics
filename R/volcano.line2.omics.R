@@ -136,8 +136,8 @@ volcano.line2.omics<- function(ps01=ps01,
 
 
     #
-    # id1= colnames(cor) %in% (dat %>% filter(group1==group2) %>% .$id)
-    # id2= colnames(cor) %in% (dat %>% filter(group1!=group2) %>% .$id)
+    # id1= colnames(cor) %in% (dat %>% dplyr::filter(group1==group2) %>% .$id)
+    # id2= colnames(cor) %in% (dat %>% dplyr::filter(group1!=group2) %>% .$id)
     #
     # cor2 = cor[id2,id1]
 

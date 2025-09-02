@@ -86,7 +86,7 @@ bNTIRCPlot = function(otu = NULL,tax = NULL,
   #------------bNIT作图
   dim(bNTI.df)
   within.bNTI.df = bNTI.df %>%
-    filter(Group_1 == Group_2) %>%
+    dplyr::filter(Group_1 == Group_2) %>%
     mutate(Group = Group_1)
 
   head(within.bNTI.df )
@@ -124,7 +124,7 @@ bNTIRCPlot = function(otu = NULL,tax = NULL,
 
   # 现在按照RCbray进行分开标记系统发育过程
   eco.turnover.df = turnover.df %>%
-    filter(Group_1 == Group_2) %>%
+    dplyr::filter(Group_1 == Group_2) %>%
     mutate(Group = Group_1)
 
   # eco.turnover.df = left_join(eco.turnover.df, ecosystem.conv)

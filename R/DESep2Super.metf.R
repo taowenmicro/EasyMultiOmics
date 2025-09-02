@@ -153,7 +153,7 @@ DESep2Super.metf = function(otu = NULL,
 
     x = data.frame(row.names = row.names(x),logFC = x$log2FoldChange,level = x$level,p = x$pvalue)
     x1 = x %>%
-      filter(level %in% c("enriched","depleted","nosig") )
+      dplyr::filter(level %in% c("enriched","depleted","nosig") )
     head(x1)
     x1$Genus = row.names(x1)
     # x$level = factor(x$level,levels = c("enriched","depleted","nosig"))

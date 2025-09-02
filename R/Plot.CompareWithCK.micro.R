@@ -65,7 +65,7 @@ Plot.CompareWithCK.micro <- function(
   result$TF = res.df
   # 计算微生物的平均丰度
   result$mean <- result %>%
-    # filter(TF == 1) %>%
+    # dplyr::filter(TF == 1) %>%
     dplyr::select(one_of(unique(map$Group))) %>%
     rowMeans() %>%
     as.vector()
@@ -94,7 +94,7 @@ Plot.CompareWithCK.micro <- function(
                            measure.vars = c(as.character(unique(map$Group))),#用于聚合的变量,
                            variable.name='treat',
                            value.name='abundance') %>%
-    filter(treat != "WT")
+    dplyr::filter(treat != "WT")
 
 print("1")
   level = c()

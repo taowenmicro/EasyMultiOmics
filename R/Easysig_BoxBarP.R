@@ -85,11 +85,11 @@ if (sig_show == "line") {
   for (i in 1:dim(zuhe)[2]) {
     library(tidyverse)
 
-    if (filter(aa, group == xxxx[[i]][1])$groups == filter(aa, group == xxxx[[i]][2])$groups) {
+    if (dplyr::filter(aa, group == xxxx[[i]][1])$groups == dplyr::filter(aa, group == xxxx[[i]][2])$groups) {
       sig_lis[i] = "no_sig"
     }
 
-    if (filter(aa, group == xxxx[[i]][1])$groups != filter(aa, group == xxxx[[i]][2])$groups) {
+    if (dplyr::filter(aa, group == xxxx[[i]][1])$groups != dplyr::filter(aa, group == xxxx[[i]][2])$groups) {
       sig_lis[i] = "*"
     }
 

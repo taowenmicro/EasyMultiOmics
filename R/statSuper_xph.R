@@ -93,8 +93,8 @@ statSuper = function(otu = NULL,tax = NULL,map = NULL,tree = NULL ,ps = NULL,
 
     a = as.matrix(AAA)
 
-    id1 = sub_design %>%as.tibble()  %>%filter(Group %in% Desep_group[1]) %>% .$ID
-    id2 = sub_design %>%as.tibble()  %>%filter(Group %in% Desep_group[2]) %>% .$ID
+    id1 = sub_design %>%as.tibble()  %>%dplyr::filter(Group %in% Desep_group[1]) %>% .$ID
+    id2 = sub_design %>%as.tibble()  %>%dplyr::filter(Group %in% Desep_group[2]) %>% .$ID
     head(a)
 
     # 确保 id1 和 id2 对应的列存在于矩阵 colnames(mat)

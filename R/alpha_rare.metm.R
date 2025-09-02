@@ -118,7 +118,7 @@ alpha_rare.metm =function(otu = NULL,tax = NULL,map = NULL,tree = NULL ,ps = NUL
   #----稀释结果为整齐的表，#----
   for (ii in 1:length(sample_sums(ps))) {
     result$i[result$i > sample_sums(ps)[ii][[1]]]
-    df_filter= filter(result, ID ==names(sample_sums(ps)[ii]) &i > sample_sums(ps)[ii][[1]])
+    df_filter= dplyr::filter(result, ID ==names(sample_sums(ps)[ii]) &i > sample_sums(ps)[ii][[1]])
     result$index
     result$index[result$i>sample_sums(ps)[ii][[1]]]
     a = result$i>sample_sums(ps)[ii][[1]]

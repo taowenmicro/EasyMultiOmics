@@ -76,7 +76,7 @@ Mui.cluster.volcano.micro = function(res = res,rs.k = 10){
 
   tm <- function(data){
     for (i in c(1:10)) {
-      tem = filter(data,Cluster==i,level != "nosig") %>%
+      tem = dplyr::filter(data,Cluster==i,level != "nosig") %>%
         distinct(ID,.keep_all = TRUE) %>%
         top_n(5,abs(logFC))
       if (i ==1) {

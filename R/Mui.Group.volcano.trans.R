@@ -42,7 +42,7 @@ Mui.Group.volcano.trans = function(res = res){
     id = data$group %>% unique()
 
     for (i in 1:length(id)) {
-      tem = filter(data,group==id[i],level != "nosig") %>%
+      tem = dplyr::filter(data,group==id[i],level != "nosig") %>%
         distinct(ID,.keep_all = TRUE) %>%
         top_n(5,abs(logFC))
       if (i == 1) {

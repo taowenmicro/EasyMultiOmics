@@ -110,7 +110,7 @@ for (ii in 1:dim(aaa)[2]) {
  p = ggplot(dat, aes( !!sym(col_16[1]), !!sym(col_ms[1]), color = group)) +
     geom_point(size = 1.2, alpha =0.5) +
    #guides(color = "none") +
-   # scale_colour_manual(name = "", values = alpha(mycolor, 0.7)) +
+   # scale_colour_manual(name = "", values = microbiome::alpha(mycolor, 0.7)) +
     geom_hline(yintercept = c(-1, 1), size = 0.7, color = "grey40", lty = "dashed") +
     geom_vline(xintercept = c(-1, 1), size = 0.7, color = "grey40", lty = "dashed") +
     scale_y_continuous(expand = expansion(add = c(0.5, 0.5)), limits = c(-5, 5)) +

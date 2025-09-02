@@ -172,7 +172,7 @@ phySigPlot = function(otu = NULL,
 
   eco.crlg = data2 %>%
     mutate(sig = ifelse(Pr.corrected. <= 0.05, "significant", "non-significant")) %>%
-    filter(!(is.na(Pr.corrected.)))
+    dplyr::filter(!(is.na(Pr.corrected.)))
   eco.crlg$Group= factor(eco.crlg$Group)
 
   p = ggplot(data=eco.crlg, aes(x=class.index, y=Mantel.cor)) +

@@ -119,7 +119,7 @@ alpha.rare.line.metf =function(
   #----稀释结果为整齐的表，为了对应map分组#----
   for (ii in 1:length(phyloseq::sample_sums(ps))) {
     result$i[result$i > phyloseq::sample_sums(ps)[ii][[1]]]
-    df_filter= filter(result, ID ==names(phyloseq::sample_sums(ps)[ii]) &i > phyloseq::sample_sums(ps)[ii][[1]])
+    df_filter= dplyr::filter(result, ID ==names(phyloseq::sample_sums(ps)[ii]) &i > phyloseq::sample_sums(ps)[ii][[1]])
     result$index
     result$index[result$i>phyloseq::sample_sums(ps)[ii][[1]]]
     a = result$i>phyloseq::sample_sums(ps)[ii][[1]]

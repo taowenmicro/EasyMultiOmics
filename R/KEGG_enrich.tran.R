@@ -64,14 +64,14 @@ KEGG_enrich.trans <- function(ps = ps,
     dif$X1 = row.names(dif)
     index <- dif %>%
       select(!!ensym(id),X1) %>%
-      filter(!!ensym(id) != "nosig") %>%
+      dplyr::filter(!!ensym(id) != "nosig") %>%
       .$X1
     num.t = index
     if (length(index) <5) {
       print("nosig")
       index = dif %>%
         select(!!ensym(id),X1) %>%
-        # filter(!!ensym(id) != "nosig") %>%
+        # dplyr::filter(!!ensym(id) != "nosig") %>%
         .$X1 %>%
         head(500)
 

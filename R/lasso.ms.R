@@ -85,7 +85,7 @@ lasso.ms <- function(ps= ps, top = 20, seed = 1010, k = 5) {
   } else {
     importance_df <- data.frame(Feature = character(0), Importance = numeric(0))
   }
-  importance_df =  filter(importance_df ,Importance!= 0)
+  importance_df =  dplyr::filter(importance_df ,Importance!= 0)
   # 返回结果
   list(Accuracy = accuracy_result, Importance = importance_df)
 }

@@ -93,7 +93,7 @@ pathway_enrich.trans = function (ps, dif.method = "wilcox")
     head(df2)
     res[[i]] = df2
     names(res)[i] = paste(com[2, i], com[1, i], sep = ".")
-    tem = df2 %>% filter(p.adjust < 0.05)
+    tem = df2 %>% dplyr::filter(p.adjust < 0.05)
     head(df2)
     if (dim(tem)[1] == 0) {
       laby = "Top 20 pathways"
@@ -101,9 +101,9 @@ pathway_enrich.trans = function (ps, dif.method = "wilcox")
     }
     else {
       laby = "enriched pathways"
-      df3 = df2 %>% filter(p.adjust < 0.05)
+      df3 = df2 %>% dplyr::filter(p.adjust < 0.05)
     }
-    p = df3%>% filter(V2 !='NA') %>% ggplot(aes(x = count, y = reorder(V2, count))) +
+    p = df3%>% dplyr::filter(V2 !='NA') %>% ggplot(aes(x = count, y = reorder(V2, count))) +
       geom_bar(aes(x = count, y = reorder(V2, count), fill = pvalue),
                stat = "identity", width = 0.8) + guides(size = guide_legend(title = "Count")) +
       labs(x = NULL, y = laby) +

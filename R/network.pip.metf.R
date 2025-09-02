@@ -175,7 +175,7 @@ network.pip.metf = function(
   id = edge$group %>% unique()
   aa = c()
   for (i in 1:length(id)) {
-    aa[i] = edge %>% filter(group == id[i]) %>%
+    aa[i] = edge %>% dplyr::filter(group == id[i]) %>%
       dplyr::select("OTU_2", "OTU_1") %>% as.matrix() %>%
       as.vector() %>% unique() %>% length()
   }

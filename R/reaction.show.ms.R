@@ -69,7 +69,7 @@ reaction.show.ms = function(
     head(allkeggid)
 
 
-    total = dat %>% filter(compound %in% c(paste0("cpd:",allkeggid$ID))) %>% dplyr::select(2,1)
+    total = dat %>% dplyr::filter(compound %in% c(paste0("cpd:",allkeggid$ID))) %>% dplyr::select(2,1)
     head(total)
 
 
@@ -107,7 +107,7 @@ reaction.show.ms = function(
     res[[i]] = df2
     names(res)[i] = paste(com[2,i],com[1,i],sep = ".")
     tem = df2 %>%
-      filter(p.adjust< 0.05)
+      dplyr::filter(p.adjust< 0.05)
     head(df2)
     if (dim(tem)[1] == 0) {
       laby = "Top 20 pathways"
@@ -116,7 +116,7 @@ reaction.show.ms = function(
     } else{
       laby = "enriched pathways"
       df3 = df2 %>%
-        filter(p.adjust< 0.05)
+        dplyr::filter(p.adjust< 0.05)
     }
     head(df3)
 

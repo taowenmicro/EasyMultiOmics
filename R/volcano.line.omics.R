@@ -305,7 +305,7 @@ volcano.line.omics = function(
     colnames(edge)[length(colnames(edge))] = "cor.col"
 
 
-    labs = node3 %>% filter(class != "nosig") %>% arrange(desc(X2)) %>% head(n)
+    labs = node3 %>% dplyr::filter(class != "nosig") %>% arrange(desc(X2)) %>% head(n)
 
 
     p3 <- ggplot() +

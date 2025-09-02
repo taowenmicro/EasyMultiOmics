@@ -239,7 +239,7 @@ gsva.trans  = function(ps = ps,
     # ggsave(filename3,p,width = dim( sub_heat)[2]/4, height = 6,limitsize = FALSE)
 
     sub_heat = sub_heat %>% as.data.frame() %>% rownames_to_column("ID") %>%
-      filter(!str_detect(ID,"ko00998")) %>%
+      dplyr::filter(!str_detect(ID,"ko00998")) %>%
       column_to_rownames("ID") %>% as.matrix()
     if (dim(sub_heat)[1]> 2) {
 

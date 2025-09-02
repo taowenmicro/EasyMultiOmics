@@ -23,7 +23,7 @@ zone.fill.ms = function(ps ,method = "repeat",n = 0.667){
     for (i in 1:length(ids)) {
       id = map %>%
         as.tibble() %>%
-        filter(Group == ids[i]) %>%.$ID
+        dplyr::filter(Group == ids[i]) %>%.$ID
       otu = ps %>% vegan_otu() %>% t() %>%
         as.data.frame() %>% #rownames_to_column("ID") %>%
         select(id) %>% as.matrix()

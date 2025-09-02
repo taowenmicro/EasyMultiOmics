@@ -167,7 +167,7 @@ GSVA.metf= function(ps = ps,
 
 
     sub_heat = sub_heat %>% as.data.frame() %>% rownames_to_column("ID") %>%
-    #   filter(!str_detect(ID,"ko00998")) %>%
+    #   dplyr::filter(!str_detect(ID,"ko00998")) %>%
       column_to_rownames("ID") %>% as.matrix()
 
 

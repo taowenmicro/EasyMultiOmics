@@ -79,11 +79,11 @@ aovMuiBoxP = function(data = data_wt, i= 3,sig_show ="line",result = result,ns =
     xxxx
     sig_lis = rep("a",dim(zuhe)[2])
     for (i in 1:dim(zuhe)[2]) {
-      if (filter(aa, group == xxxx[[i]][1])$groups == filter(aa, group == xxxx[[i]][2])$groups) {
+      if (dplyr::filter(aa, group == xxxx[[i]][1])$groups == dplyr::filter(aa, group == xxxx[[i]][2])$groups) {
         sig_lis[i] = "no_sig"
       }
 
-      if (filter(aa, group == xxxx[[i]][1])$groups != filter(aa, group == xxxx[[i]][2])$groups) {
+      if (dplyr::filter(aa, group == xxxx[[i]][1])$groups != dplyr::filter(aa, group == xxxx[[i]][2])$groups) {
         sig_lis[i] = "*"
       }
 

@@ -54,7 +54,7 @@ linda.trans = function(
       mean.abund.filter = 0)
     linda_out <- linda.res$output[[1]]
     head(linda_out )
-    tab.d3 = linda_out  %>% filter(padj < 0.05) %>% rownames_to_column("id") %>%
+    tab.d3 = linda_out  %>% dplyr::filter(padj < 0.05) %>% rownames_to_column("id") %>%
       dplyr::select(id,padj) %>%
       dplyr::rename(
         OTU = id,

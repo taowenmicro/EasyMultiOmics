@@ -65,7 +65,7 @@ kegg_function <- function(ps = ps) {
 
   head(hierarchy_df)
 
-  tax2 = hierarchy_df %>% filter(PathID %in% row.names(tax))
+  tax2 = hierarchy_df %>% dplyr::filter(PathID %in% row.names(tax))
 
 
   ps1 <- phyloseq(phyloseq::otu_table(as.matrix(otu), taxa_are_rows = TRUE),

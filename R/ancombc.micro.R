@@ -50,7 +50,7 @@ ancombc.micro = function(
     res2$`(Intercept)` = NULL
     res3 = res$q_val%>% as.data.frame()
     colnames(res3)[3] = "p"
-    tem = res3 %>% filter(p < alpha)
+    tem = res3 %>% dplyr::filter(p < alpha)
 
     tab.d1 = tem %>%
       as.data.frame() %>%

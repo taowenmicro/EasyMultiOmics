@@ -32,7 +32,7 @@ lefse.micro = function(
   row.names(dat) = NULL
 
 
-  dat2 <- dat %>% filter(str_detect(ID,"st__"))
+  dat2 <- dat %>% dplyr::filter(str_detect(ID,"st__"))
   dim(dat2)
   dat2$OTU = gsub("st__","",dat2$ID)
   head(dat2)

@@ -72,7 +72,7 @@ buplotall.ms =function (ps, dif.method = "wilcox") {
                                                                1)
     head(allkeggid)
     total = dat%>%
-      filter(compound %in% c(paste0("cpd:",allkeggid$ID))) %>%  dplyr::select(2, 1)
+      dplyr::filter(compound %in% c(paste0("cpd:",allkeggid$ID))) %>%  dplyr::select(2, 1)
     head(total)
     dim(total)
     x <- clusterProfiler::enricher(gene = c(paste0("cpd:",
@@ -100,7 +100,7 @@ buplotall.ms =function (ps, dif.method = "wilcox") {
     head(df2)
     res[[i]] = df2
     names(res)[i] = paste(com[2, i], com[1, i], sep = ".")
-    tem = df2 %>% filter(p.adjust < 0.05)
+    tem = df2 %>% dplyr::filter(p.adjust < 0.05)
     head(df2)
     if (dim(tem)[1] == 0) {
       laby = "Top 20 pathways"
@@ -108,7 +108,7 @@ buplotall.ms =function (ps, dif.method = "wilcox") {
     }
     else {
       laby = "enriched pathways"
-      df3 = df2 %>% filter(p.adjust < 0.05)
+      df3 = df2 %>% dplyr::filter(p.adjust < 0.05)
     }
 
 

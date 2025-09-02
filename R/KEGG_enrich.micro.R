@@ -74,7 +74,7 @@ KEGG_enrich.micro = function(ps = ps,
 
     index <- dif %>%
       dplyr:: select(!!ensym(id),X1) %>%
-      filter(!!ensym(id) != "nosig") %>%
+      dplyr::filter(!!ensym(id) != "nosig") %>%
       .$X1
     num.t = index
 
@@ -82,7 +82,7 @@ KEGG_enrich.micro = function(ps = ps,
       print("nosig")
       index = dif %>%
         select(!!ensym(id),X1) %>%
-        # filter(!!ensym(id) != "nosig") %>%
+        # dplyr::filter(!!ensym(id) != "nosig") %>%
         .$X1 %>%
         head(500)
 

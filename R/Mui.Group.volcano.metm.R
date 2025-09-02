@@ -51,7 +51,7 @@ Mui.Group.volcano.metm =function (res = res)
   tm.g <- function(data) {
     id = data$group %>% unique()
     for (i in 1:length(id)) {
-      tem = filter(data, group == id[i], level != "nosig") %>%
+      tem = dplyr::filter(data, group == id[i], level != "nosig") %>%
         distinct(ID, .keep_all = TRUE) %>% top_n(5, abs(logFC))
       if (i == 1) {
         tem2 = tem

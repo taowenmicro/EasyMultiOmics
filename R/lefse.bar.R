@@ -61,7 +61,7 @@ lefse_bar2 = function(ps = pst,taxtree = tablda[[2]]){
   taxtree$ID = gsub("_Rank_",";",taxtree$ID)
 
   taxtree$rankid = sapply(strsplit(taxtree$ID, "__"), `[`, 1)
-  tem = taxtree %>% filter(rankid %in% c("st"))
+  tem = taxtree %>% dplyr::filter(rankid %in% c("st"))
   tem$ASV = sapply(strsplit(tem$ID, "st__"), `[`, 2)
   row.names(tem) = tem$Genus
   tem$ID = tem$ASV
@@ -78,13 +78,13 @@ lefse_bar2 = function(ps = pst,taxtree = tablda[[2]]){
   tem$ID2 = paste0(tem$Genus,"(",tem$ID,")")
   if (unique(tem$class) %>% length() == 2) {
     # a = unique(tem$class)
-    # tem2 = tem %>% filter(class == a[2]) %>% mutate(LDAscore2 = LDAscore * -1)
+    # tem2 = tem %>% dplyr::filter(class == a[2]) %>% mutate(LDAscore2 = LDAscore * -1)
     # tem$LDAscore[tem$class == a[2]] = tem2$LDAscore2
     # pbar <- ggplot(tem) + geom_bar(aes(y =ID, x = LDAscore,fill = class),stat = "identity") +
     #   scale_fill_manual(values = unique(taxtree$color)) + theme_classic()
     tem$just = 1
     a = unique(tem$class) %>% as.character()
-    tem2 = tem %>% filter(class == a[2]) %>% mutate(LDAscore2 = LDAscore * -1,
+    tem2 = tem %>% dplyr::filter(class == a[2]) %>% mutate(LDAscore2 = LDAscore * -1,
                                                     just2 = just *0
     )
     tem$LDAscore[tem$class == a[2]] = tem2$LDAscore2

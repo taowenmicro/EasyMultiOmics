@@ -126,7 +126,7 @@ RCbary = function(otu = NULL,tax = NULL,map = NULL,tree = NULL ,ps = NULL,group 
     # Combine
     freq.abd.df = data.frame(p=p, freq=freq) %>%
       tibble::rownames_to_column(var="OTU") %>%
-      filter(p != 0, freq != 0) %>%
+      dplyr::filter(p != 0, freq != 0) %>%
       arrange(p)
 
     # For each pair of samples run the RCbray analysis

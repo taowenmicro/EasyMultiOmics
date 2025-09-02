@@ -35,8 +35,8 @@
 CNPS.network2 = function (ps = ps.kegg, id.0 = "C")
 {
   dat = EasyMultiOmics.db::db.cnps
-  id = dat %>% filter(Group == id.0) %>% .$K.number
-  tax = dat %>% filter(Group == id.0) %>% distinct(K.number,
+  id = dat %>% dplyr::filter(Group == id.0) %>% .$K.number
+  tax = dat %>% dplyr::filter(Group == id.0) %>% distinct(K.number,
                                                    .keep_all = TRUE)
   head(tax)
   row.names(tax) = tax$K.number
@@ -69,7 +69,7 @@ CNPS.network2 = function (ps = ps.kegg, id.0 = "C")
     edge = edgeBuild(cor = cor, node = node)
     head(edge)
     if (dim(edge)[1] != 0) {
-      edge2 = edge %>% filter(weight != 0)
+      edge2 = edge %>% dplyr::filter(weight != 0)
       tem = c(edge2$OTU_2, edge2$OTU_1) %>% unique()
       cor2 = cor[tem, tem]
       netClu = data.frame(ID = row.names(cor2), group = rep(1,

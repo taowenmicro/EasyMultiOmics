@@ -71,7 +71,7 @@ cir_plot.micro = function(ps  =ps,
     ggClusterNet::tax_glom_wt(rank = rank) %>%
     phyloseq::transform_sample_counts(function(x) {x/sum(x)} )%>%
     phyloseq::psmelt() %>%
-    #filter(Abundance > 0.05) %>%
+    #dplyr::filter(Abundance > 0.05) %>%
     dplyr::arrange( !!sym(lev))
   iris_groups<- dplyr::group_by(Taxonomies, !!sym(lev))
   ps0_sum <- dplyr::summarise(iris_groups, mean(Abundance), sd(Abundance))

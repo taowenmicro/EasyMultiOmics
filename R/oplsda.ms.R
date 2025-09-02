@@ -78,7 +78,7 @@ for (i in 1:dim(aaa)[2]) {
   ovip <- data.frame( VIP_o1 = getVipVn(oplsda,orthoL = TRUE), #正交模型的变量重要性值。
                       VIP_p1 = getVipVn(oplsda,orthoL = FALSE)) #预测成分的变量的重要性。
   #根据vip筛选差异微生物
-  ovip_select <- ovip %>%  filter(VIP_p1 >= 1) %>% # 以VIP>=1为阈值进行筛选。
+  ovip_select <- ovip %>%  dplyr::filter(VIP_p1 >= 1) %>% # 以VIP>=1为阈值进行筛选。
     arrange(VIP_p1) %>% # 根据VIP值排序
     mutate(feature = factor(rownames(.),levels = rownames(.)))
   ovip_select %>% head()

@@ -68,7 +68,7 @@ reaction.show.trans = function(
     head(allkeggid)
 
 
-    total = dat %>% filter(ID %in% c(paste0("ko:",allkeggid$ID))) %>% dplyr::select(2,1)
+    total = dat %>% dplyr::filter(ID %in% c(paste0("ko:",allkeggid$ID))) %>% dplyr::select(2,1)
     head(total)
 
 
@@ -107,7 +107,7 @@ reaction.show.trans = function(
     res[[i]] = df2
     names(res)[i] = paste(com[2,i],com[1,i],sep = ".")
     tem = df2 %>%
-      filter(p.adjust< 0.05)
+      dplyr::filter(p.adjust< 0.05)
     head(df2)
     if (dim(tem)[1] == 0) {
       laby = "Top 20 reaction"
@@ -116,7 +116,7 @@ reaction.show.trans = function(
     } else{
       laby = "enriched reaction"
       df3 = df2 %>%
-        filter(p.adjust< 0.05)
+        dplyr::filter(p.adjust< 0.05)
     }
     head(df3)
 

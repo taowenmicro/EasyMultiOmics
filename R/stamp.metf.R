@@ -84,14 +84,14 @@ stamp.metf <- function(ps_sub = ps,Top = 20,method = "rela",
       head(30)
   } else {
     diff <- diff %>%
-      # filter(p.value < 0.05) %>%
+      # dplyr::filter(p.value < 0.05) %>%
       head(30)
   }
 
-  # diff <- diff %>% filter(p.value < 0.05)
+  # diff <- diff %>% dplyr::filter(p.value < 0.05)
 
   # diff1$p.value <- p.adjust(diff1$p.value,"bonferroni")
-  # diff1 <- diff1 %>% filter(p.value < 0.05)
+  # diff1 <- diff1 %>% dplyr::filter(p.value < 0.05)
 
   abun.bar <- data[,c(diff$var,"Group")] %>%
     tidyr::gather(variable,value,-Group) %>%

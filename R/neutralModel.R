@@ -106,7 +106,7 @@ neutralModel = function(otu = NULL,
       arrange(p)
     # Remove rows with any zero (absent in either source pool or local communities). You already did this, but just to make sure we will do it again.
     C.no0 <- C %>%
-      filter(freq != 0, p != 0)
+      dplyr::filter(freq != 0, p != 0)
 
     #Calculate the limit of detection
     d <- 1/N
