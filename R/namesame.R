@@ -151,17 +151,6 @@ feature_selection <- function(results,
 #'
 #' _PACKAGE
 #' @name MicrobiomeFeatureSelection
-#' @import phyloseq
-#' @import DESeq2
-#' @import randomForest
-#' @import igraph
-#' @import microbiome
-#' @importFrom tidyverse %>% full_join arrange
-#' @importFrom vegan vegdist
-#' @importFrom caret train trainControl varImp
-#' @importFrom Hmisc rcorr
-#' @importFrom stats p.adjust wilcox.test median sd
-#' @importFrom utils write.csv head
 NULL
 
 #' Microbiome Feature Selection Analysis
@@ -481,7 +470,6 @@ count_to_mass <- function(phyloseq_obj,
 #' @param group_split 策略将代谢物分为High/Low：c("median","tertile","quantile_0.4_0.6")
 #' @return list：top_microbes, all_scores, correlation_results, network_metrics,
 #'               diff_results, ml_results, aligned_data（样本对齐/变换后的数据）
-#' @export
 #' \dontrun{
 #' ps2 = ps.ms %>% subset_samples.wt("Group",c("WT","OE"))
 #' tab = ps2 %>% vegan_otu() %>%
