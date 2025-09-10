@@ -4,7 +4,7 @@
 \alias{summary.ms_feature_selection}
 \title{Summary Method for ms_feature_selection Objects}
 \usage{
-summary.ms_feature_selection(object, ...)
+\method{summary}{ms_feature_selection}(object, ...)
 }
 \arguments{
 \item{object}{Object of class ms_feature_selection}

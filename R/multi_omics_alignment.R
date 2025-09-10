@@ -95,7 +95,6 @@ multi_omics_alignment <- function(microbiome_data,
 #' }
 #'
 #' @export
-#' @importFrom phyloseq otu_table tax_glom
 
 find_associated_metabolites <- function(phyloseq_obj,
                                         metabolome_mat,

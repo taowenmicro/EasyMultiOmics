@@ -4,7 +4,7 @@
 \alias{t.metf}
 \title{Differential abundance analysis using t test for metagenome functional data}
 \usage{
-t.metf(
+\method{t}{metf}(
   ps = ps,
   artGroup = NULL,
   group = "Group",

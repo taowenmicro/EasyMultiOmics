@@ -4,7 +4,7 @@
 \alias{t.trans}
 \title{Differential abundance analysis using t test for transcriptome functional data}
 \usage{
-t.trans(
+\method{t}{trans}(
   ps = ps,
   artGroup = NULL,
   group = "Group",

@@ -1,9 +1,3 @@
-#' @export
-cluster <- function(x, ...) UseMethod("cluster")
-
-
-
-
 
 #' @title Cluster and Visualize metagenome functional composition
 #' @description
@@ -24,8 +18,6 @@ cluster <- function(x, ...) UseMethod("cluster")
 #' \item{p1}{A heatmap showing relative abundances with optional row and column clustering.}
 #' \item{p2}{A heatmap with sample IDs on the y-axis, showing relative abundances.}
 #' \item{tem}{A data frame representing the distance matrix used for clustering.}
-#' @export
-#' @method cluster metf
 #' @author
 #' Tao Wen \email{2018203048@njau.edu.cn},
 #' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
@@ -40,7 +32,9 @@ cluster <- function(x, ...) UseMethod("cluster")
 #' p4_2
 #' dat = res[[4]]# cluster distance
 #' head(dat)
-cluster.metf = function(
+#' @export
+
+cluster_metf = function(
     ps= ps,
     hcluter_method = "complete",
     dist = "bray",
@@ -72,8 +66,7 @@ cluster.metf = function(
   row.names(dd) = dd$Row.names
   dd$Row.names = NULL
 
-  library(ggtree)
-  # ggtree绘图#----
+
   p0  = ggtree::ggtree(hc) %<+% dd +
     geom_tippoint(size=5, shape=21, aes(fill= Group, x=x)) +
     geom_tiplab(aes(color = Group,x=x * 1.2), hjust=1)

@@ -17,14 +17,14 @@
 #' @examples
 #' library(mixOmics)
 #' library(ggplot2)
-#' res = plsda.ms(ps=ps.ms,Group = "Group")
+#' res = plsda_ms(ps=ps.ms,Group = "Group")
 #' p11 = res [[1]]
 #' p11
 #' dat = res[[2]]
 #' dat
 #' @export
 
-plsda.ms = function(map = NULL,ps = NULL,count =NULL,
+plsda_ms = function(map = NULL,ps = NULL,count =NULL,
                     Group = "Group"){
 count = vegan_otu(ps)
 map = as.data.frame(sample_data(ps))

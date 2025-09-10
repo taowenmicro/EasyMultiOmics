@@ -121,13 +121,7 @@ find_associated_metabolites <- function(phyloseq_obj,
 #'
 #' _PACKAGE
 #' @name MicrobiomeMetabolomeAnalysis
-#' @import phyloseq
-#' @import tidyverse
-#' @import vegan
-#' @import randomForest
 #' @import glmnet
-#' @import igraph
-#' @import limma
 #' @importFrom utils head
 NULL
 

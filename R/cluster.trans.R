@@ -33,7 +33,7 @@
 #' p4_2
 #' dat = res[[4]]# cluster distance
 #' head(dat)
-cluster.trans = function(
+cluster_trans = function(
     ps= ps,
     hcluter_method = "complete",
     dist = "bray",

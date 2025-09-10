@@ -6,12 +6,6 @@
 #'
 #' _PACKAGE
 #' @name MicrobiomeFeatureSelection
-#' @import phyloseq
-#' @import DESeq2
-#' @import randomForest
-#' @import igraph
-#' @import microbiome
-#' @importFrom dplyr full_join arrange
 #' @importFrom caret train trainControl varImp
 #' @importFrom Hmisc rcorr
 #' @importFrom utils write.csv head

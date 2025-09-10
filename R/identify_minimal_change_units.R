@@ -206,8 +206,7 @@ identify_minimal_change_units <- function(physeq,
 #' }
 #'
 #' @export
-#' @importFrom ggplot2 ggplot aes geom_point geom_segment geom_text scale_color_manual scale_size_continuous labs theme_minimal theme element_text coord_flip
-#' @importFrom dplyr arrange mutate row_number group_by ungroup
+
 plot_change_units <- function(results,
                               physeq = NULL,
                               plot_type = "tree",

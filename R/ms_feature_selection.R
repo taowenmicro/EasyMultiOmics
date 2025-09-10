@@ -6,13 +6,9 @@
 #' _PACKAGE
 #' @name MSFeatureSelection
 #' @importFrom utils write.csv
-#' @importFrom limma lmFit eBayes topTable makeContrasts contrasts.fit
 #' @importFrom sva ComBat
 #' @importFrom Hmisc rcorr
 #' @importFrom caret train trainControl varImp
-#' @importFrom randomForest randomForest
-#' @importFrom igraph graph_from_adjacency_matrix betweenness closeness eigen_centrality hub_score cluster_fast_greedy membership vcount
-#' @import ggplot2
 NULL
 
 # ========================= 1. 主函数 =========================

@@ -32,7 +32,7 @@
 #' dat = res[[4]]# cluster distance
 #' head(dat)
 
-cluster.omics = function(
+cluster_omics = function(
     ps= ps,
     hcluter_method = "complete",
     dist = "bray",

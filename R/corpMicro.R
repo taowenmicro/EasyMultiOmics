@@ -1,15 +1,15 @@
 
-
-# 加载必要的包
-library(phyloseq)
-library(randomForest)
-library(caret)
-library(dplyr)
-library(ggplot2)
-library(pheatmap)
-library(corrplot)
-library(parallel)
-library(doParallel)
+#
+# # 加载必要的包
+# library(phyloseq)
+# library(randomForest)
+# library(caret)
+# library(dplyr)
+# library(ggplot2)
+# library(pheatmap)
+# library(corrplot)
+# library(parallel)
+# library(doParallel)
 
 # 主要分析类
 MicrobialInteractionAnalyzer <- function(ps_object) {

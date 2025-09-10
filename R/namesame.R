@@ -333,16 +333,6 @@ count_selection <- function(physeq,
 #'
 #' _PACKAGE
 #' @name MicrobiomeMetabolomeAnalysis
-#' @import phyloseq
-#' @import tidyverse
-#' @import vegan
-#' @import randomForest
-#' @import glmnet
-#' @import igraph
-#' @import limma
-#' @import mixOmics
-#' @importFrom stats cor cor.test p.adjust median sd var lm predict prcomp dist
-#' @importFrom utils head
 NULL
 
 #' Find Associated Metabolites with Target Microbe
@@ -571,15 +561,6 @@ mass_to_count <- function(
 #'
 #' _PACKAGE
 #' @name MSFeatureSelection
-#' @importFrom stats median sd var prcomp quantile model.matrix loess predict wilcox.test
-#' @importFrom utils write.csv
-#' @importFrom limma lmFit eBayes topTable makeContrasts contrasts.fit
-#' @importFrom sva ComBat
-#' @importFrom Hmisc rcorr
-#' @importFrom caret train trainControl varImp
-#' @importFrom randomForest randomForest
-#' @importFrom igraph graph_from_adjacency_matrix betweenness closeness eigen_centrality hub_score cluster_fast_greedy membership vcount
-#' @import ggplot2
 NULL
 
 # ========================= 1. 主函数 =========================
@@ -802,7 +783,6 @@ mass_selection <- function(ms_mat,
 #' }
 #'
 #' @export
-#' @importFrom utils head
 #'
 #' @examples
 #' \dontrun{

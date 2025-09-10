@@ -62,7 +62,7 @@ p1_1 = result1[[1]] +scale_fill_manual(values = col.g)+
   theme_nature()+
   ggplot2::guides(fill = guide_legend(title = none))
 
-
+p1_1
 
 res = FacetMuiPlotresultBar(data = data,num = c(3:6),
                                       result = result,sig_show ="abc",ncol = 4,

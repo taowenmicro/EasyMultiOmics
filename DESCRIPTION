@@ -130,6 +130,6 @@ Remotes:
     github::taowenmicro/ggClusterNet
 Encoding: UTF-8
 LazyData: true
-NeedsCompilation: no
+NeedsCompilation: yes
 Packaged: 2025-02-17 13:46:44 UTC; Administrator
 RoxygenNote: 7.3.2

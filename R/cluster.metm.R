@@ -34,7 +34,7 @@
 #' dat = res[[4]]# cluster distance
 #' head(dat)
 
-cluster.metm=function (ps = ps.16s, hcluter_method = "complete", dist = "bray",
+cluster_metm=function (ps = ps.16s, hcluter_method = "complete", dist = "bray",
           cuttree = gnum, row_cluster = TRUE, col_cluster = TRUE)
 
 {

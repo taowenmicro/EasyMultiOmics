@@ -427,8 +427,6 @@ compile_selection_report <- function(final_recommendation, confidence,
 #'
 #' @return List containing ggplot objects
 #' @keywords internal
-#' @importFrom ggplot2 ggplot aes geom_col geom_hline geom_line geom_point geom_vline
-#' @importFrom ggplot2 coord_flip scale_fill_gradient labs theme_minimal annotate
 visualize_selection <- function(report, scores) {
 
   # Create methods comparison data

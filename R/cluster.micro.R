@@ -35,7 +35,7 @@
 #' dat = res[[4]]# cluster distance
 #' head(dat)
 
-cluster.micro = function(
+cluster_micro = function(
   ps= ps,
   hcluter_method = "complete",
   dist = "bray",
