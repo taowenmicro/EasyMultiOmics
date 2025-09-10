@@ -129,7 +129,7 @@ EdgerSuper2.micro = function(otu = NULL,tax = NULL,map = NULL,tree = NULL ,
     lrt = edgeR::glmLRT(fit,contrast=BvsA)
 
     # FDR检验，控制假阳性率小于5%
-    de_lrt = edgeR::decideTestsDGE(lrt, adjust.method="fdr", p.value=pvalue,lfc=lfc)#lfc=0这个是默认值
+    de_lrt = limma::decideTests(lrt, adjust.method="fdr", p.value=pvalue,lfc=lfc)#lfc=0这个是默认值
     summary(de_lrt)
     # 导出计算结果
     x=lrt$table
