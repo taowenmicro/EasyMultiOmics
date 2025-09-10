@@ -6,6 +6,8 @@
 #' @param N integer, rarefaction depth
 #' @return numeric matrix of rarefied counts
 #' @export
+#' @useDynLib EasyMultiOmics, .registration = TRUE
+#' @importFrom Rcpp sourceCpp
 rarefy_matrix <- function(mat, N) {
   .Call("_EasyMultiOmics_rarefy_matrix", PACKAGE = "EasyMultiOmics", mat, N)
 }
