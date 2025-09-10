@@ -1,6 +1,14 @@
 # EasyMultiOmics: A Multi-Omics Analysis Framework Based on Cross-Omics Interaction Algorithm
 
-## Main features:
+![](https://github.com/XinyangTeng/tengxinyang/blob/main/%E5%9B%BE%E7%89%87/logo.png)
+
+## Introduction
+
+   Cross-omics association identification is the most critical issue in multi-omics research, yet there is a lack of relevant analytical algorithms and tools. Due to the lengthy measurement processes in omics data generation, experimental errors are quite complex. Moreover, different omics measurements introduce distinct types of errors, making it difficult to apply similar methods for unified correction across multiple omics datasets. These factors severely interfere with cross-omics association analysis. Additionally, current cross-omics association approaches often rely heavily on correlation calculations, failing to understand the relationships between features and overall patterns, as well as important issues in microbiome research such as the biological distribution characteristics of features. This leads to insufficient potential validity and biological verifiability of cross-omics associations.
+   
+   Our team has long focused on developing methods and tools related to microbiome research. We have previously developed ggClusterNet, EasyAmplicon, EasyMicrobiomeR, and EasyMetagenome tools, which are currently widely recognized and used by peers. These publications have all been classified as highly cited papers. Therefore, after thoroughly analyzing the various difficulties existing in current cross-omics association processes, we developed the OmicsBridge algorithm for mining cross-omics associations. Based on this algorithm, we systematically integrated multi-omics data mining workflows and developed the R package EasyMultiOmics for public use. We hope our tools can accelerate the application of multi-omics in biological scientific research and expedite the discovery of biological associations.
+
+## Main features
 
 *   Provides a comprehensive multi-omics analysis pipeline with emphasis on count data and mass spectrometry data integration.
 *   Enables bidirectional correlation analysis between count data and mass spectrometry data.
