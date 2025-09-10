@@ -56,6 +56,7 @@ edge_Manhattan.metm=function (ps = ps, pvalue = 0.05, lfc = 0)
   Desep_group
   aaa = combn(Desep_group, 2)
   plot_list <- list()
+  # packageVersion("edgeR")
   for (i in 1:dim(aaa)[2]) {
     Desep_group = aaa[, i]
     print(Desep_group)
@@ -63,7 +64,7 @@ edge_Manhattan.metm=function (ps = ps, pvalue = 0.05, lfc = 0)
     group
     BvsA <- limma::makeContrasts(contrasts = group, levels = design.mat)
     lrt = edgeR::glmLRT(fit, contrast = BvsA)
-    de_lrt = edgeR::decideTestsDGE(lrt, adjust.method = "fdr",
+    de_lrt = limma::decideTests(lrt, adjust.method = "fdr",
                                    p.value = pvalue, lfc = lfc)
     summary(de_lrt)
     x = lrt$table

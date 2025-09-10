@@ -125,7 +125,7 @@ EdgerSuper.metm=function (otu = NULL, tax = NULL, map = NULL, tree = NULL, ps = 
     group
     BvsA <- limma::makeContrasts(contrasts = group, levels = design.mat)
     lrt = edgeR::glmLRT(fit, contrast = BvsA)
-    de_lrt = edgeR::decideTestsDGE(lrt, adjust.method = "fdr",
+    de_lrt = limma::decideTests(lrt, adjust.method = "fdr",
                                    p.value = pvalue, lfc = lfc)
     summary(de_lrt)
     x = lrt$table

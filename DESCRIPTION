@@ -90,6 +90,7 @@ Imports:
     R.utils,
     randomForest,
     RColorBrewer,
+    Rcpp,
     reshape2,
     ROCR,
     Rtsne,
@@ -108,7 +109,8 @@ Imports:
     utils,
     vegan,
     VennDiagram,
-    WGCNA
+    WGCNA,
+    Rcpp
 Suggests: 
     ape,
     BiocManager,

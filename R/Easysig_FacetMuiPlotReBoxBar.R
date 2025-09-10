@@ -58,7 +58,14 @@ FacetMuiPlotReBoxBar = function(data = data_wt,num = c(4:6),
   }
 
   iris_groups<- dplyr::group_by(A, group,name)
-  databar<- dplyr::summarise(iris_groups, mean(dd), sd(dd))
+  databar<- dplyr::summarise(iris_groups,
+                             # mean(dd), sd(dd)
+                             mean_dd = mean(dd, na.rm = TRUE),
+                             sd_dd   = sd(dd, na.rm = TRUE),
+                             .groups = "drop"
+
+
+                             )
   colnames(databar) = c("group","name","mean","sd")
 
   if (!is.null(fac.level)) {
@@ -74,7 +81,7 @@ FacetMuiPlotReBoxBar = function(data = data_wt,num = c(4:6),
     labs(x="", y="")+
    facet_wrap(.~name,scales="free_y",ncol  = ncol) +
     scale_y_continuous(expand = expansion(mult = c(0.05, mult.y)))+
-   guides(color = FALSE)
+   guides(color = none)
 
   return(list(p,table = A,bartable = databar))
 }

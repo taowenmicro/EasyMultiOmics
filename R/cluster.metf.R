@@ -1,3 +1,10 @@
+#' @export
+cluster <- function(x, ...) UseMethod("cluster")
+
+
+
+
+
 #' @title Cluster and Visualize metagenome functional composition
 #' @description
 #' This function performs hierarchical clustering and visualizes Metagenome functional composition
@@ -18,6 +25,7 @@
 #' \item{p2}{A heatmap with sample IDs on the y-axis, showing relative abundances.}
 #' \item{tem}{A data frame representing the distance matrix used for clustering.}
 #' @export
+#' @method cluster metf
 #' @author
 #' Tao Wen \email{2018203048@njau.edu.cn},
 #' Peng-Hao Xie \email{2019103106@njqu.edu.cn}

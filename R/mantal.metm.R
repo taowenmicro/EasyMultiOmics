@@ -62,18 +62,18 @@ mantal.metm=function (ps = ps, method = "spearman", group = "Group", ncol = 5,
     X <- data.frame(pro.s.r$rotation)
     Y$ID <- rownames(Y)
     p1 <- ggplot(Y) + geom_segment(aes(x = X1, y = X2, xend = (X1 +
-                                                                 MDS1)/2, yend = (X2 + MDS2)/2), arrow = arrow(length = unit(0,
+                                                                 NMDS1)/2, yend = (X2 + NMDS2)/2), arrow = arrow(length = unit(0,
                                                                                                                              "cm")), color = "#B2182B", size = 1) + geom_segment(aes(x = (X1 +
-                                                                                                                                                                                            MDS1)/2, y = (X2 + MDS2)/2, xend = MDS1, yend = MDS2),
+                                                                                                                                                                                            NMDS1)/2, y = (X2 + NMDS2)/2, xend = NMDS1, yend = NMDS2),
                                                                                                                                                                                  arrow = arrow(length = unit(0, "cm")), color = "#56B4E9",
                                                                                                                                                                                  size = 1) + geom_point(aes(X1, X2), fill = "#B2182B",
-                                                                                                                                                                                                        size = 4, shape = 21) + geom_point(aes(MDS1, MDS2),
+                                                                                                                                                                                                        size = 4, shape = 21) + geom_point(aes(NMDS1, NMDS2),
                                                                                                                                                                                                                                            fill = "#56B4E9", size = 4, shape = 21) + labs(title = paste(id[1,
                                                                                                                                                                                                                                                                                                            i], "-", id[2, i], " ", "Procrustes analysis:\n    M2 = ",
                                                                                                                                                                                                                                                                                                         round(pro.s.r$ss, 3), ", p-value = ", round(pro.s.r$signif,
                                                                                                                                                                                                                                                                                                                                                     3), "\nMantel test:\n    r = ", round(R_mantel[i],
                                                                                                                                                                                                                                                                                                                                                                                           3), ", p-value =, ", round(p_mantel[i], 3), sep = ""))
-    p1
+    p1= p1+theme_bw()
     plots[[i]] = p1
   }
   dat = data.frame(name, R_mantel, p_mantel, R_pro, p_pro)

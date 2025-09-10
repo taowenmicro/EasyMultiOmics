@@ -39,16 +39,7 @@ alpha_rare.metm =function(otu = NULL,tax = NULL,map = NULL,tree = NULL ,ps = NUL
   # 构建所需子函数
   #----抽平函数，输入对象为Phyloseq对象和抽平数值#----
   phyRare = function(ps = ps,N = 3000){
-    # library(phyloseq)
-    #---- 提取OTU表函数 #----
-    vegan_otu = function(physeq){
-      OTU =  otu_table(physeq)
-      if(taxa_are_rows(OTU)){
-        OTU =  t(OTU)
-      }
-      return(as(OTU,"matrix"))
-    }
-    #---- 提取OTU表函数
+
     otb = as.data.frame(t(vegan_otu(ps)))
     otb1 = vegan::rrarefy(t(otb), N)
     ps = phyloseq(otu_table(as.matrix(otb1),taxa_are_rows = F),
@@ -57,7 +48,6 @@ alpha_rare.metm =function(otu = NULL,tax = NULL,map = NULL,tree = NULL ,ps = NUL
     ps
     return(ps)
   }
-
 
 
   ps = inputMicro(otu,tax,map,tree,ps,group  = group)
@@ -77,9 +67,11 @@ alpha_rare.metm =function(otu = NULL,tax = NULL,map = NULL,tree = NULL ,ps = NUL
           "rarity_low_abundance"   ,    "rarity_noncore_abundance",  "rarity_rare_abundance")
 
   #--- 运行计算#----
+  # i = 19141935
   for (i in seq(start,max(sample_sums(ps)), by = step) ) {
 
-    psRe = phyRare(ps = ps, N = i)
+    # psRe = phyRare(ps = ps, N = i,cores = 6)
+    psRe <- phyRare_auto(ps = ps, N = i, drop_insufficient = TRUE, rngseed = 123)
 
 
 
@@ -87,8 +79,9 @@ alpha_rare.metm =function(otu = NULL,tax = NULL,map = NULL,tree = NULL ,ps = NUL
       count = as.data.frame(t(vegan_otu(psRe)))
       # head(count)
       x = t(count) ##转置，行为样本，列为OTU
-      est = vegan::estimateR(x)
-      index = est[1, ]
+      # est = vegan::estimateR(x)
+      # index = est[1, ]
+      index  <- vegan::specnumber(x)
     }
 
     if (method %in% c("ACE")) {
@@ -128,25 +121,19 @@ alpha_rare.metm =function(otu = NULL,tax = NULL,map = NULL,tree = NULL ,ps = NUL
     result$index[a== b] = NA
   }
   #----直接给列，添加分组#----
-  map = as.data.frame(sample_data(ps))
-  result$Group = map$Group
 
-  ## 绘制稀释曲线
-  library(ggplot2)
-  main_theme =theme(panel.grid.major=element_blank(),
-                    panel.grid.minor=element_blank(),
-                    plot.title = element_text(vjust = -8.5,hjust = 0.1),
-                    axis.title.y =element_text(size = 7,face = "bold",colour = "black"),
-                    axis.title.x =element_text(size = 7,face = "bold",colour = "black"),
-                    axis.text = element_text(size = 7,face = "bold"),
-                    axis.text.x = element_text(colour = "black",size = 7),
-                    axis.text.y = element_text(colour = "black",size = 7),
-                    legend.text = element_text(size = 7,face = "bold")
-  )
+  map = as.data.frame(sample_data(ps))
+
+  tem = data.frame(ID = row.names(map),Group = map$Group)
+  result = result %>% left_join(tem)
+
+
   p = ggplot(data= result,aes(x = i,y = index,group = ID,colour = Group)) +
-    geom_smooth(span = 0.7,  method = "loess",span = 0.5,
+    geom_smooth(
+                method = "gam",
+                span = 1,
                 se = FALSE, size = 1.2) +
-    labs(x= "",y=method,title="") +theme_bw()+main_theme
+    labs(x= "",y=method,title="") + theme_nature()
 
   #---分组求均值和标准误+se#---
   data = result
@@ -156,13 +143,21 @@ alpha_rare.metm =function(otu = NULL,tax = NULL,map = NULL,tree = NULL ,ps = NUL
   colnames(data2) = c(colnames(data2)[1:2],"mean","sd")
   # 按组均值绘图
   p2 = ggplot(data= data2,aes(x = i,y = mean,colour = Group)) +
-    geom_smooth(span = 0.7,se = FALSE, method = "loess") +
-    labs(x= "",y=method,title="") +theme_bw()+main_theme
+    geom_smooth(span = 0.7,
+                se = FALSE,
+                method = "gam"
+                ) +
+    labs(x= "",y=method,title="") + theme_nature()
   # p2
 
   # 组均值+标准差
   p4 = ggplot(data=data2,aes(x = i,y = mean,colour = Group)) +
-    geom_errorbar(data = data2,aes(ymin=mean - sd, ymax=mean + sd,colour = Group),alpha = 0.4, width=.1)+labs(x= "",y=method,title="") +theme_bw()+main_theme
+    geom_smooth(span = 0.7,
+                se = FALSE,
+                method = "gam"
+    ) +
+    geom_errorbar(data = data2,aes(ymin=mean - sd, ymax=mean + sd,colour = Group),alpha = 0.4, width=.3)+labs(x= "",y=method,title="") +
+    theme_nature()
   p4
   return(list(p,table = result,p2,p4))
 }

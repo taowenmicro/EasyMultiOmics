@@ -4,7 +4,7 @@
 \alias{cluster.trans}
 \title{Cluster and Visualize transcriptome functional composition}
 \usage{
-cluster.trans(
+\method{cluster}{trans}(
   ps = ps,
   hcluter_method = "complete",
   dist = "bray",

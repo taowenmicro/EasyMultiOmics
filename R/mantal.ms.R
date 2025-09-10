@@ -81,14 +81,14 @@ mantal.ms <- function(ps = ps,
 
 
     p1 <- ggplot(Y) +
-      geom_segment(aes(x = X1, y = X2, xend = (X1 + MDS1)/2, yend = (X2 + MDS2)/2),
+      geom_segment(aes(x = X1, y = X2, xend = (X1 + NMDS1)/2, yend = (X2 + NMDS2)/2),
                    arrow = arrow(length = unit(0, 'cm')),
                    color = "#B2182B", size = 1) +
-      geom_segment(aes(x = (X1 + MDS1)/2, y = (X2 + MDS2)/2, xend = MDS1, yend = MDS2),
+      geom_segment(aes(x = (X1 + NMDS1)/2, y = (X2 + NMDS2)/2, xend = NMDS1, yend = NMDS2),
                    arrow = arrow(length = unit(0, 'cm')),
                    color = "#56B4E9", size = 1) +
       geom_point(aes(X1, X2), fill = "#B2182B", size = 4, shape = 21) +
-      geom_point(aes(MDS1, MDS2), fill = "#56B4E9", size = 4, shape = 21) +
+      geom_point(aes(NMDS1, NMDS2), fill = "#56B4E9", size = 4, shape = 21) +
       labs(title =  paste(id[1,i],"-",id[2,i]," ","Procrustes analysis:\n    M2 = ",
                                  round(pro.s.r$ss,3),
                                  ", p-value = ",

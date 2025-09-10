@@ -52,7 +52,7 @@ FacetMuiPlotresultBar = function(data = data_wt,num = c(4:6),result = result,sig
     PlotresultBox = aovMuiBarPlot(data = data, i= N,sig_show =sig_show,result = as)
 
     p = PlotresultBox[[2]]
-    p
+
     name = colnames(data[N])
     p$name = name
 
@@ -70,9 +70,8 @@ FacetMuiPlotresultBar = function(data = data_wt,num = c(4:6),result = result,sig
     geom_bar(data = A, aes(x=1 , y= (mean + SD)*1.1),stat = "identity", width = 0.4,position = "dodge",alpha = 0) +
     geom_errorbar(aes(ymin=mean - SD,
                       ymax=mean+SD),
-                  colour="black",width=0.1,size = 0.5)+
+                  colour="black",width=0.1,linewidth = 0.5)+
 
-    scale_y_continuous(expand = c(0,0))+#
     scale_y_continuous(expand = expansion(mult = c(0.05, mult.y)))+
     labs(
       x= NULL,

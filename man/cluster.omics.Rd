@@ -4,7 +4,7 @@
 \alias{cluster.omics}
 \title{Cluster and Visualize Communities of multi-omics}
 \usage{
-cluster.omics(
+\method{cluster}{omics}(
   ps = ps,
   hcluter_method = "complete",
   dist = "bray",

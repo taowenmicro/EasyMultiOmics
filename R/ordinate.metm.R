@@ -143,8 +143,8 @@ ordinate.metm=function (otu = NULL, tax = NULL, map = NULL,
       geom_point(alpha = 0.7, size = 5, pch = 21) + labs(x = paste0(method,
                                                                     " 1 (", format(100 * eig[1]/sum(eig), digits = 4),
                                                                     "%)"), y = paste0(method, " 2 (", format(100 * eig[2]/sum(eig),
-                                                                                                             digits = 4), "%)"), title = title1) + stat_ellipse(linetype = 2,
-                                                                                                                                                                level = 0.68, aes(group = Group, colour = Group))
+                                                                                                             digits = 4), "%)"), title = title1) +
+      stat_ellipse(linetype = 2,level = 0.68, aes(group = Group, colour = Group))
     p3 = p2 + ggrepel::geom_text_repel(aes(label = points$ID),
                                        size = 5)
     p3
