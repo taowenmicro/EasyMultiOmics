@@ -262,7 +262,7 @@ prepare_phyloseq_data <- function(physeq, group_var,
 #' @return Data frame with differential analysis results
 #' @keywords internal
 perform_differential_analysis2 <- function(physeq, group_var,
-                                          method = "DESeq2") {
+                                           method = "DESeq2") {
 
   cat(sprintf("Using %s for differential analysis...\n", method))
 
