@@ -126,7 +126,7 @@ ggsave(file.path(alppath, "alpha_diversity_violinplot.pdf"), plot = p1_0, width 
 library(microbiome)
 library(vegan)
 
-rare <- mean(phyloseq::sample_sums(ps.micro))/10
+rare <- mean(phyloseq::sample_sums(ps.micro))/20
 
 result = alpha_rare.metm(ps = ps.micro ,
                           group = "Group", method = "Richness", start = 100, step = rare)
@@ -162,12 +162,14 @@ ggsave(file.path(alppath, "alpha_rarefaction_group_sd_curve.pdf"), plot = p2_3, 
 
 # beta diversity  -----
 #4 ordinate.metm: 排序分析#----------
-result = ordinate.metm(ps = ps.micro, group = "Group", dist = "bray",
+
+
+result = ordinate.metm(ps = ps.micro, group = c("Group","Group2","Group3"), dist = "bray",
                         method = "PCoA", Micromet = "anosim", pvalue.cutoff = 0.05)
 p3_1 = result[[1]]
 p3_1 +
-  scale_fill_manual(values = col.g)+
-  scale_color_manual(values = col.g,guide = "none") +
+  # scale_fill_manual(values = col.g)+
+  # scale_color_manual(values = col.g) +
   theme_nature()+
   theme(axis.title.y = element_text(angle = 90))
 
@@ -221,6 +223,24 @@ addWorksheet(beta_wb, "segs")
 writeData(beta_wb, "plotdata", plotdata)
 writeData(beta_wb, "cent", cent)
 writeData(beta_wb, "segs", segs)
+
+
+#  如果有多组的需求#------
+map = ps.micro %>% sample_data()
+head(map)
+map$Group2 = c("A","B","C","H","J")
+map$Group3 = c("D","E","F")
+sample_data(ps.micro) = map
+# 只用一个分组（颜色）
+res = ordinate.metm2(ps = ps.micro, group = "Group", dist = "bray", method = "PCoA",width = 0.01, height = 0.01)
+res[[1]]
+# 两个分组（颜色 + 形状）
+res = ordinate.metm2(ps = ps.micro, group = c("Group","Group2"), dist = "bray", method = "PCoA",width = 0.01, height = 0.01)
+res[[1]]
+res = ordinate.metm2(ps = ps.micro, group = c("Group","Group2","Group3"),
+                     dist = "bray", method = "PCoA",width = 0.01, height = 0.01,stroke = 2)
+
+res[[1]]
 
 
 #5 MicroTest.metm:群落水平差异检测-------
