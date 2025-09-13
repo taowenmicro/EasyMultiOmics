@@ -35,6 +35,7 @@
 #'  p7_2 <- result[[3]]
 #'  p7_2
 #'  p8 <- result[[2]]
+#' @export
 
 
 #清空内存
@@ -58,220 +59,104 @@
 # group = "Group"
 # path = "./"
 
-VenSuper.metm =  function(ps = NULL,group  = "Group",num = 6){
 
+VenSuper.metm <- function(ps, group = "Group", num = 6) {
 
-  # library (VennDiagram)
-  rep = num
-  ps
-  mapping = as.data.frame(sample_data(ps))
-  ps1 = ps
-  ps1
+  # Step1: 基础数据准备
+  ps_rela <- phyloseq::transform_sample_counts(ps, function(x) x / sum(x))
+  otu_tab <- as.data.frame(t(ggClusterNet::vegan_otu(ps_rela)))
+  mapping <- as.data.frame(phyloseq::sample_data(ps_rela))
 
-  ps1_rela  = transform_sample_counts(ps1, function(x) x / sum(x) );ps1_rela
-  print("1")
-
-
-  aa = vegan_otu(ps1)
-  otu_table = as.data.frame(t(aa))
-  count = aa
-  countA = count
-  dim(count)
-  sub_design <- as.data.frame(sample_data(ps1))
-
-  sub_design $Group
-  levels(sub_design $Group)
-
-  pick_val_num <- num*2/3
+  # Step2: OTU presence/absence
+  count <- ggClusterNet::vegan_otu(ps)
   count[count > 0] <- 1
+  count_df <- as.data.frame(count)
 
-  count2 = as.data.frame(count)
+  # 按组汇总OTU
+  iris_split <- split(count_df, as.factor(mapping[[group]]))
+  iris_apply <- lapply(iris_split, function(x) colSums(x))
+  iris_combine <- do.call(rbind, iris_apply)
+  ven2 <- t(iris_combine)
 
+  pick_val_num <- num * 2 / 3
+  ven2[ven2 < pick_val_num] <- 0
+  ven2[ven2 >= pick_val_num] <- 1
+  ven2 <- as.data.frame(ven2)
 
-  iris.split <- split(count2,as.factor(sub_design$Group))
-  iris.apply <- lapply(iris.split,function(x)colSums(x[]))
-  iris.combine <- do.call(rbind,iris.apply)
-  ven2 = t(iris.combine)
+  # Step3: 生成Venn partitions
+  ven_list <- lapply(1:ncol(ven2), function(i) rownames(ven2[ven2[, i] == 1, ]))
+  names(ven_list) <- colnames(ven2)
+  ven_pick <- VennDiagram::get.venn.partitions(ven_list)
+  ven_pick <- as.data.frame(as.matrix(ven_pick))
 
-  ven2[ven2 < pick_val_num]  = 0
-  ven2[ven2 >=pick_val_num]  = 1
-  ven2 = as.data.frame(ven2)
+  # Step4: 初始化输出列表
+  plot_bar_list <- list()
+  plot_box_list <- list()
+  plot_stack_list <- list()
+  dat_f_list <- list()
+  dat_f2_list <- list()
 
+  # Step5: 循环处理每个 Venn 分区
+  # i = 1
+  for(i in seq_len(nrow(ven_pick))) {
 
-  ven3 = as.list(ven2)
-  ven2 = as.data.frame(ven2)
-  head(ven2)
+    # 当前Venn区 OTU
+    aab <- unlist(ven_pick[i, (2 + length(unique(mapping[[group]]))):ncol(ven_pick)])
+    aab <- aab[aab != ""]
+    if(length(aab) == 0) next
 
-
-  ven3 = as.list(ven2)
-  for (i in 1:ncol(ven2)){
-
-    ven3[[i]] <-  row.names(ven2[ven2[i] == 1,])
-
-  }
-  ven_pick = VennDiagram::get.venn.partitions(ven3)
-  ven_pick = as.matrix(ven_pick)
-  ven_pick = as.data.frame(ven_pick)
-  # colnames(ven_pick)
-  # row.names(ven_pick)
-
-
-  sub_design <- as.data.frame(sample_data(ps1_rela ))
-
-
-  mapping = as.data.frame(sample_data(ps))
-  length(ven_pick$..set..)
-  plot1 = list()
-  plot2 = list()
-  plot3 = list()
-  dat.f = list()
-  dat.f2 = list()
-  #i=1
-
-  for (i in 1:length(ven_pick$..set..) ) {
-    # 查看i是韦恩图哪一个部分的otu
-    ven_pick$..set..[[i]]
-
-
-    abs = length(unique(mapping$Group))
-    abs = 2+abs
-    aab = ven_pick[[i,abs]]
-
-
-    if (length(aab) == 0) {
-      i = i +1
-    }
-
-
-
-
-    # #提取otu子集
-    otu = as.data.frame(t(vegan_otu(ps1_rela)))
-    dim(otu)
-    otu$ID = row.names(otu)
-    otu1<- dplyr::filter(otu, ID %in% aab)
-    head(otu1)
-    row.names(otu1) = otu1$ID
-
-    otu1$ID = NULL
-    subtab = as.matrix(otu1)
-    ps_sub = ps1_rela
-    print("2")
-    ps_sub <- phyloseq::phyloseq(otu_table(subtab, taxa_are_rows=TRUE),
-                                 phyloseq::tax_table(ps_sub),
-                                 sample_data(ps_sub)
+    # 构建子集phyloseq对象
+    otu_sub <- otu_tab[rownames(otu_tab) %in% aab, , drop = FALSE]
+    ps_sub <- phyloseq::phyloseq(
+      phyloseq::otu_table(as.matrix(otu_sub), taxa_are_rows = TRUE),
+      phyloseq::tax_table(ps_rela),
+      phyloseq::sample_data(ps_rela)
     )
-    ps_sub
 
-print("3")
+    # 去掉没有OTU的分组
+    sub_groups <- colnames(ven2)[which(ven2[i, ] != 0)]
+    sample_map <- as.data.frame(phyloseq::sample_data(ps_sub))
+    sample_map <- sample_map[sample_map[[group]] %in% sub_groups, , drop = FALSE]
+    rownames(sample_map) <- rownames(sample_map)
+    phyloseq::sample_data(ps_sub) <- sample_map
 
-    #--------------过滤掉ven中没有otu的分组
-    num = ven_pick[i,1:length(unique(mapping$Group))]
-    num = as.data.frame(num )
-    colnames(num)[num[1,] == FALSE]
-    # ps_sub  <- subset_samples( ps_sub,!Group %in% colnames(num)[num[1,] == FALSE]);ps_sub
-    map = as.data.frame(sample_data(ps_sub))
+    # Step6: 堆叠柱状图
+    bar_res <- barMainplot.metm(ps = ps_sub, j = "Phylum", Top = 10, tran = FALSE, sd = FALSE, label = FALSE)
+    plot_bar_list[[i]] <- bar_res[[1]]
+    plot_stack_list[[i]] <- bar_res[[3]]
+    dat_f_list[[i]] <- bar_res[[2]]
+    names(dat_f_list)[i] <- paste0("TAX_ven_pick_", ven_pick$..set..[i])
 
-    map$ID = row.names(map)
-    head(map)
-    maps<- dplyr::filter(as.tibble(map),!Group %in% colnames(num)[num[1,] == FALSE]) %>% as.data.frame()
-    row.names(maps) = maps$ID
-    ps_sub = ps_sub
-    sample_data( ps_sub ) = maps
-
-
-    # 这部分进行堆叠柱状图的出图，但是不能再做标准化了
-    result = barMainplot.metm(ps = ps_sub,j = "Phylum",axis_ord = NULL,label = FALSE ,sd = FALSE,
-                               Top = 10,tran = FALSE)
-    print("4")
-    #提取图片
-    p = result[[1]]
-    # 提取作图数据，也就是这部分ven包含otu的数量
-    #提取冲击图
-    p3 = result[[3]]
-
-    # filename = paste(path,"/TAX_ven_pick_",ven_pick$..set..[[i]],".csv",sep = "")
-    # write.csv(result[[2]],filename,quote = FALSE)
-    dat.f[[i]] = result[[2]]
-    names(dat.f)[i] = paste("TAX_ven_pick_",ven_pick$..set..[[i]],sep = "")
-
-    #  对ven每个部分共有或者特有的部分做差异分析，这里使用我开发了
-    vencount = as.data.frame(sample_sums(ps_sub ))
-    end = merge(vencount ,sub_design ,by = "row.names",all = FALSE)
-
-    # 准备对这部分序列进行差异分析和出图
-    data_wt = data.frame(ID= end$Row.names,group = end$Group,count = end$`sample_sums(ps_sub)`)
-    head(data_wt)
-    colnames(data_wt)[3] =ven_pick$..set..[[i]]
-    # library(EasyAovWlxPlot)
-    if (length(unique(data_wt$group)) !=1) {
-      result = KwWlx2(data = data_wt, i= 3)
-      PlotresultBox = aovMuiBoxP2(data = data_wt, i= 3,sig_show ="abc",result = result[[1]])
-      # 提取检验结果
-      PlotresultBox[[2]]
-      #提取图片
-      p2 = PlotresultBox[[1]]
-      p2
-
+    # Step7: 差异分析与boxplot
+    vencount <- as.data.frame(sample_sums(ps_sub))
+    colnames(vencount) <- "count"
+    # vencount$group <- as.character(mapping[rownames(vencount), group])
+    idx <- match(rownames(vencount), rownames(mapping))
+    group_labels <- as.character(mapping[[group]][idx])
+    vencount$group <- group_labels
+    if(length(unique(vencount$group)) > 1) {
+      kw_res <- KwWlx2(data = data.frame(ID = rownames(vencount), group = vencount$group, count = vencount$count), i = 3)
+      box_res <- aovMuiBoxP2(data = data.frame(ID = rownames(vencount), group = vencount$group, count = vencount$count),
+                             i = 3, sig_show = "abc", result = kw_res[[1]])
+      plot_box_list[[i]] <- box_res[[1]]
+      dat_f2_list[[i]] <- box_res[[2]]
+    } else {
+      # 单组情况直接绘制boxplot
+      df_single <- data.frame(group = vencount$group, count = vencount$count)
+      plot_box_list[[i]] <- ggplot2::ggplot(df_single, ggplot2::aes(x = group, y = count, color = group)) +
+        ggplot2::geom_boxplot() +
+        ggplot2::theme_bw() +
+        ggplot2::labs(x = "", y = ven_pick$..set..[i])
+      dat_f2_list[[i]] <- data.frame()
     }
-
-    if (length(unique(data_wt$group)) ==1) {
-      Mytheme <- theme_bw()+
-
-        # scale_fill_manual(values = mi, guide = guide_legend(title = NULL))+
-        theme(
-
-          panel.grid.major=element_blank(),
-          panel.grid.minor=element_blank(),
-
-          plot.title = element_text(vjust = -8.5,hjust = 0.1),
-          axis.title.y =element_text(size = 20,face = "bold",colour = "black"),
-          axis.title.x =element_text(size = 24,face = "bold",colour = "black"),
-          axis.text = element_text(size = 20,face = "bold"),
-          axis.text.x = element_text(colour = "black",size = 14),
-          axis.text.y = element_text(colour = "black",size = 14),
-          legend.text = element_text(size = 15,face = "bold"),
-          legend.position = "none"#是否删除图例
-
-        )
-      aa  =colnames(data_wt)[3]
-      colnames(data_wt)[3] = "XX"
-
-      p2 = ggplot(data_wt) + geom_boxplot(aes(x = group, y =XX,color = group))  + Mytheme  +
-        labs(x="",
-             y=aa)
-
-    }
-
-
-
-    # filename = paste(path,"/SeqStat_ven_pick_",ven_pick$..set..[[i]],".csv",sep = "")
-    # write.csv(PlotresultBox[[2]],filename,quote = FALSE)
-    dat.f2[[i]] = PlotresultBox[[2]]
-    names(dat.f2)[i]  = paste("SeqStat_ven_pick_",ven_pick$..set..[[i]],sep = "")
-
-    plot1[[i]] =p
-    plot2[[i]] =p2
-    plot3[[i]] =p3
-
-
+    names(dat_f2_list)[i] <- paste0("SeqStat_ven_pick_", ven_pick$..set..[i])
   }
 
+  # Step8: 组合输出
+  pa <- ggpubr::ggarrange(plotlist = plot_bar_list, common.legend = TRUE, legend = "right")
+  pb <- ggpubr::ggarrange(plotlist = plot_box_list, common.legend = TRUE, legend = "right")
+  pc <- ggpubr::ggarrange(plotlist = plot_stack_list, common.legend = TRUE, legend = "right")
 
-  pa  = ggpubr::ggarrange(plotlist = plot1, common.legend = TRUE, legend="right")
-  pa
-
-
-  pb  = ggpubr::ggarrange(plotlist = plot2, common.legend = TRUE, legend="right")
-  pb
-
-
-  pc  = ggpubr::ggarrange(plotlist = plot3, common.legend = TRUE, legend="right")
-  pc
-
-
-  return(list(pa,pb,pc, dat.f,dat.f2))
-
+  return(list(pa, pb, pc, dat_f_list, dat_f2_list))
 }
-
 

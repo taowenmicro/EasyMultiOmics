@@ -1,5 +1,5 @@
 
-GSVA.metf= function(ps = ps,
+GSVA_metf= function(ps = ps,
                      #  GSVApath = GSVApath,
                       FC = FALSE,
                       adj = FALSE,

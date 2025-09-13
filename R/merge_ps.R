@@ -15,7 +15,7 @@
 #'   If `onlygroup = TRUE`, the taxonomic table will only contain the group information, while the OTU table will be fully merged.
 #'
 #' @examples
-#' merged_data <- merge.ps(ps1 = microbiome_data,
+#' merged_data <- merge_ps(ps1 = microbiome_data,
 #'                         ps2 = metabolomics_data,
 #'                         N1 = 100,
 #'                         N2 = 100,
@@ -25,9 +25,9 @@
 #'                         dat2.lab = "metabolite")
 #' @export
 #' @author
-#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Tao Wen \email{taowen@njau.edu.cn},
 #' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
-merge.ps <- function(ps1 ,
+merge_ps <- function(ps1 ,
                      ps2,
                      N1 = 100,
                      N2 = 100,

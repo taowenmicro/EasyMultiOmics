@@ -2,9 +2,8 @@
 rm(list = ls())
 
 # R包加载
-library(sva)          # ComBat批次校正
+
 library(RSpectra)     # 稀疏PCA
-library(dplyr)        # 数据操作
 library(compositions) # CLR
 library(ggClusterNet)
 library(phyloseq)
@@ -15,8 +14,7 @@ library(limma)
 library(randomForest)
 library(DESeq2)
 library(igraph)
-library(ggplot2)
-library(tidyr)
+
 library(patchwork)
 library(scales)
 library(tidygraph)
@@ -25,7 +23,7 @@ library(gridExtra)
 library(openxlsx)
 
 # 创建主要目录结构
-main_dir <- "./result/across_omics"
+main_dir <- "../result/across_omics"
 if (!dir.exists(main_dir)) dir.create(main_dir, recursive = TRUE)
 
 # 挑选基因组学中的特征 ------
@@ -34,7 +32,7 @@ ps = ps.16s %>% subset_samples.wt("Group",c("WT","KO"))
 # ps = ps %>% subset_taxa.wt("Species",c("unclassified"),TRUE)
 ps = ps %>% tax_glom_wt(6)
 ps
-
+detach(package:MicrobiotaProcess)
 res = microbiome_feature_selection(ps,
                                    group_var = "Group",
                                    prevalence_threshold = 0.1,
@@ -68,10 +66,8 @@ writeData(genomics_wb, "abundance_results", res$abundance_results, rowNames = TR
 saveWorkbook(genomics_wb, file.path(main_dir, "genomics_feature_selection_results.xlsx"), overwrite = TRUE)
 
 id = dat$OTU[1]
-cat("选择的顶级OTU:", id, "\n")
 
 # 绘制放射状图
-cat("绘制放射状图...\n")
 p1 <- plot_radial_top_otus(dat, top_n=50, inner_ratio = 0.45)
 print(p1)
 ggsave(file.path(main_dir, "radial_top_otus.pdf"), p1, width = 10, height = 10)
@@ -84,7 +80,7 @@ ggsave(file.path(main_dir, "physeq_features.png"), p2, width = 12, height = 8, d
 
 
 # 跨组学特征寻找 -------
-cat("开始跨组学特征寻找...\n")
+
 ps2 = ps.ms %>% subset_samples.wt("Group",c("WT","KO"))
 tab = ps2 %>% vegan_otu() %>%
   as.data.frame()
@@ -107,7 +103,6 @@ head(tax)
 
 dat = results$top_metabolites %>% left_join(tax, by = c("metabolite"="metab_id"))
 head(dat)
-cat("找到的代谢物:", head(dat$Metabolite), "\n")
 
 # 保存微生物-代谢物关联结果
 microbe_metabolite_wb <- createWorkbook()
@@ -125,7 +120,7 @@ ggsave(file.path(main_dir, "cross_omics_network.pdf"), p3, width = 10, height = 
 ggsave(file.path(main_dir, "cross_omics_network.png"), p3, width = 10, height = 10, dpi = 300)
 
 # multi_omics_alignment 多组学矫正 -----
-cat("开始多组学数据对齐...\n")
+
 otu = ps.16s %>%
   tax_glom_wt(6) %>%
   vegan_otu() %>%
@@ -170,7 +165,7 @@ tab_aligned = ps2_aligned %>% vegan_otu() %>%
 ps_aligned = ps1 %>% subset_samples.wt("Group",c("WT","KO"))
 
 # find_associated_metabolites.2 计算关联 -----
-cat("使用对齐后数据计算关联...\n")
+
 results2 <- find_associated_metabolites.2(
   phyloseq_obj = ps_aligned,
   metabolome_mat = tab_aligned,
@@ -200,10 +195,9 @@ writeData(associated_metabolites_wb, "top_metabolites_details", results2$correla
 saveWorkbook(associated_metabolites_wb, file.path(main_dir, "associated_metabolites_analysis_results.xlsx"), overwrite = TRUE)
 
 head(dat_aligned)
-cat("对齐后找到的代谢物:", head(dat_aligned$Metabolite), "\n")
 
 # smart_metabolite_selection 指定关联代谢物数量 ------
-cat("进行智能代谢物选择...\n")
+
 selection_report <- smart_metabolite_selection(
   results = results2,
   sample_size = 20,
@@ -236,10 +230,8 @@ writeData(smart_selection_wb, "smart_metabolite_selection", dat, rowNames = TRUE
 writeData(smart_selection_wb, "selection_report", selection_report$report, rowNames = TRUE)
 saveWorkbook(smart_selection_wb, file.path(main_dir, "smart_metabolite_selection_results.xlsx"), overwrite = TRUE)
 
-cat("推荐的代谢物:", head(dat$Metabolite), "\n")
-
 # 创建推荐代谢物的多维评分图 -----
-cat("创建推荐代谢物的多维评分图...\n")
+
 df = dat
 
 # 排序：先正后负；各自内部 integrated_score 降序。让"图中最上面=最重要"
@@ -317,7 +309,7 @@ ggsave(file.path(main_dir, "selected_metabolite_scores.pdf"), p_metabolite_score
 ggsave(file.path(main_dir, "selected_metabolite_scores.png"), p_metabolite_scores, width = 16, height = 10, dpi = 300)
 
 # 代谢组学特征挑选 -----
-cat("开始代谢组学特征选择...\n")
+
 tab_ms_selection = ps.ms %>% subset_samples.wt("Group",c("WT","KO")) %>% vegan_otu() %>%
   as.data.frame()
 
@@ -381,10 +373,8 @@ writeData(metabolomics_wb, "abundance_results", res_ms$abundance_results, rowNam
 writeData(metabolomics_wb, "processed_data", res_ms$processed_ms, rowNames = TRUE)
 saveWorkbook(metabolomics_wb, file.path(main_dir, "metabolomics_feature_selection_results.xlsx"), overwrite = TRUE)
 
-cat("代谢组学特征选择完成，选择的顶级代谢物:", head(dat_ms_final$Metabolite.y), "\n")
-
 # 寻找与代谢物相关的微生物 ----
-cat("开始寻找与代谢物相关的微生物...\n")
+
 ps2_microbe = ps.ms %>% subset_samples.wt("Group",c("WT","OE"))
 tab_microbe = ps2_microbe %>% vegan_otu() %>%
   as.data.frame()
@@ -403,7 +393,6 @@ res_microbe <- find_associated_microbes(
   group_split = "median"
 )
 
-cat("找到的相关微生物:", res_microbe$top_microbes$microbe, "\n")
 
 # 调整列名以匹配 smart_metabolite_selection 的期望
 colnames(res_microbe$correlation_results)[2] = "pearson_cor"

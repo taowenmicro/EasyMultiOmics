@@ -33,6 +33,7 @@
 #' p14  = result[[1]]
 #' p14
 #' dat = result[[2]]
+#' @export
 
 
 ven.network.metm=function (ps = ps, N = 0.5, fill = "Phylum")

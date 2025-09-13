@@ -20,7 +20,7 @@
 #' @param nrow Number of rows for arranging plots.Default is `1`.
 #' @param outpath Path to save the analysis results and plots.
 #' @author
-#' Tao Wen \email{2018203048@njau.edu.cn},
+#' Tao Wen \email{taowen@njau.edu.cn},
 #' Peng-Hao Xie \email{2019103106@njau.edu.cn}
 #' @return A list containing the following components:
 #' \item{Volcano_all_plot}{A combined volcano plots of all comparison groups.}
@@ -31,7 +31,7 @@
 #' @examples
 #' \dontrun{
 #' ps=ps.kegg %>% filter_OTU_ps(Top = 1000)
-#' res = t.metf(ps = ps,group  = "Group",artGroup =NULL,group  = "Group",
+#' res = t_metf(ps = ps,group  = "Group",artGroup =NULL,group  = "Group",
 #'              pvalue=0.05,FCvalue=2,padjust=TRUE,padjust_method="BH",
 #'              log2FC_threshold=10,ncol=3,nrow=1,outpath=NULL)
 #' p17=res[[1]]
@@ -48,7 +48,7 @@
 #' p17.3
 #' }
 
-t.metf = function(
+t_metf = function(
     ps = ps,
     artGroup = NULL,
     group  = "Group",

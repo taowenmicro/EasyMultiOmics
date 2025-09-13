@@ -152,8 +152,8 @@ alppath <- file.path(path, "alpha")
 dir.create(alppath, showWarnings = FALSE)
 
 # 保存稀释曲线图片
-ggsave(file.path(alppath, "alpha_rarefaction_curve.png"), plot = p2_1, width = 10, height = 8)
-ggsave(file.path(alppath, "alpha_rarefaction_curve.pdf"), plot = p2_1, width = 10, height = 8)
+ggsave(file.path(alppath, "alpha_rarefaction_curve.png"), plot = p2_1, width = 7, height = 5)
+ggsave(file.path(alppath, "alpha_rarefaction_curve.pdf"), plot = p2_1, width = 7, height = 5)
 ggsave(file.path(alppath, "alpha_rarefaction_group_curve.png"), plot = p2_2, width = 10, height = 8)
 ggsave(file.path(alppath, "alpha_rarefaction_group_curve.pdf"), plot = p2_2, width = 10, height = 8)
 ggsave(file.path(alppath, "alpha_rarefaction_group_sd_curve.png"), plot = p2_3, width = 10, height = 8)
@@ -162,7 +162,7 @@ ggsave(file.path(alppath, "alpha_rarefaction_group_sd_curve.pdf"), plot = p2_3, 
 
 # beta diversity  -----
 #4 ordinate.metm: 排序分析#----------
-
+library(ggsci)
 
 result = ordinate.metm(ps = ps.micro, group = c("Group","Group2","Group3"), dist = "bray",
                         method = "PCoA", Micromet = "anosim", pvalue.cutoff = 0.05)
@@ -192,7 +192,7 @@ cent
 segs <- merge(plotdata, setNames(cent, c('Group','oNMDS1','oNMDS2')),
               by = 'Group', sort = FALSE)
 
-library(ggsci)
+
 p3_3 = p3_1 +geom_segment(data = segs,
                           mapping = aes(xend = oNMDS1, yend = oNMDS2,color = Group),show.legend=F) + # spiders
   geom_point(mapping = aes(x = x, y = y),data = cent, size = 5,pch = 24,color = "black",fill = "yellow")
@@ -252,7 +252,8 @@ addWorksheet(beta_wb, "adonis_results")
 writeData(beta_wb, "adonis_results", dat1)
 
 #6 pairMicroTest.metm:两两分组群落水平差异检测-------
-dat2 = pairMicroTest.metm(ps = ps.micro, Micromet = "MRPP", dist = "bray")
+dat2 = pairMicroTest.metm2(ps = ps.micro, Micromet = "MRPP", dist = "bray")
+
 dat2
 
 # 保存两两比较数据
@@ -261,6 +262,12 @@ writeData(beta_wb, "pairwise_MRPP", dat2)
 
 
 #7 mantal.metm：群落差异检测普鲁士分析#------
+
+mantelpath <- file.path(path, "mantel")
+dir.create(mantelpath, showWarnings = FALSE)
+
+
+
 result <- mantal.metm(ps = ps.micro,
                        method =  "spearman",
                        group = "Group",
@@ -270,23 +277,20 @@ data <- result[[1]]
 data
 p3_7 <- result[[2]]
 
-p3_7 +
-  # scale_fill_manual(values = colset1)+
-  # scale_color_manual(values = colset1,guide = F) +
-  theme_cell
+
 
 # 保存Mantel分析图片
-ggsave(file.path(mantelpath, "mantel_plot.png"), plot = p3_7_final, width = 10, height = 8)
-ggsave(file.path(mantelpath, "mantel_plot.pdf"), plot = p3_7_final, width = 10, height = 8)
+ggsave(file.path(mantelpath, "mantel_plot.png"), plot = p3_7, width = 10, height = 8)
+ggsave(file.path(mantelpath, "mantel_plot.pdf"), plot = p3_7, width = 10, height = 8)
 
 # 保存Mantel分析数据
 addWorksheet(beta_wb, "mantel_results")
-writeData(beta_wb, "mantel_results", mantel_data)
+writeData(beta_wb, "mantel_results", data)
 saveWorkbook(beta_wb, file.path(betapath, "beta_results.xlsx"), overwrite = TRUE)
 
 
 #8 cluster.metm:样品聚类-----
-res = cluster.metm (ps= ps.micro,
+res = cluster_metm(ps= ps.micro,
                      hcluter_method = "complete",
                      dist = "bray",
                      cuttree = 3,
@@ -329,11 +333,11 @@ dir.create(comppath, showWarnings = FALSE, recursive = TRUE)
 
 #9 Ven.Upset.metm: 用于展示共有、特有的OTU/ASV----
 # 分组小于6时使用
-res = Ven.Upset.metm(ps =  ps.micro,
+res = Ven.Upset.metm2(ps =  ps.micro,
                       group = "Group",
                       N = 0.5,
                       size = 3)
-p10.1 = res[[1]]
+p10.1 = res[[1]] +theme_void()
 p10.1
 p10.2 = res[[2]]
 p10.2
@@ -355,48 +359,32 @@ comp_wb <- createWorkbook()
 addWorksheet(comp_wb, "venn_upset_data")
 writeData(comp_wb, "venn_upset_data", dat, rowNames = TRUE)
 
-#10 ggVen.Upset.metm:用于展示共有、特有的OTU/ASV----
-# 分组小于6时使用
-res = ggVen.Upset.metm(ps = ps.micro,group = "Group")
 
-# 保存ggVenn图片 (grid对象需要特殊处理)
-png(file.path(comppath, "ggvenn_plot.png"), width = 10, height = 8, units = "in", res = 300)
-grid::grid.draw(res[[1]])
-dev.off()
-
-pdf(file.path(comppath, "ggvenn_plot.pdf"), width = 10, height = 8)
-grid::grid.draw(res[[1]])
-dev.off()
-
-dat = res[[2]]
-dat
-
-# 保存ggVenn数据
-addWorksheet(comp_wb, "ggvenn_data")
-writeData(comp_wb, "ggvenn_data", dat, rowNames = TRUE)
-
-#11 VenSeper.micro: 详细展示每一组中OTU的物种组成 错-------
+#11 VenSuper.micro: 详细展示每一组中OTU的物种组成 错-------
 #---每个部分
 library("ggpubr")
 library(agricolae)
 library(reshape2)
 
+sample_data(ps.micro)$Group %>% table()
+
 result = VenSuper.metm(ps = ps.micro,
                         group = "Group",
-                        num = 6
+                        num = 10
 )
 # 提取韦恩图中全部部分的otu极其丰度做门类柱状图
 p7_1 <- result[[1]]
 p7_1+
-  # scale_fill_manual(values = colset1)+
-  # scale_color_manual(values = colset1,guide = F) +
-  mytheme1
+  theme_nature()
 # 每部分的otu门类冲积图
 p7_2 <- result[[3]]
+
 p7_2+
   # scale_fill_manual(values = colset1)+
   # scale_color_manual(values = colset1,guide = F) +
   theme_bw()
+
+result[[2]]
 
 # 保存VenSuper图片
 ggsave(file.path(comppath, "vensuper_barplot.png"), plot = p7_1, width = 10, height = 8)
@@ -435,7 +423,7 @@ writeData(comp_wb, "flower_data", dat, rowNames = TRUE)
 result = ven.network.metm(
   ps = ps.micro ,#%>%  filter_OTU_ps(10000),
   N = 0.5,
-  fill = "Phylum")
+  fill = "Kingdom")
 p14  = result[[1]]
 p14
 
@@ -479,23 +467,14 @@ result = barMainplot.metm(ps = pst,
                            sd = FALSE,
                            Top =5)
 
- p4_1 <- result[[1]]
-# scale_fill_manual(values = colset2) +
-# scale_x_discrete(limits = axis_order) +
-# mytheme1
-p4_1+
+p4_1 <- result[[1]] +
   scale_fill_manual(values = colset2) +
   scale_x_discrete(limits = axis_order) +
   theme_nature()+
   theme(axis.title.y = element_text(angle = 90))
 
 
-p4_2  <- result[[3]]
-# # scale_fill_brewer(palette = "Paired") +
-# scale_fill_manual(values = colset2) +
-# scale_x_discrete(limits = axis_order) +
-# mytheme1
-p4_2+
+p4_2  <- result[[3]] +
   scale_fill_manual(values = colset2) +
   scale_x_discrete(limits = axis_order) +
   theme_nature()+
@@ -586,6 +565,7 @@ pdf(file.path(comppath, "cir_plot.pdf"), width = 10, height = 8)
 replayPlot(p)
 dev.off()
 
+
 # 保存和弦图数据
 addWorksheet(comp_wb, "cir_plot_data")
 writeData(comp_wb, "cir_plot_data", res[[1]], rowNames = TRUE)
@@ -642,11 +622,11 @@ dir.create(diffpath, showWarnings = FALSE, recursive = TRUE)
 #20 EdgerSuper.metm:EdgeR计算差异微生物----
 res = EdgerSuper.metm(ps = ps.micro %>% ggClusterNet::filter_OTU_ps(500),group  = "Group",artGroup = NULL, j = "Species")
 
-p25.1 =  res[[1]][1]
+p25.1 =  res[[1]][[1]]
 p25.1
-p25.2 =  res[[1]][2]
+p25.2 =  res[[1]][[2]]
 p25.2
-p25.3 =  res[[1]][3]
+p25.3 =  res[[1]][[3]]
 p25.3
 dat =  res[[2]]
 head(dat)
@@ -680,22 +660,22 @@ res = DESep2Super.metm(ps = ps.micro %>% ggClusterNet::filter_OTU_ps(500),
                         # path = diffpath.1
 )
 
-p26.1 =  res[[1]][1]
+p26.1 =  res[[1]][[1]]
 p26.1
-p26.2 =  res[[1]][2]
+p26.2 =  res[[1]][[2]]
 p26.2
-p26.3 =  res[[1]][3]
+p26.3 =  res[[1]][[3]]
 p26.3
 dat =  res[[2]]
 dat
 
 # 保存DESeq2图片
-ggsave(file.path(diffpath, "deseq2_volcano_1.png"), plot = p26.1[[1]], width = 10, height = 8)
-ggsave(file.path(diffpath, "deseq2_volcano_1.pdf"), plot = p26.1[[1]], width = 10, height = 8)
-ggsave(file.path(diffpath, "deseq2_volcano_2.png"), plot = p26.2[[1]], width = 10, height = 8)
-ggsave(file.path(diffpath, "deseq2_volcano_2.pdf"), plot = p26.2[[1]], width = 10, height = 8)
-ggsave(file.path(diffpath, "deseq2_volcano_3.png"), plot = p26.3[[1]], width = 10, height = 8)
-ggsave(file.path(diffpath, "deseq2_volcano_3.pdf"), plot = p26.3[[1]], width = 10, height = 8)
+ggsave(file.path(diffpath, "deseq2_volcano_1.png"), plot = p26.1, width = 10, height = 8)
+ggsave(file.path(diffpath, "deseq2_volcano_1.pdf"), plot = p26.1, width = 10, height = 8)
+ggsave(file.path(diffpath, "deseq2_volcano_2.png"), plot = p26.2, width = 10, height = 8)
+ggsave(file.path(diffpath, "deseq2_volcano_2.pdf"), plot = p26.2, width = 10, height = 8)
+ggsave(file.path(diffpath, "deseq2_volcano_3.png"), plot = p26.3, width = 10, height = 8)
+ggsave(file.path(diffpath, "deseq2_volcano_3.pdf"), plot = p26.3, width = 10, height = 8)
 
 # 保存DESeq2数据
 addWorksheet(diff_wb, "deseq2_results")
@@ -915,8 +895,8 @@ res = xgboost.metm(ps =pst, top = 20  )
 accuracy = res[[1]]
 accuracy
 importance = res[[2]]
-importance
-importance_data <- as.data.frame(importance_data)
+
+importance_data <- as.data.frame(importance$importance)
 
 # 保存XGBoost分析数据
 addWorksheet(biomarker_wb, "xgboost_accuracy")

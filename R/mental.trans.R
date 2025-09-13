@@ -1,6 +1,6 @@
 #
 
-mental.trans<- function(ps = ps,
+mental_trans<- function(ps = ps,
                         method =  "spearman",
                         group = "Group",
                         ncol = 5,

@@ -37,7 +37,10 @@ aovMuiBoxP2 = function(data = data_wt, i= 3,sig_show ="line",result = result,ns 
   max=max(data_box[,c("dd")],na.rm = TRUE)
   min=min(data_box[,c("dd")],na.rm = TRUE)
   x = data_box[,c("group","dd")]
-  y = x %>% group_by(group) %>% summarise(Max=paste('max(',"dd",",na.rm = TRUE",')',sep=""))
+  # y = x %>% group_by(group) %>%summarise(Max=paste('max(',"dd",",na.rm = TRUE",')',sep=""))
+  y <- x %>%
+    group_by(group) %>%
+    summarise(Max = max(dd, na.rm = TRUE))
 
 
 

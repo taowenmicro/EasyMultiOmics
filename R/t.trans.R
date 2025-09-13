@@ -32,7 +32,7 @@
 #' \dontrun{
 #' data(ps.trans)
 #' ps=ps.trans %>% filter_OTU_ps(Top = 100)
-#' res = t.trans(ps = ps,group  = "Group",artGroup =NULL,
+#' res = t_trans(ps = ps,group  = "Group",artGroup =NULL,
 #'              pvalue=0.05,FCvalue=2,padjust=TRUE,padjust_method="BH",
 #'              log2FC_threshold=10,ncol=3,nrow=1,outpath=NULL)
 #' p17=res[[1]]
@@ -49,7 +49,7 @@
 #' p17.3
 #' }
 
-t.trans = function(
+t_trans = function(
     ps = ps,
     artGroup = NULL,
     group  = "Group",

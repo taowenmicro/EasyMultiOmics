@@ -4,7 +4,7 @@
 \alias{VenSuper.metm}
 \title{Generate Venn Diagrams and Analyze Microbial Groups in Metagenome}
 \usage{
-VenSuper.metm(ps = NULL, group = "Group", num = 6)
+VenSuper.metm(ps, group = "Group", num = 6)
 }
 \arguments{
 \item{ps}{A `phyloseq` object containing microbiome data.}

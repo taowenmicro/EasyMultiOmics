@@ -146,6 +146,6 @@ EdgerSuper2.metm =function (otu = NULL, tax = NULL, map = NULL, tree = NULL, ps 
       table = rbind(table, x)
     }
   }
-  x = table
-  return(x)
+  # x = table
+  return(table)
 }

@@ -45,9 +45,11 @@ alpha.metf = function(otu = NULL,
     if (samplesize == 0) {
       print("0 number sequence of some samples")
       print("median number were used")
-      ps11  = phyloseq::rarefy_even_depth(ps,sample.size = samplesize)
+      # ps11  = phyloseq::rarefy_even_depth(ps,sample.size = samplesize)
+      ps11 <- phyRare_auto(ps = ps, N = samplesize, drop_insufficient = TRUE, rngseed = 123)
     } else{
-      ps11  = phyloseq::rarefy_even_depth(ps,sample.size = samplesize)
+      # ps11  = phyloseq::rarefy_even_depth(ps,sample.size = samplesize)
+      ps11 <- phyRare_auto(ps = ps, N = samplesize, drop_insufficient = TRUE, rngseed = 123)
     }
   } else if(sampling == FALSE){
     ps11 = ps
