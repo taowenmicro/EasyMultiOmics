@@ -2,7 +2,7 @@
 % Please edit documentation in R/cluMicro.bar.metm.R
 \name{cluMicro.bar.metm}
 \alias{cluMicro.bar.metm}
-\title{Generate Clustered Bar Plots for Microbial Data}
+\title{Clustered Bar Plots with Hierarchical Clustering for Microbial Data}
 \usage{
 cluMicro.bar.metm(
   dist = "bray",
@@ -11,7 +11,7 @@ cluMicro.bar.metm(
   map = NULL,
   tree = NULL,
   j = "Phylum",
-  ps = ps,
+  ps = NULL,
   rep = 6,
   Top = 10,
   tran = TRUE,
@@ -21,69 +21,63 @@ cluMicro.bar.metm(
 )
 }
 \arguments{
-\item{dist}{A character string specifying the distance method for clustering. Default is `"bray"`.}
+\item{dist}{Character string specifying the distance method (default: "bray").}
 
-\item{otu}{A data frame containing OTU data. If `NULL`, the `ps` object is used.}
+\item{otu, tax, map, tree}{Optional input tables. If NULL, values are extracted
+from \code{ps}.}
 
-\item{tax}{A data frame containing taxonomy data. If `NULL`, the `ps` object is used.}
+\item{j}{Character string specifying the taxonomic rank to visualize
+(e.g., "Phylum", "Genus"). Default is "Phylum".}
 
-\item{map}{A data frame containing sample metadata. If `NULL`, the `ps` object is used.}
+\item{ps}{A \code{phyloseq} object containing microbiome data.}
 
-\item{tree}{A phylogenetic tree object. If `NULL`, the `ps` object is used.}
+\item{rep}{Integer, number of replicates (unused, kept for compatibility).}
 
-\item{j}{A character string specifying the taxonomic rank to analyze (e.g., `"Phylum"`, `"Genus"`). Default is `"Phylum"`.}
+\item{Top}{Integer, number of top taxa to keep (by abundance). Others are
+merged into "Other". Default = 10.}
 
-\item{ps}{A `phyloseq` object containing microbiome data.}
+\item{tran}{Logical, if TRUE transform abundances to relative values.
+Default = TRUE.}
 
-\item{rep}{An integer specifying the number of replicates. Default is `6`.}
+\item{hcluter_method}{Character string specifying hierarchical clustering
+method. Default = "complete".}
 
-\item{Top}{An integer specifying the number of top taxa to display. Taxa not in the top are grouped as `"Other"`. Default is `10`.}
+\item{Group}{Character string specifying the grouping column in sample metadata.
+Default = "Group".}
 
-\item{tran}{Logical. If `TRUE`, transforms data to relative abundances. Default is `TRUE`.}
-
-\item{hcluter_method}{A character string specifying the hierarchical clustering method. Default is `"complete"`.}
-
-\item{Group}{A character string specifying the grouping variable in the sample metadata. Default is `"Group"`.}
-
-\item{cuttree}{An integer specifying the number of clusters to cut the dendrogram into. Default is `3`.}
-}
-\value{
-A list containing the following elements:
-\describe{
-  \item{Sample-level Dendrogram}{A `ggtree` dendrogram showing the clustering tree at the sample level.}
-  \item{Sample-level Stacked Bar Plot}{A stacked bar plot combined with the dendrogram at the sample level.}
-  \item{Group-level Dendrogram}{A `ggtree` dendrogram showing the clustering tree at the group level.}
-  \item{Group-level Stacked Bar Plot}{A stacked bar plot combined with the dendrogram at the group level.}
-  \item{Processed Data}{A data frame with microbial composition data, including relative abundances and taxonomic annotations.}
-}
+\item{cuttree}{Integer, number of clusters to cut the dendrogram into.
+Default = 3.}
 }
 \description{
-This function performs hierarchical clustering on microbial data and generates stacked bar plots and dendrograms to visualize the clustering results. The microbial data can be grouped at a specified taxonomic rank and converted to relative abundances for visualization.
+Perform hierarchical clustering on microbial community data at both the sample
+level and the group-mean level, and visualize results by combining dendrograms
+with stacked bar plots at a specified taxonomic rank.
 }
 \details{
-This function:
+Steps performed:
 \itemize{
-  \item Standardizes the microbial data to relative abundances if `tran = TRUE`.
-  \item Performs hierarchical clustering on both sample-level and group-level data using the specified distance and clustering methods.
-  \item Combines the clustering dendrograms with stacked bar plots of microbial composition at the specified taxonomic rank (`j`).
-  \item Groups microbial taxa not in the top `Top` by abundance as `"Other"`.
+  \item Transform OTU table to relative abundances (if \code{tran = TRUE}).
+  \item Perform hierarchical clustering at sample level and group-average level.
+  \item Collapse taxa to the specified rank, retain top \code{Top} taxa and merge others.
+  \item Create stacked bar plots aligned with dendrograms using \code{facet_plot()}.
 }
-
-The function outputs plots and processed data to explore microbial community composition and clustering relationships.
 }
 \examples{
 \dontrun{
-result <- cluMicro.bar.metm(dist = "bray", ps = ps.16s, j = "Genus", Top = 10,
-                             tran = TRUE, hcluter_method = "complete", Group = "Group",
-                             cuttree = length(unique(phyloseq::sample_data(ps)$Group)))
-result[[1]]
-p5_2 <- result[[2]]
-p5_3 <- result[[3]]
-p5_4 <- result[[4]]
-clubardata <- result[[5]]
+res <- cluMicro.bar.metm(
+  dist = "bray", ps = ps.16s, j = "Genus", Top = 10,
+  tran = TRUE, hcluter_method = "complete", Group = "Group",
+  cuttree = length(unique(phyloseq::sample_data(ps.16s)[["Group"]]))
+)
+res[[1]]  # sample-level dendrogram
+res[[2]]  # sample-level dendrogram + stacked barplot
+res[[3]]  # group-level dendrogram
+res[[4]]  # group-level dendrogram + stacked barplot
+head(res[[5]])
 }
 
 }
 \author{
-Contact: Tao Wen \email{2018203048@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njau.edu.cn}
+Tao Wen \email{2018203048@njau.edu.cn},
+  Peng-Hao Xie \email{2019103106@njau.edu.cn}
 }

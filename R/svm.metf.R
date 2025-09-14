@@ -17,13 +17,13 @@
 #' library(caret)
 #' library(e1071)
 #' ps =ps.kegg %>% filter_OTU_ps(Top = 1000)
-#' res <- svm.metf(ps = ps%>% filter_OTU_ps(20), k = 5)
+#' res <- svm_metf(ps = ps%>% filter_OTU_ps(20), k = 5)
 #' AUC = res[[1]]
 #' AUC
 #' importance = res[[2]]
 #' importance
 
-svm.metf <- function(ps=ps, k = 5) {
+svm_metf <- function(ps=ps, k = 5) {
   # 数据准备
   map <- as.data.frame(phyloseq::sample_data(ps))
   otutab <- as.data.frame(t(ggClusterNet::vegan_otu(ps)))

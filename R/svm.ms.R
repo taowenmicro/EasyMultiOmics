@@ -17,12 +17,12 @@
 #' library(ggClusterNet)
 #' library(caret)
 #' library(e1071)
-#' res <- svm.ms(ps = ps.ms %>% filter_OTU_ps(20), k = 5)
+#' res <- svm_ms(ps = ps.ms %>% filter_OTU_ps(20), k = 5)
 #' AUC = res[[1]]
 #' AUC
 #' importance = res[[2]]
 #' importance
-  svm.ms <- function(ps=ps, k = 5) {
+  svm_ms <- function(ps=ps, k = 5) {
   # 数据准备
   map <- as.data.frame(phyloseq::sample_data(ps))
   otutab <- as.data.frame(t(ggClusterNet::vegan_otu(ps)))

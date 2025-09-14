@@ -72,23 +72,20 @@
 
 
 
-EdgerSuper.metm=function (otu = NULL, tax = NULL, map = NULL, tree = NULL, ps = NULL,
-          group = "Group", pvalue = 0.05, lfc = 0, artGroup = NULL,
-          method = "TMM", j = 2)
+EdgerSuper.metm =function (otu = NULL, tax = NULL, map = NULL, tree = NULL, ps = NULL,
+                           group = "Group", pvalue = 0.05, lfc = 0, artGroup = NULL,
+                           method = "TMM", j = 2)
 {
   ps = ggClusterNet::inputMicro(otu, tax, map, tree, ps, group = group)
   ps
   if (j %in% c("OTU", "gene", "meta")) {
     ps = ps
-  }
-  else if (j %in% c(1:7)) {
+  }else if (j %in% c(1:7)) {
     ps = ps %>% ggClusterNet::tax_glom_wt(ranks = j)
-  }
-  else if (j %in% c("Kingdom", "Phylum", "Class", "Order",
-                    "Family", "Genus", "Species")) {
+  }else if (j %in% c("Kingdom", "Phylum", "Class", "Order",
+                     "Family", "Genus", "Species")) {
     ps = ps %>% ggClusterNet::tax_glom_wt(ranks = j)
-  }
-  else {
+  }else {
     ps = ps
     print("unknown j, checked please")
   }
@@ -126,7 +123,7 @@ EdgerSuper.metm=function (otu = NULL, tax = NULL, map = NULL, tree = NULL, ps = 
     BvsA <- limma::makeContrasts(contrasts = group, levels = design.mat)
     lrt = edgeR::glmLRT(fit, contrast = BvsA)
     de_lrt = limma::decideTests(lrt, adjust.method = "fdr",
-                                   p.value = pvalue, lfc = lfc)
+                                p.value = pvalue, lfc = lfc)
     summary(de_lrt)
     x = lrt$table
     x$sig = de_lrt
@@ -150,15 +147,21 @@ EdgerSuper.metm=function (otu = NULL, tax = NULL, map = NULL, tree = NULL, ps = 
                                                                   "nosig") %>% dplyr::arrange(desc(ord)) %>% head(n = 5)
     x3 <- x1 %>% dplyr::mutate(ord = logFC^2) %>% dplyr::filter(level !=
                                                                   "nosig") %>% dplyr::arrange(desc(ord))
-    head(x2)
-    p <- ggplot(x1, aes(x = logFC, y = -log2(p), colour = level)) +
-      geom_point() + geom_hline(yintercept = -log10(0.2),
-                                linetype = 4, color = "black", size = 0.5) + geom_vline(xintercept = c(-1,
-                                                                                                       1), linetype = 3, color = "black", size = 0.5) +
-      ggrepel::geom_text_repel(data = x2, aes(x = logFC,
-                                              y = -log2(p), label = Genus), size = 1) + scale_color_manual(values = c("blue2",
-                                                                                                                      "red2", "gray30")) + ggtitle(group) + theme_bw()
-    p
+    # head(x2)
+    # p <- ggplot(x1, aes(x = logFC, y = -log2(p), colour = level)) +
+    #   geom_point() + geom_hline(yintercept = -log10(0.2),
+    #                             linetype = 4, color = "black", size = 0.5) + geom_vline(xintercept = c(-1,
+    #                                                                                                    1), linetype = 3, color = "black", size = 0.5) +
+    #   ggrepel::geom_text_repel(data = x2, aes(x = logFC,
+    #                                           y = -log2(p), label = Genus), size = 1) + scale_color_manual(values = c("blue2",
+    #                                                                                                                   "red2", "gray30")) + ggtitle(group) + theme_bw()
+    # p
+
+    res <- volcano_plot_metm(x1, shade = TRUE)
+    p = res[[1]]
+
+
+
     plot_list[[i]] <- p
     colnames(x) = paste(group, colnames(x), sep = "")
     if (i == 1) {

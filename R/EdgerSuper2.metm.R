@@ -63,14 +63,11 @@ EdgerSuper2.metm =function (otu = NULL, tax = NULL, map = NULL, tree = NULL, ps 
   ps
   if (j %in% c("OTU", "gene", "meta")) {
     ps = ps
-  }
-  else if (j %in% c(1:7)) {
+  }else if (j %in% c(1:7)) {
     ps = ps %>% ggClusterNet::tax_glom_wt(ranks = j)
-  }
-  else if (j %in% c("Kingdom", "Phylum", "Class", "Order",
+  }else if (j %in% c("Kingdom", "Phylum", "Class", "Order",
                     "Family", "Genus", "Species")) {
-  }
-  else {
+  }else {
     ps = ps
     print("unknown j, checked please")
   }
@@ -129,14 +126,14 @@ EdgerSuper2.metm =function (otu = NULL, tax = NULL, map = NULL, tree = NULL, ps 
     }
     x2 <- x1 %>% dplyr::mutate(ord = logFC^2) %>% dplyr::filter(level !=
                                                                   "nosig") %>% dplyr::arrange(desc(ord)) %>% head(n = 5)
-    head(x2)
-    p <- ggplot(x1, aes(x = logFC, y = -log2(p), colour = level)) +
-      geom_point() + geom_hline(yintercept = -log10(0.2),
-                                linetype = 4, color = "black", size = 0.5) + geom_vline(xintercept = c(-1,
-                                                                                                       1), linetype = 3, color = "black", size = 0.5) +
-      ggrepel::geom_text_repel(data = x2, aes(x = logFC,
-                                              y = -log2(p), label = Genus), size = 1) + scale_color_manual(values = c("blue2",
-                                                                                                                      "red2", "gray30")) + ggtitle(group) + theme_bw()
+    # head(x2)
+    # p <- ggplot(x1, aes(x = logFC, y = -log2(p), colour = level)) +
+    #   geom_point() + geom_hline(yintercept = -log10(0.2),
+    #                             linetype = 4, color = "black", size = 0.5) + geom_vline(xintercept = c(-1,
+    #                                                                                                    1), linetype = 3, color = "black", size = 0.5) +
+    #   ggrepel::geom_text_repel(data = x2, aes(x = logFC,
+    #                                           y = -log2(p), label = Genus), size = 1) + scale_color_manual(values = c("blue2",
+    #                                                                                                                   "red2", "gray30")) + ggtitle(group) + theme_bw()
     colnames(x) = paste(colnames(x), sep = "")
     x$group = group
     if (i == 1) {

@@ -18,13 +18,13 @@
 #' library(e1071)
 #' data(ps.trans)
 #' ps =ps.trans %>% filter_OTU_ps(Top = 1000)
-#' res <- svm.trans(ps = ps%>% filter_OTU_ps(20), k = 5)
+#' res <- svm_trans(ps = ps%>% filter_OTU_ps(20), k = 5)
 #' AUC = res[[1]]
 #' AUC
 #' importance = res[[2]]
 #' importance
 
-svm.trans<- function(ps=ps, k = 5) {
+svm_trans<- function(ps=ps, k = 5) {
   # 数据准备
   map <- as.data.frame(phyloseq::sample_data(ps))
   otutab <- as.data.frame(t(ggClusterNet::vegan_otu(ps)))

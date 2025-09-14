@@ -15,13 +15,13 @@
 #' library(ggClusterNet)
 #' library(caret)
 #' library(e1071)
-#' res <- svm.micro(ps = ps.16s %>% filter_OTU_ps(20), k = 5)
+#' res <- svm_micro(ps = ps.16s %>% filter_OTU_ps(20), k = 5)
 #' AUC = res[[1]]
 #' AUC
 #' importance = res[[2]]
 #' importance
 
-svm.micro <- function(ps=ps, k = 5) {
+svm_micro <- function(ps=ps, k = 5) {
   # 数据准备
   map <- as.data.frame(phyloseq::sample_data(ps))
   otutab <- as.data.frame(t(ggClusterNet::vegan_otu(ps)))

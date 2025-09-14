@@ -252,8 +252,10 @@ addWorksheet(beta_wb, "adonis_results")
 writeData(beta_wb, "adonis_results", dat1)
 
 #6 pairMicroTest.metm:两两分组群落水平差异检测-------
-dat2 = pairMicroTest.metm2(ps = ps.micro, Micromet = "MRPP", dist = "bray")
 
+# 更新版本包含五种差异分析方法
+
+dat2 = pairMicroTest.metm2(ps = ps.micro, Micromet = "MRPP", dist = "bray")
 dat2
 
 # 保存两两比较数据
@@ -330,6 +332,9 @@ saveWorkbook(cluster_wb, file.path(clusterpath, "cluster_results.xlsx"), overwri
 # 创建组成分析保存目录
 comppath <- file.path(path, "composition")
 dir.create(comppath, showWarnings = FALSE, recursive = TRUE)
+
+
+
 
 #9 Ven.Upset.metm: 用于展示共有、特有的OTU/ASV----
 # 分组小于6时使用
@@ -455,6 +460,26 @@ ggsave(file.path(comppath, "ternary_plot.pdf"), plot = p15[[1]] + theme_classic(
 addWorksheet(comp_wb, "ternary_data")
 writeData(comp_wb, "ternary_data", dat, rowNames = TRUE)
 
+# 多元图的开发#------
+map = ps.micro %>% sample_data()
+map$Group2 = c("A","B","C","D","F","G")
+map$Group3 = c("A","B")
+sample_data(ps.micro) = map
+
+
+# 假设 ps.16s 是一个 phyloseq 对象
+p <- ps_polygon_plot(ps.micro, group = "Group2",taxrank = "Phylum")
+print(p)
+
+
+p <- ps_polygon_plot(ps.micro, group = "Group",taxrank = "Phylum")
+print(p)
+
+
+
+
+
+
 #15 barMainplot.metm: 堆积柱状图展示组成----
 library(ggalluvial)
 # pst = ps.micro %>% subset_taxa.wt("Species","Unassigned",TRUE)
@@ -502,7 +527,7 @@ writeData(comp_wb, "barplot_summary_data", databar)  # 汇总数据通常不需�
 result <-  cluMicro.bar.metm (dist = "bray",
                                ps = ps.micro,
                                j = "Genus",
-                               Top = 7, # 提取丰度前十的物种注释
+                               Top = 10, # 提取丰度前十的物种注释
                                tran = TRUE, # 转化为相对丰度值
                                hcluter_method = "complete",
                                Group = "Group",
@@ -529,11 +554,28 @@ ggsave(file.path(comppath, "cluster_barplot_3.pdf"), plot = p5_4, width = 10, he
 addWorksheet(comp_wb, "cluster_barplot_data")
 writeData(comp_wb, "cluster_barplot_data", clubardata, rowNames = TRUE)
 
+
+
+#  全尺度代表微生物 高丰度，中间丰度 低丰度#----
+res_col <- stacked_bar_by_custom_class_v(
+  ps         = ps.16s,
+  rank       = "Genus",
+  group      = "Group",
+  thresholds = c(1, 0.1),   # 高(>=1%) / 中[0.1%,1%) / 低(<0.1%)
+  n_each     = c(6, 6, 6),  # 各档展示的代表物种数量
+  arrange    = "row"     # ← 按列排布（默认）
+)
+res_col$combined  # 查看拼图
+
+
+
+
+
 #17 cir_barplot.metf:环状堆积柱状图 -----
 library(ggtree) # j = "Phylum"
 res = cir_barplot.metm(
   ps = ps.micro,
-  Top = 7,
+  Top = 15,
   dist = "bray",
   cuttree = 3,
   hcluter_method = "complete")
@@ -550,6 +592,32 @@ ggsave(file.path(comppath, "circular_barplot.pdf"), plot = p17, width = 10, heig
 # 保存环状堆积柱状图数据（保留行名）
 addWorksheet(comp_wb, "circular_barplot_data")
 writeData(comp_wb, "circular_barplot_data", dat, rowNames = TRUE)
+
+
+# 指定丰度高中低丰度 范围展示环状物种#--------
+
+res <- cir_barplot.metm2(
+  ps = ps.micro,
+  Top = 20,
+  rank = "Genus",
+  thresholds = c(1, 0.8),
+  n_each = c(10, 8, 8),
+  xlim_high = c(0,100),
+  xlim_medium = c(0,20),
+  xlim_low = c(0,5),
+  breaks_high = seq(0,100,10),
+  breaks_medium = seq(0,20,5),
+  breaks_low = seq(0,5,1),
+  ring_pwidth = c(2,5,5),
+  base_offset = 2,
+  ring_gap = 0, axis_pad = 0,          # 关键：零距离
+  show_axes = c(FALSE, FALSE, FALSE),                     # 关键：关闭三圈坐标轴
+  legend_position = "right"
+)
+print(res$plot)
+
+
+
 
 #18 cir_plot.metm:和弦图展示物种组成-----
 res = cir_plot.metm(ps  = ps.micro,Top = 12,rank = 6)
@@ -644,9 +712,11 @@ diff_wb <- createWorkbook()
 addWorksheet(diff_wb, "edger_results")
 writeData(diff_wb, "edger_results", dat, rowNames = TRUE)
 
-#21 EdgerSuper2.metm:EdgeR计算差异微生物-----
+#21 EdgerSuper2.metm:EdgeR计算全部分组组合差异微生物，竖表，方便绘图
+
 res =  EdgerSuper2.metm (ps = ps.micro,group  = "Group",artGroup =NULL, j = "Species")
 head(res)
+res$group %>% unique()
 
 # 保存EdgeR2数据
 addWorksheet(diff_wb, "edger2_results")
@@ -735,7 +805,7 @@ ggsave(file.path(diffpath, "stamp_plot_3.pdf"), plot = p28.3, width = 10, height
 
 
 #25 Mui.Group.volcano.metm: 聚类火山图------
-res =  EdgerSuper2.metm (ps = ps.micro,group  = "Group",artGroup =NULL, j = "OTU")
+res =  EdgerSuper2.metm (ps = ps.micro %>% filter_OTU_ps(500),group  = "Group",artGroup =NULL, j = "OTU")
 res2 = Mui.Group.volcano.metm(res = res)
 
 p29.1 = res2[[1]]
@@ -752,9 +822,14 @@ ggsave(file.path(diffpath, "cluster_volcano_2.png"), plot = p29.2, width = 10, h
 ggsave(file.path(diffpath, "cluster_volcano_2.pdf"), plot = p29.2, width = 10, height = 8)
 
 # 保存聚类火山图数据
-addWorksheet(diff_wb, "cluster_volcano_results")
-writeData(diff_wb, "cluster_volcano_results", dat, rowNames = TRUE)
-saveWorkbook(diff_wb, file.path(diffpath, "diff_results.xlsx"), overwrite = TRUE)
+library(openxlsx)
+wb <- openxlsx::createWorkbook()                     # 1) 新建 Workbook
+openxlsx::addWorksheet(wb, "cluster_volcano_results")# 2) 加工作表
+openxlsx::writeData(wb, sheet = "cluster_volcano_results", x = dat)  # 3) 写数据
+openxlsx::saveWorkbook(wb, "cluster_volcano_results.xlsx", overwrite = TRUE)  # 4) 保存
+
+
+
 
 # biomarker identification -----
 # 创建生物标记物分析主目录
@@ -862,7 +937,7 @@ writeData(biomarker_wb, "lda_parameters", data.frame(
 ))
 
 #30 svm.metm:svm筛选特征微生物 ----
-res <- svm.metm(ps = pst %>% filter_OTU_ps(20), k = 5)
+res <- svm_metm(ps = pst %>% filter_OTU_ps(20), k = 5)
 AUC = res[[1]]
 AUC
 importance = res[[2]]
@@ -918,7 +993,7 @@ addWorksheet(biomarker_wb, "lasso_feature_importance")
 writeData(biomarker_wb, "lasso_accuracy", data.frame(Accuracy = accuracy))
 writeData(biomarker_wb, "lasso_feature_importance", importance, rowNames = TRUE)
 
-#34 decisiontree.micro: 错----
+#34 decisiontree.micro:----
 library(rpart)
 res =decisiontree.metm(ps=pst, top = 50, seed = 6358, k = 5)
 accuracy = res[[1]]
