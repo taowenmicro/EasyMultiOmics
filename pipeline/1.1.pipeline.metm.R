@@ -338,7 +338,7 @@ dir.create(comppath, showWarnings = FALSE, recursive = TRUE)
 
 #9 Ven.Upset.metm: 用于展示共有、特有的OTU/ASV----
 # 分组小于6时使用
-res = Ven.Upset.metm2(ps =  ps.micro,
+res = Ven.Upset.metm(ps =  ps.micro,
                       group = "Group",
                       N = 0.5,
                       size = 3)
@@ -472,7 +472,7 @@ p <- ps_polygon_plot(ps.micro, group = "Group2",taxrank = "Phylum")
 print(p)
 
 
-p <- ps_polygon_plot(ps.micro, group = "Group",taxrank = "Phylum")
+p <- ps_polygon_plot(ps.micro %>% filter_OTU_ps(500), group = "Group",taxrank = "Phylum")
 print(p)
 
 
@@ -490,7 +490,7 @@ result = barMainplot.metm(ps = pst,
                            # axis_ord = axis_order,
                            label = FALSE,
                            sd = FALSE,
-                           Top =5)
+                           Top =10)
 
 p4_1 <- result[[1]] +
   scale_fill_manual(values = colset2) +
@@ -828,75 +828,89 @@ openxlsx::addWorksheet(wb, "cluster_volcano_results")# 2) 加工作表
 openxlsx::writeData(wb, sheet = "cluster_volcano_results", x = dat)  # 3) 写数据
 openxlsx::saveWorkbook(wb, "cluster_volcano_results.xlsx", overwrite = TRUE)  # 4) 保存
 
+#  全差异解析#-----
+library(ape)
+library(ggtree)
+library(Maaslin2)
+library(metagenomeSeq)
+library(glmnet)
+library(phyloseq)
+library(EasyMultiOmics)
+library(ggClusterNet)
 
+map= phyloseq::sample_data(ps)
+head(map)
+i= 2
+id.g = map$Group %>% unique() %>% as.character() %>% combn(2)
+ps.cs = ps %>% subset_samples.wt("Group" ,id.g[,i])
+
+
+# ps= ps.cs %>% filter_OTU_ps(500)
+# group="Group"
+# alpha=0.05
+
+res_all <- diff_all_methods(ps.cs %>% filter_OTU_ps(400), group="Group", alpha=0.05)
+
+head(res_all$summary,22)
+tail(res_all$summary)
+
+res <- plot_resall_with_tree(res_all,
+                             ps,
+                             topN = 175,
+                             type = "3/4", inner_gap = -20, label_size = 2.8)
+
+res[[1]]
+
+
+#全差异展示---------
+details_tab <- res_all$details %>%
+  mutate(sig = ifelse(!is.na(adjust.p) & adjust.p < 0.05, 1, 0)) %>%
+  dplyr::select(micro, method, sig)
+
+details_wide <- details_tab %>%
+  group_by(micro, method) %>%
+  summarise(sig = max(sig, na.rm = TRUE), .groups = "drop") %>%
+  tidyr::pivot_wider(
+    names_from = method,
+    values_from = sig,
+    values_fill = list(sig = 0)
+  ) %>%
+  as.data.frame()
+
+rownames(details_wide) <- details_wide$micro
+mat <- details_wide[, -1, drop = FALSE]
+
+
+
+p <- circular_heatmap_with_tree(
+  ps.cs,
+  mat,
+  open = 90,
+  label_size = 2.5,
+  label_offset = 60
+)
+
+print(p)
 
 
 # biomarker identification -----
 # 创建生物标记物分析主目录
 biomarkerpath <- file.path(path, "biomarker")
 dir.create(biomarkerpath, showWarnings = FALSE, recursive = TRUE)
-#26 rfcv.metm :交叉验证结果-------
-library(randomForest)
-library(caret)
-library(ROCR) ##用于计算ROC
-library(e1071)
-result = rfcv.metm(ps = ps.micro %>% filter_OTU_ps(100),
-                   group  = "Group",optimal = 20,nrfcvnum = 6)
 
-prfcv = result[[1]]
-
-prfcv+theme_classic()
-
-# result[[2]]# plotdata
-rfcvtable = result[[3]]
-rfcvtable
-
-# 保存随机森林交叉验证图片
-ggsave(file.path(biomarkerpath, "rfcv_plot.png"), plot = prfcv, width = 10, height = 8)
-ggsave(file.path(biomarkerpath, "rfcv_plot.pdf"), plot = prfcv, width = 10, height = 8)
-
-# 保存随机森林交叉验证数据
-biomarker_wb <- createWorkbook()
-addWorksheet(biomarker_wb, "rfcv_plot_data")
-addWorksheet(biomarker_wb, "rfcv_summary_table")
-writeData(biomarker_wb, "rfcv_plot_data", result[[2]], rowNames = TRUE)
-writeData(biomarker_wb, "rfcv_summary_table", rfcvtable, rowNames = TRUE)
-
-#27 Roc.metm:ROC 曲线绘制----
+#  双分组ps对象#----
 id = sample_data(ps.micro)$Group %>% unique()
 aaa = combn(id,2)
 i= 1
 group = c(aaa[1,i],aaa[2,i])
 b= data.frame(group)
-
-ps = ps.micro %>% subset_taxa.wt("Family","Unassigned",TRUE)
-ps = ps %>% subset_taxa.wt("Order","Unassigned",TRUE)
-ps = ps %>% subset_taxa.wt("Genus","Unassigned",TRUE)
-ps = ps %>% subset_taxa.wt("Phylum","Unassigned",TRUE)
-ps = ps %>% subset_taxa.wt("class","Unassigned",TRUE)
-
-pst = ps %>% subset_samples.wt("Group",group) %>%
+pst = ps.micro %>% subset_samples.wt("Group",group) %>%
   filter_taxa(function(x) sum(x ) > 10, TRUE)
-res = Roc.metm( ps = pst %>% filter_OTU_ps(1000),group  = "Group",repnum = 5)
-p33.1 =  res[[1]]
-p33.1+theme_classic()
-AUC =  res[[2]]
-AUC
-dat =  res[[3]]
-dat
 
-# 保存ROC分析图片
-ggsave(file.path(biomarkerpath, "roc_curve.png"), plot = p33.1, width = 10, height = 8)
-ggsave(file.path(biomarkerpath, "roc_curve.pdf"), plot = p33.1, width = 10, height = 8)
 
-# 保存ROC分析数据
-addWorksheet(biomarker_wb, "roc_results")
-addWorksheet(biomarker_wb, "auc_summary")
-writeData(biomarker_wb, "roc_results", dat, rowNames = TRUE)
-writeData(biomarker_wb, "auc_summary", data.frame(AUC = AUC), rowNames = TRUE)
 
-#28 loadingPCA.metm: 载荷矩阵筛选特征微生物------
-res = loadingPCA.metm(ps = ps.micro,Top = 20)
+#28 聚类降维类 PCA ：loadingPCA.metm: 载荷矩阵筛选特征微生物------
+res = loadingPCA.metm(ps = pst,Top = 20)
 p34.1 = res[[1]]
 p34.1+theme_classic()
 dat = res[[2]]
@@ -910,8 +924,8 @@ ggsave(file.path(biomarkerpath, "pca_loading.pdf"), plot = p34.1, width = 10, he
 addWorksheet(biomarker_wb, "pca_loading_data")
 writeData(biomarker_wb, "pca_loading_data", dat, rowNames = TRUE)
 
-#29 LDA.metm: LDA筛选特征微生物-----
-tablda = LDA.metm(ps = ps.micro,
+#29 聚类降维类 LDA: LDA筛选特征微生物-----
+tablda = LDA.metm(ps = pst,
                    Top = 10,
                    p.lvl = 0.05,
                    lda.lvl = 4,
@@ -936,8 +950,8 @@ writeData(biomarker_wb, "lda_parameters", data.frame(
   Value = c("10", "0.05", "4", "11", "FALSE")
 ))
 
-#30 svm.metm:svm筛选特征微生物 ----
-res <- svm_metm(ps = pst %>% filter_OTU_ps(20), k = 5)
+#30 支持向量机 svm： svm.metm:svm筛选特征微生物 ----
+res <- svm_metm(ps = pst %>% filter_OTU_ps(100), k = 5)
 AUC = res[[1]]
 AUC
 importance = res[[2]]
@@ -949,7 +963,7 @@ addWorksheet(biomarker_wb, "svm_feature_importance")
 writeData(biomarker_wb, "svm_auc", data.frame(AUC = AUC))
 writeData(biomarker_wb, "svm_feature_importance", importance, rowNames = TRUE)
 
-#31 glm.metm :glm筛选特征微生物----
+#31 线性模型 glm :glm筛选特征微生物----
 res <- glm.metm (ps = pst %>% filter_OTU_ps(50), k = 5)
 AUC = res[[1]]
 AUC
@@ -962,7 +976,23 @@ addWorksheet(biomarker_wb, "glm_feature_importance")
 writeData(biomarker_wb, "glm_auc", data.frame(AUC = AUC))
 writeData(biomarker_wb, "glm_feature_importance", importance, rowNames = TRUE)
 
-#32 xgboost.metm: xgboost筛选特征微生物----
+
+#33 线性模型 lasso: lasso筛选特征微生物----
+library(glmnet)
+res =lasso.metm(ps =  pst, top = 20, seed = 1010, k = 5)
+accuracy = res[[1]]
+accuracy
+importance = res[[2]]
+importance
+
+# 保存Lasso分析数据
+addWorksheet(biomarker_wb, "lasso_accuracy")
+addWorksheet(biomarker_wb, "lasso_feature_importance")
+writeData(biomarker_wb, "lasso_accuracy", data.frame(Accuracy = accuracy))
+writeData(biomarker_wb, "lasso_feature_importance", importance, rowNames = TRUE)
+
+
+#32 树模型 xgboost: xgboost筛选特征微生物----
 library(xgboost)
 library(Ckmeans.1d.dp)
 library(mia)
@@ -979,21 +1009,7 @@ addWorksheet(biomarker_wb, "xgboost_feature_importance")
 writeData(biomarker_wb, "xgboost_accuracy", data.frame(Accuracy = accuracy))
 writeData(biomarker_wb, "xgboost_feature_importance", importance_data, rowNames = TRUE)
 
-#33 lasso.metm: lasso筛选特征微生物----
-library(glmnet)
-res =lasso.metm(ps =  pst, top = 20, seed = 1010, k = 5)
-accuracy = res[[1]]
-accuracy
-importance = res[[2]]
-importance
-
-# 保存Lasso分析数据
-addWorksheet(biomarker_wb, "lasso_accuracy")
-addWorksheet(biomarker_wb, "lasso_feature_importance")
-writeData(biomarker_wb, "lasso_accuracy", data.frame(Accuracy = accuracy))
-writeData(biomarker_wb, "lasso_feature_importance", importance, rowNames = TRUE)
-
-#34 decisiontree.micro:----
+#34 树模型：decisiontree.micro:----
 library(rpart)
 res =decisiontree.metm(ps=pst, top = 50, seed = 6358, k = 5)
 accuracy = res[[1]]
@@ -1007,20 +1023,8 @@ addWorksheet(biomarker_wb, "tree_feature_importance")
 writeData(biomarker_wb, "tree_accuracy", data.frame(Accuracy = accuracy))
 writeData(biomarker_wb, "tree_feature_importance", importance, rowNames = TRUE)
 
-#35 naivebayes.metm: bayes筛选特征微生物----
-res = naivebayes.metm(ps=pst, top = 20, seed = 1010, k = 5)
-accuracy = res[[1]]
-accuracy
-importance = res[[2]]
-importance
+#36 树模型 randomforest: 随机森林筛选特征微生物----
 
-# 保存朴素贝叶斯分析数据
-addWorksheet(biomarker_wb, "naivebayes_accuracy")
-addWorksheet(biomarker_wb, "naivebayes_feature_importance")
-writeData(biomarker_wb, "naivebayes_accuracy", data.frame(Accuracy = accuracy))
-writeData(biomarker_wb, "naivebayes_feature_importance", importance, rowNames = TRUE)
-
-#36 randomforest.metm: 随机森林筛选特征微生物----
 res = randomforest.metm( ps = pst%>% filter_OTU_ps(20),group  = "Group", optimal = 20)
 p42.1 = res[[1]]
 p42.1+theme_classic()
@@ -1043,7 +1047,7 @@ ggsave(file.path(biomarkerpath, "rf_additional.pdf"), plot = p42.4, width = 10, 
 addWorksheet(biomarker_wb, "rf_feature_importance")
 writeData(biomarker_wb, "rf_feature_importance", dat, rowNames = TRUE)
 
-#37 bagging.metm: Bootstrap Aggregating筛选特征微生物 ------
+#37 树模型 bagging: Bootstrap Aggregating筛选特征微生物 ------
 library(ipred)
 res =bagging.metm(ps =  pst, top = 20, seed = 1010, k = 5)
 accuracy = res[[1]]
@@ -1057,8 +1061,26 @@ addWorksheet(biomarker_wb, "bagging_feature_importance")
 writeData(biomarker_wb, "bagging_accuracy", data.frame(Accuracy = accuracy))
 writeData(biomarker_wb, "bagging_feature_importance", importance, rowNames = TRUE)
 
-#38 nnet.metm : 神经网络筛选特征微生物 ------
-res =nnet.metm (ps=pst, top = 100, seed = 1010, k = 5)
+
+#35 贝叶斯类 naivebayes: bayes筛选特征微生物----
+res = naivebayes.metm(ps=pst, top = 20, seed = 1010, k = 5)
+accuracy = res[[1]]
+accuracy
+importance = res[[2]]
+importance
+
+# 保存朴素贝叶斯分析数据
+addWorksheet(biomarker_wb, "naivebayes_accuracy")
+addWorksheet(biomarker_wb, "naivebayes_feature_importance")
+writeData(biomarker_wb, "naivebayes_accuracy", data.frame(Accuracy = accuracy))
+writeData(biomarker_wb, "naivebayes_feature_importance", importance, rowNames = TRUE)
+
+
+
+#38 深度学习 nnet.metm :浅层神经网络 ------
+options(expressions = 500000)
+
+res = nnet.metm(ps=pst %>% filter_OTU_ps(100), seed = 1010, k = 5)
 accuracy = res[[1]]
 accuracy
 importance = res[[2]]
@@ -1070,6 +1092,104 @@ addWorksheet(biomarker_wb, "nnet_feature_importance")
 writeData(biomarker_wb, "nnet_accuracy", data.frame(Accuracy = accuracy))
 writeData(biomarker_wb, "nnet_feature_importance", importance, rowNames = TRUE)
 saveWorkbook(biomarker_wb, file.path(biomarkerpath, "biomarker_results.xlsx"), overwrite = TRUE)
+
+
+
+#  39 深度学习 MLP #-----------
+
+
+res = mlp_metm_neuralnet(pst %>% filter_OTU_ps(1000), group = "Group",
+                   hidden = c(20, 10),
+                               seed = 123,
+                               k = 5,
+                               threshold = 0.01)
+res[[1]]
+
+
+# 40 集成学习1 #----
+library(phyloseq)
+library(randomForest)
+library(xgboost)
+library(glmnet)
+library(caret)
+library(pROC)
+library(zCompositions)
+library(compositions)
+library(e1071)
+
+# 假设 ps 是你的 phyloseq 对象，Group 为二分类标签
+fit <- stacking_RF_XGB_SVM(pst, outcome_col = "Group", k = 5)
+
+# 查看 CV 指标对比
+fit$summary_metrics
+
+
+# 预测（返回各基模型概率 + stacking 最终预测）
+pred <- fit$predict(pst)
+head(pred)
+
+# 集成学习2#------
+
+fit <- stacking_RF_EN_XGB(pst, outcome_col="Group", k=5)
+
+# 查看 CV 性能比较
+fit$summary_metrics
+
+# 预测
+pred <- fit$predict(pst)
+
+
+
+
+#26 rfcv.metm :交叉验证结果-------
+library(randomForest)
+library(caret)
+library(ROCR) ##用于计算ROC
+library(e1071)
+result = rfcv.metm(ps = pst %>% filter_OTU_ps(100),
+                   group  = "Group",optimal = 20,nrfcvnum = 6)
+
+prfcv = result[[1]]
+
+prfcv+theme_classic()
+
+# result[[2]]# plotdata
+rfcvtable = result[[3]]
+rfcvtable
+
+# 保存随机森林交叉验证图片
+ggsave(file.path(biomarkerpath, "rfcv_plot.png"), plot = prfcv, width = 10, height = 8)
+ggsave(file.path(biomarkerpath, "rfcv_plot.pdf"), plot = prfcv, width = 10, height = 8)
+
+# 保存随机森林交叉验证数据
+biomarker_wb <- createWorkbook()
+addWorksheet(biomarker_wb, "rfcv_plot_data")
+addWorksheet(biomarker_wb, "rfcv_summary_table")
+writeData(biomarker_wb, "rfcv_plot_data", result[[2]], rowNames = TRUE)
+writeData(biomarker_wb, "rfcv_summary_table", rfcvtable, rowNames = TRUE)
+
+#27 Roc.metm:ROC 曲线绘制----
+
+res = Roc.metm( ps = pst %>% filter_OTU_ps(500),group  = "Group",repnum = 5)
+p33.1 =  res[[1]]
+p33.1+theme_classic()
+AUC =  res[[2]]
+AUC
+dat =  res[[3]]
+dat
+
+# 保存ROC分析图片
+ggsave(file.path(biomarkerpath, "roc_curve.png"), plot = p33.1, width = 10, height = 8)
+ggsave(file.path(biomarkerpath, "roc_curve.pdf"), plot = p33.1, width = 10, height = 8)
+
+# 保存ROC分析数据
+addWorksheet(biomarker_wb, "roc_results")
+addWorksheet(biomarker_wb, "auc_summary")
+writeData(biomarker_wb, "roc_results", dat, rowNames = TRUE)
+writeData(biomarker_wb, "auc_summary", data.frame(AUC = AUC), rowNames = TRUE)
+
+
+
 
 #network analysis -----
 # 创建网络分析主目录

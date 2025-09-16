@@ -279,8 +279,10 @@ lefse.micro <- function(ps, group = "Group", alpha = 0.05) {
   dat <- tablda[[2]]; dat$ID <- row.names(dat)
   dat2 <- dat %>% dplyr::filter(stringr::str_detect(ID,"st__"))
   dat2$OTU <- gsub("st__","",dat2$ID)
+  print(1)
   tab.d <- dat2 %>% dplyr::filter(Pvalues < alpha) %>%
-    dplyr::select(OTU,Pvalues) %>% dplyr::rename(p = Pvalues) %>%
+    dplyr::select(OTU,Pvalues) %>%
+    dplyr::rename(p = Pvalues) %>%
     dplyr::mutate(group = "LEfSe")
   list(tab.LEfSe = dat2,
        diff.tab = data.frame(micro = tab.d$OTU, method = tab.d$group, adjust.p = tab.d$p))
@@ -294,7 +296,7 @@ limma.v.TMM.micro <- function(ps, group="Group", alpha=0.05, method="TMM") {
 
   # OTU 表
   ASV_table <- ps %>%
-    filter_taxa(function(x) sum(x) > 0, TRUE) %>%
+    phyloseq::filter_taxa(function(x) sum(x) > 0, TRUE) %>%
     vegan_otu() %>% t() %>% as.data.frame()
 
   # 提取 metadata，转成干净的 data.frame

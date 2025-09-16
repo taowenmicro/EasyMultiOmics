@@ -3,7 +3,6 @@
 #' A neural network, one of the machine learning methods, was used to screen for characteristic
 #' microorganisms, and the model was evaluated using k-fold cross-validation.
 #' @param ps A phyloseq format file used as an alternative for the input containing otu, tax, and map.
-#' @param top The top microorganisms to consider.
 #' @param seed The random seed for reproducibility.
 #' @param k The number of folds for cross-validation.
 #' @return A list object including the following components:
@@ -16,16 +15,16 @@
 #' @examples
 #' library(dplyr)
 #' library(ggClusterNet)
-#' res =nnet.metm(ps=ps, top = 100, seed = 1010, k = 5)
+#' res =nnet.metm(ps=ps, seed = 1010, k = 5)
 #' accuracy = res[[1]]
 #' accuracy
 #' importance = res[[2]]
 #' importance
 
-nnet.metm <- function(ps=ps, top = 20, seed = 1010, k = 5) {
+nnet.metm <- function(ps=ps, seed = 1010, k = 5) {
   set.seed(seed)
   # 数据准备
-  ps.cs <- ps %>% filter_OTU_ps(top)
+  ps.cs <- ps# %>% filter_OTU_ps(top)
   map <- as.data.frame(phyloseq::sample_data(ps.cs))
   otutab <- as.data.frame(t(ggClusterNet::vegan_otu(ps.cs)))
   colnames(otutab) <- gsub("-", "_", colnames(otutab))
@@ -42,7 +41,7 @@ nnet.metm <- function(ps=ps, top = 20, seed = 1010, k = 5) {
     fold_train <- test[-folds[[i]], ]
 
     # 训练 nnet 模型
-    a_nn <- nnet::nnet(OTUgroup ~ ., data = fold_train, size = 2, rang = 0.1, decay = 5e-4, MaxNWts = 84581, maxit = 200)
+    a_nn <- nnet::nnet(OTUgroup ~ ., data = fold_train, size = 20, rang = 0.1, decay = 2e-4, MaxNWts = 84581, maxit = 500)
 
     # 得到测试集的预测值
     pred <- predict(a_nn, newdata = fold_test, type = 'class')

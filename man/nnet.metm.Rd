@@ -4,12 +4,10 @@
 \alias{nnet.metm}
 \title{Neural network screening of characteristic microorganisms}
 \usage{
-nnet.metm(ps = ps, top = 20, seed = 1010, k = 5)
+nnet.metm(ps = ps, seed = 1010, k = 5)
 }
 \arguments{
 \item{ps}{A phyloseq format file used as an alternative for the input containing otu, tax, and map.}
-
-\item{top}{The top microorganisms to consider.}
 
 \item{seed}{The random seed for reproducibility.}
 
@@ -27,7 +25,7 @@ microorganisms, and the model was evaluated using k-fold cross-validation.
 \examples{
 library(dplyr)
 library(ggClusterNet)
-res =nnet.metm(ps=ps, top = 100, seed = 1010, k = 5)
+res =nnet.metm(ps=ps, seed = 1010, k = 5)
 accuracy = res[[1]]
 accuracy
 importance = res[[2]]
