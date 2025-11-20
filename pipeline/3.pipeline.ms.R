@@ -8,7 +8,7 @@ library(ggrepel)
 library(EasyMultiOmics.db)
 library(openxlsx)
 
-ps.ms = EasyMultiOmics::ps.ms
+ps.ms =  readRDS("../20250922集中分析一批次多组学项目测试asyMultiOmics包/石慧敏/data/ps_GC_soil.rds")
 
 #--提取有多少个分组
 gnum = phyloseq::sample_data(ps.ms)$Group %>% unique() %>% length()
@@ -27,8 +27,8 @@ colset1 = res[[3]];colset2 = res[[4]];colset3 = res[[5]];colset4 = res[[6]]
 # annoation & normalization
 #1 ann.HMDB: 代谢物注释------
 # 创建annotation目录
-dir.create("./result/metabolite", showWarnings = FALSE)
-dir.create("./result/metabolite/annotation", showWarnings = FALSE)
+dir.create("../20250922集中分析一批次多组学项目测试asyMultiOmics包/石慧敏//metabolite", showWarnings = FALSE)
+dir.create("../20250922集中分析一批次多组学项目测试asyMultiOmics包/石慧敏//annotation", showWarnings = FALSE)
 
 tax= ps.ms %>% vegan_tax() %>%
   as.data.frame()
@@ -278,9 +278,12 @@ writeData(wb_classification, "ternary_data", dat, rowNames = TRUE)
 #16 barMainplot.ms 代谢物分类堆叠柱状图#--------
 rank.names(ps.ms)
 
-j = "Class"
-result = barMainplot.ms(ps = ps.ms,
-                        j = "Class",
+tax = ps.ms %>% vegan_tax() %>% as.data.frame()
+head(tax)
+tax$compound_first_category %>% unique()
+ps.ms2 = ps.ms %>% subset_taxa.wt("compound_first_category",c("-"),TRUE)
+result = barMainplot.ms(ps = ps.ms2,
+                        j = "compound_second_category" ,
                         # axis_ord = axis_order,
                         label = FALSE,
                         sd = FALSE,

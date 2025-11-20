@@ -38,7 +38,7 @@
 #' }
 #'
 #' @author Contact: Tao Wen \email{2018203048@@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njqu.edu.cn}
-#'
+#' @export
 
 
 

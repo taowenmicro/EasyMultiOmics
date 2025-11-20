@@ -1,6 +1,6 @@
 # 扩增子微生物组学分析#-----
 rm(list=ls())
-# library(EasyMultiOmics)
+library(EasyMultiOmics)
 library(phyloseq)
 library(tidyverse)
 library(ggClusterNet)
@@ -8,19 +8,41 @@ library(ggrepel)
 library(ggsci)
 
 # 定义后续参数-----
-ps.16s =  EasyMultiOmics::ps.16s
+# # 弹出文件选择窗口，选择 RDS 文件
+# file_path <- file.choose()
+# # 读入数据
+# ps.16s <- readRDS(file_path)
+library(tcltk)
+file_path <- tcltk::tk_choose.files(
+  caption = "请选择 ps_ITS.rds 文件",
+  multi = FALSE,
+  filters = matrix(c("RDS files", ".rds",
+                     "All files", "*"), ncol = 2, byrow = TRUE)
+)
+
+
+ps.16s <- readRDS(file_path)
+ps.16s
+
+
+
 map= sample_data(ps.16s)
 head(map)
+
+
 # 提取分组因子数量
 gnum = phyloseq::sample_data(ps.16s)$Group %>% unique() %>% length()
 gnum
 #--设定排序顺序1：按照ps.16s对象中map文件顺序进行
 axis_order =  phyloseq::sample_data(ps.16s)$Group %>%unique();axis_order
-col.g =  c("KO" = "#D55E00", "WT" = "#0072B2", "OE" = "#009E73")
+
+# col.g =  c("KO" = "#D55E00", "WT" = "#0072B2", "OE" = "#009E73")
+col.g <- gen_colors(axis_order, palette = "Dark2")
+col.g
 
 # 创建扩增子微生物组分析目录
-amplicon_path =  "./result/amplicon/"
-dir.create(amplicon_path)
+amplicon_path =  "../2.pipeline.amp.amplicon.16S"
+fs::dir_create(amplicon_path)
 
 #-主题--颜色等
 package.amp()
@@ -28,6 +50,7 @@ res = theme_my(ps.16s)
 mytheme1 = res[[1]]
 mytheme2 = res[[2]];
 colset1 = res[[3]];colset2 = res[[4]];colset3 = res[[5]];colset4 = res[[6]]
+
 
 # alpha diversity -----
 # 创建Alpha多样性分析目录
@@ -47,8 +70,8 @@ data = cbind(data.frame(ID = 1:length(tab$Group),group = tab$Group),tab[all.alph
 head(data)
 data$ID = as.character(data$ID)
 
-result = MuiKwWlx2(data = data,num = 3:9)
-result1 = FacetMuiPlotresultBox(data = data,num = 3:9,
+result = MuiaovMcomper2(data = data,num = 3:9)
+result1 = FacetMuiPlotresultBox2(data = data,num = 3:9,
                                 result = result,
                                 sig_show ="abc",ncol = 4 )
 p1_1 = result1[[1]]
@@ -67,7 +90,7 @@ p1_2+
   ggplot2::guides(fill = guide_legend(title = NULL)) +
   ggplot2::scale_fill_manual(values = col.g)
 
-res = EasyStat::FacetMuiPlotReBoxBar(data = data,num = c(3:(9)),result = result,sig_show ="abc",ncol = 3)
+res = FacetMuiPlotReBoxBar(data = data,num = c(3:(9)),result = result,sig_show ="abc",ncol = 3)
 p1_3 = res[[1]]
 p1_3+
   ggplot2::scale_x_discrete(limits = axis_order) +
@@ -104,7 +127,12 @@ writeData(amplicon_alpha_wb, "alpha_diversity_data", data, rowNames = TRUE)
 #2 alpha.pd :用于计算pd多样性#-------
 library(ape)
 library(picante)
-tab2 = alpha.pd.micro(ps16s)
+
+map = ps.16s %>% sample_data()
+map$ID = row.names(map)
+sample_data(ps.16s) = map
+
+tab2 = alpha.pd.micro(ps.16s)
 head(tab2)
 result = MuiKwWlx2(data = tab2,num = 3)
 result1 = FacetMuiPlotresultBox(data = tab2,num = 3,
@@ -161,7 +189,7 @@ dir.create(amplicon_beta_path, recursive = TRUE)
 amplicon_beta_wb <- createWorkbook()
 
 #4 ordinate.micro: 排序分析#----------
-result = ordinate.micro(ps = ps.16s, group = "Group", dist = "bray",
+result = ordinate.micro(ps = ps.16s , group = "Group", dist = "bray",
                         method = "PCoA", Micromet = "anosim", pvalue.cutoff = 0.05,
                         pair = F)
 p3_1 = result[[1]]
@@ -240,7 +268,7 @@ addWorksheet(amplicon_beta_wb, "mantel_results")
 writeData(amplicon_beta_wb, "mantel_results", data, rowNames = TRUE)
 
 #8 cluster.micro:样品聚类#-----
-res = cluster.micro (ps= ps.16s,
+res = cluster_micro(ps= ps.16s,
                      hcluter_method = "complete",
                      dist = "bray",
                      cuttree = 3,
@@ -267,20 +295,18 @@ addWorksheet(amplicon_beta_wb, "cluster_results")
 writeData(amplicon_beta_wb, "cluster_results", dat, rowNames = TRUE)
 
 #9 distance.micro:分组之间距离比对#-----
-res = distance.micro(ps.16s,group = "Group")
+res = distance.micro2(ps = ps.16s,group = "Group")
 p5.1 = res[[1]]
-p5.1 +
-  mytheme1
+p5.1
 p5.2 = res[[2]]
 p5.2 +
-  scale_fill_manual(values = colset1)+
+  scale_fill_manual(values = colset2)+
   scale_color_manual(values = colset1,guide = F)+theme_nature()+
   theme(axis.title.y = element_text(angle = 90))
 p5.3 = res[[3]]
 p5.3 +
-  scale_fill_manual(values = colset1)+
-  scale_color_manual(values = colset1,guide = F) +theme_nature()+
-  theme(axis.title.y = element_text(angle = 90))
+  scale_fill_manual(values = colset2)+
+  theme(axis.title.x = element_text(angle = 90))
 dat = res[[4]]
 head(dat)
 
@@ -307,7 +333,7 @@ amplicon_composition_wb <- createWorkbook()
 
 #10 Ven.Upset.micro: 用于展示共有、特有的OTU/ASV----
 # 分组小于6时使用
-res = Ven.Upset.micro(ps =  ps.16s,
+res = Ven.Upset.metm(ps =  ps.16s,
                       group = "Group",
                       N = 0.5,
                       size = 3)
@@ -349,9 +375,9 @@ library("ggpubr")
 library(agricolae)
 library(reshape2)
 
-result = VenSuper.micro(ps = ps.16s,
+result = VenSuper.metm(ps = ps.16s,
                         group =  "Group",
-                        num = 6
+                        num = 3
 )
 # 提取韦恩图中全部部分的otu极其丰度做门类柱状图
 p7_1 <- result[[1]]
@@ -415,29 +441,34 @@ addWorksheet(amplicon_composition_wb, "venn_network_data")
 writeData(amplicon_composition_wb, "venn_network_data", dat, rowNames = TRUE)
 
 #15 Micro_tern.micro: 三元图展示组成----
-res = Micro_tern.micro(ps.16s %>% filter_OTU_ps(100))
-p15 = res[[1]]
-p15[[1]] +theme_bw()
+p <- ps_polygon_plot(ps.16s %>% filter_OTU_ps(10000), group = "Group",taxrank = "Phylum")
+print(p)
 
-dat =  res[[2]]
-head(dat)
+
+# res = Micro_tern.micro(ps.16s %>% filter_OTU_ps(100))
+# p15 = res[[1]]
+# p15[[1]] +theme_bw()
+#
+# dat =  res[[2]]
+# head(dat)
 
 # 保存三元图结果
-ggsave(file.path(amplicon_composition_path, "ternary_plot.png"), plot = p15[[1]], width = 10, height = 8, dpi = 300)
-ggsave(file.path(amplicon_composition_path, "ternary_plot.pdf"), plot = p15[[1]], width = 10, height = 8)
-addWorksheet(amplicon_composition_wb, "ternary_data")
-writeData(amplicon_composition_wb, "ternary_data", dat, rowNames = TRUE)
+ggsave(file.path(amplicon_composition_path, "ternary_plot.png"), plot = p, width = 10, height = 8, dpi = 300)
+ggsave(file.path(amplicon_composition_path, "ternary_plot.pdf"), plot = p, width = 10, height = 8)
+# addWorksheet(amplicon_composition_wb, "ternary_data")
+# writeData(amplicon_composition_wb, "ternary_data", dat, rowNames = TRUE)
 
 #16 barMainplot.micro: 堆积柱状图展示组成----
 library(ggalluvial)
 pst = ps.16s %>% subset_taxa.wt("Species","Unassigned",TRUE)
 pst = pst %>% subset_taxa.wt("Genus","Unassigned",TRUE)
+rank.names(pst)
 result = barMainplot.micro(ps = pst,
                            j = "Genus",
                            # axis_ord = axis_order,
                            label = FALSE,
                            sd = FALSE,
-                           Top =5)
+                           Top =10)
 p4_1 <- result[[1]]
 p4_1+
   scale_fill_manual(values = colset2) +
@@ -464,7 +495,7 @@ addWorksheet(amplicon_composition_wb, "barplot_data")
 writeData(amplicon_composition_wb, "barplot_data", databar, rowNames = TRUE)
 
 #17 cluMicro.bar.micro: 聚类堆积柱状图展示组成 问题-----
-result <-  cluMicro.bar.micro (dist = "bray",
+result <-  cluMicro.bar.metm (dist = "bray",
                                ps = ps.16s,
                                j = "Genus",
                                Top = 10, # 提取丰度前十的物种注释
@@ -513,6 +544,13 @@ ggsave(file.path(amplicon_composition_path, "circular_barplot.png"), plot = p17,
 ggsave(file.path(amplicon_composition_path, "circular_barplot.pdf"), plot = p17, width = 10, height = 10)
 addWorksheet(amplicon_composition_wb, "circular_barplot_data")
 writeData(amplicon_composition_wb, "circular_barplot_data", dat, rowNames = TRUE)
+
+
+
+
+
+
+
 
 #19 cir_plot.micro:和弦图展示物种组成-----
 res = cir_plot.micro(ps  = ps.16s,Top = 12,rank = 6)
@@ -650,13 +688,15 @@ dir.create(amplicon_diff_path, recursive = TRUE)
 amplicon_diff_wb <- createWorkbook()
 
 #25 EdgerSuper.micro:EdgeR计算差异微生物----
-res = EdgerSuper.micro(ps = ps.16s %>% ggClusterNet::filter_OTU_ps(500),group  = "Group",artGroup = NULL, j = "OTU")
+res = EdgerSuper.micro(ps = ps.16s %>%
+                         tax_glom_wt(6) %>%
+                         ggClusterNet::filter_OTU_ps(500),group  = "Group",artGroup = NULL, j = "OTU")
 
-p25.1 =  res[[1]][1]
+p25.1 =  res[[1]][[1]]
 p25.1
-p25.2 =  res[[1]][2]
+p25.2 =  res[[1]][[2]]
 p25.2
-p25.3 =  res[[1]][3]
+p25.3 =  res[[1]][[3]]
 p25.3
 dat =  res[[2]]
 head(dat)
@@ -675,6 +715,12 @@ writeData(amplicon_diff_wb, "EdgeR_results", dat, rowNames = TRUE)
 res =  EdgerSuper2.micro (ps = ps.16s,group  = "Group",artGroup =NULL, j = "OTU")
 head(res)
 
+res %>% filter(level != "nosig") %>% .$group %>% table()
+
+
+
+
+
 # 保存EdgeR2结果
 addWorksheet(amplicon_diff_wb, "EdgeR2_results")
 writeData(amplicon_diff_wb, "EdgeR2_results", res, rowNames = TRUE)
@@ -684,11 +730,11 @@ res = DESep2Super.micro(ps = ps.16s %>% ggClusterNet::filter_OTU_ps(500),
                         group  = "Group",
                         artGroup =NULL,
                         j = "OTU")
-p26.1 =  res[[1]][1]
+p26.1 =  res[[1]][[1]]
 p26.1
-p26.2 =  res[[1]][2]
+p26.2 =  res[[1]][[2]]
 p26.2
-p26.3 =  res[[1]][3]
+p26.3 =  res[[1]][[3]]
 p26.3
 dat =  res[[2]]
 dat

@@ -36,3 +36,26 @@
     "Run browseVignettes(\"EasyMultiOmics\") for documentation.\n"
   )
 }
+
+
+
+gen_colors <- function(groups, palette = "Set1") {
+  # 去掉重复，保持原有顺序
+  groups <- unique(groups)
+
+  # 选择颜色方案（默认RColorBrewer）
+  n <- length(groups)
+  if (!requireNamespace("RColorBrewer", quietly = TRUE)) {
+    stop("请先安装 RColorBrewer 包：install.packages('RColorBrewer')")
+  }
+
+  # 如果分组数超过调色板上限，自动扩展颜色
+  cols <- RColorBrewer::brewer.pal(min(n, 8), palette)
+  if (n > 8) {
+    cols <- grDevices::colorRampPalette(cols)(n)
+  }
+
+  # 生成命名向量
+  col.g <- setNames(cols, groups)
+  return(col.g)
+}
