@@ -19,7 +19,7 @@ library(fs)
 # project_root   <- "E:/Shared_Folder/师晶晶氮肥梯度样本"
 # amplicon_path  <- file.path(project_root, "amplicon.16S")
 # dir_create(amplicon_path)
-amplicon_path = "./result/"
+amplicon_path = "./result2/"
 get_group_cols <- function(groups,
                            palette = c("npg", "nejm", "lancet")) {
   palette <- match.arg(palette)
@@ -156,8 +156,8 @@ write_sheet2 <- function(wb, sheet_name, df, row_names = TRUE) {
 # )
 
 # 方式二：直接指定路径
-# file_path <- "./data/ps_its.rds"
-# ps.16s    <- readRDS(file_path)
+file_path <- "./data/ps_16s.rds"
+ps.16s    <- readRDS(file_path)
 ps.16s
 
 map <- sample_data(ps.16s)
@@ -290,29 +290,36 @@ openxlsx::saveWorkbook(amplicon_alpha_wb, alpha_xlsx_path, overwrite = TRUE)
 
 ### ---------- 2.2 alpha.pd.micro：PD 多样性 ----------
 # 这里修正了原来的小 bug：用 ps.16s，而不是 ps16s
-tab2    <- alpha.pd.micro(ps.16s)
-head(tab2)
+## ---- PD 多样性分析（仅在存在进化树时运行） ----
+if (!is.null(phyloseq::phy_tree(ps.16s, errorIfNULL = FALSE))) {
+  tab2    <- alpha.pd.micro(ps.16s)
+  head(tab2)
 
-result_pd  <- MuiKwWlx2(data = tab2, num = 3)
-result_pd1 <- FacetMuiPlotresultBox(
-  data   = tab2,
-  num    = 3,
-  result = result_pd,
-  sig_show = "abc",
-  ncol     = 1
-)
-p_pd <- result_pd1[[1]] +
-  theme_nature() +
-  ggplot2::guides(fill = guide_legend(title = NULL)) +
-  ggplot2::scale_fill_manual(values = colset1)
+  result_pd  <- MuiKwWlx2(data = tab2, num = 3)
+  result_pd1 <- FacetMuiPlotresultBox(
+    data    = tab2,
+    num     = 3,
+    result  = result_pd,
+    sig_show = "abc",
+    ncol     = 1
+  )
+  p_pd <- result_pd1[[1]] +
+    theme_nature() +
+    ggplot2::guides(fill = guide_legend(title = NULL)) +
+    ggplot2::scale_fill_manual(values = colset1)
 
-## ---- 保存 PD 图 ----
-save_plot2(p_pd, amplicon_alpha_path, "pd_diversity", width = 8, height = 6)
+  ## ---- 保存 PD 图 ----
+  save_plot2(p_pd, amplicon_alpha_path, "pd_diversity", width = 8, height = 6)
 
-## ---- 保存 PD 表 ----
-write_sheet2(amplicon_alpha_wb, "pd_diversity_data", tab2)
-write_sheet2(amplicon_alpha_wb, "pd_diversity_stat", result_pd)
-openxlsx::saveWorkbook(amplicon_alpha_wb, alpha_xlsx_path, overwrite = TRUE)
+  ## ---- 保存 PD 表 ----
+  write_sheet2(amplicon_alpha_wb, "pd_diversity_data", tab2)
+  write_sheet2(amplicon_alpha_wb, "pd_diversity_stat", result_pd)
+  openxlsx::saveWorkbook(amplicon_alpha_wb, alpha_xlsx_path, overwrite = TRUE)
+
+} else {
+  message("未检测到进化树（phy_tree 为空），已跳过 PD 多样性分析和表格输出。")
+}
+
 
 ### ---------- 2.3 alpha.rare.line: alpha 多样性稀释曲线 ----------
 
@@ -494,32 +501,22 @@ openxlsx::saveWorkbook(amplicon_beta_wb ,beta_xlsx_path, overwrite = TRUE)
 
 
 
-# ### ---------- 3.6 distance.micro: 分组间距离比较 ----------
-#
-# res_dist <- distance.micro2(ps.16s, group = "Group")
-#
-# p5.1 <- res_dist[[1]] + mytheme1
-#
-# p5.2 <- res_dist[[2]] +
-#   scale_fill_manual(values = col.g) +
-#   scale_color_manual(values = col.g, guide = "none") +
-#   theme_nature() +
-#   theme(axis.title.y = element_text(angle = 90))
-#
-# p5.3 <- res_dist[[3]] +
-#   scale_fill_manual(values = col.g) +
-#   scale_color_manual(values = col.g, guide = "none") +
-#   theme_nature() +
-#   theme(axis.title.y = element_text(angle = 90))
-#
-# dat_d <- res_dist[[4]]
-#
-# save_plot2(p5.1, amplicon_beta_path, "distance_plot1", width = 10, height = 8)
-# save_plot2(p5.2, amplicon_beta_path, "distance_plot2", width = 10, height = 8)
-# save_plot2(p5.3, amplicon_beta_path, "distance_plot3", width = 10, height = 8)
-#
-# write_sheet2(amplicon_beta_wb, "distance_data", dat_d)
-# openxlsx::saveWorkbook(amplicon_beta_wb ,beta_xlsx_path, overwrite = TRUE)
+### ---------- 3.6 distance.micro: 分组间距离比较 ----------
+
+res_dist <- distance.micro(ps.16s, group = "Group")
+
+p5.1 <- res_dist[[1]] + res_dist[[2]] +
+  scale_fill_manual(values = col.g) +
+  scale_color_manual(values = col.g, guide = "none") +
+  theme_nature() +
+  theme(axis.title.y = element_text(angle = 90))
+
+dat_d <- res_dist[[4]]
+
+save_plot2(p5.1, amplicon_beta_path, "distance_plot1", width = 10, height = 8)
+
+write_sheet2(amplicon_beta_wb, "distance_data", dat_d)
+openxlsx::saveWorkbook(amplicon_beta_wb ,beta_xlsx_path, overwrite = TRUE)
 
 
 ## ===================== 4. 组成（composition）分析 =====================
@@ -600,7 +597,7 @@ library(reshape2)
 res12 <- VenSuper.metm(
   ps    = ps.16s,
   group = "Group",
-  num   = 6
+  num   = 5
 )
 
 p12_1 <- res12[[1]]   # 所有部分门水平柱状图
@@ -696,7 +693,14 @@ openxlsx::saveWorkbook(amplicon_composition_wb, comp_xlsx_path, overwrite = TRUE
 ### ---------- 16. barMainplot.micro: 堆积柱状图 ----------
 
 library(ggalluvial)
-detach("package:mia")
+## 如果已加载 mia 包，则卸载
+if ("package:mia" %in% search()) {
+  message("检测到已加载包：mia，正在 detach...")
+  detach("package:mia", unload = TRUE)
+} else {
+  message("当前环境中未加载包：mia。")
+}
+
 
 pst <- ps.16s %>% subset_taxa.wt("Species", "Unassigned", TRUE)
 pst <- pst %>% subset_taxa.wt("Genus",   "Unassigned", TRUE)
@@ -1584,29 +1588,31 @@ openxlsx::saveWorkbook(amplicon_network_wb, network_xlsx_path, overwrite = TRUE)
 
 ### ---------- 56. community.stability: 网络稳定性-群落稳定性 ----------
 
-# 设置配对样本信息
-treat = sample_data(ps.16s)
-# treat$pair = paste( "A",c(rep(1:10,3)),sep = "")
-# sample_data(ps.16s) = treat
+if (FALSE) {
+  # 设置配对样本信息
+  treat = sample_data(ps.16s)
+  # treat$pair = paste( "A",c(rep(1:10,3)),sep = "")
+  # sample_data(ps.16s) = treat
 
-# 群落稳定性分析
-res5 = community.stability( ps = ps.16s,
-                            corg = cor,
-                            time = FALSE)
-p6 = res5[[1]]
-dat7 = res5[[2]]
+  # 群落稳定性分析
+  res5 = community.stability( ps = ps.16s,
+                              corg = cor,
+                              time = FALSE)
+  p6 = res5[[1]]
+  dat7 = res5[[2]]
 
-# 保存群落稳定性结果
-save_plot2(
-  p6,
-  amplicon_network_path,
-  "community_stability",
-  width = 10,
-  height = 8
-)
+  # 保存群落稳定性结果
+  save_plot2(
+    p6,
+    amplicon_network_path,
+    "community_stability",
+    width = 10,
+    height = 8
+  )
 
-write_sheet2(amplicon_network_wb, "community_stability", dat7)
-openxlsx::saveWorkbook(amplicon_network_wb, network_xlsx_path, overwrite = TRUE)
+  write_sheet2(amplicon_network_wb, "community_stability", dat7)
+  openxlsx::saveWorkbook(amplicon_network_wb, network_xlsx_path, overwrite = TRUE)
+}
 
 ### ---------- 57. natural.con.microp: 网络稳定性-网络抗毁性 ----------
 
@@ -1774,7 +1780,7 @@ n = map$Group %>% unique() %>% length()
 
 ### ---------- 61. neutralModel: 中性模型 ----------
 
-result = neutralModel(ps = psphy, group  = "Group", ncol = n)
+result = neutralModel(ps = ps.16s, group  = "Group", ncol = n)
 p43 =  result[[1]]
 dat = result[[3]][[1]]
 dat2 = result[[4]][[1]]
@@ -1785,32 +1791,32 @@ save_plot2(
   amplicon_assembly_path,
   "neutral_model",
   width = 12,
-  height = 8
+  height = 6
 )
 
 write_sheet2(amplicon_assembly_wb, "neutral_model_data1", dat)
 write_sheet2(amplicon_assembly_wb, "neutral_model_data2", dat2)
 openxlsx::saveWorkbook(amplicon_assembly_wb, assembly_xlsx_path, overwrite = TRUE)
 
-# ### ---------- 62. nullModel: 零模型 ----------
-#
-# result <- nullModel(ps = psphy,
-#                     group="Group",
-#                     dist.method =  "bray",
-#                     gamma.method = "total",
-#                     transfer = "none",
-#                     null.model = "ecosphere"
-# )
-#
-# nullModeltab <- result[[1]]
-# ratiotab <- result[[2]]
-# aovtab <- result[[3]]
-#
-# # 保存零模型结果
-# write_sheet2(amplicon_assembly_wb, "null_model_results", nullModeltab)
-# write_sheet2(amplicon_assembly_wb, "null_model_ratio", ratiotab)
-# write_sheet2(amplicon_assembly_wb, "null_model_aov", aovtab)
-# openxlsx::saveWorkbook(amplicon_assembly_wb, assembly_xlsx_path, overwrite = TRUE)
+### ---------- 62. nullModel: 零模型 ----------
+
+result <- EasyMultiOmics::nullModel(ps = psphy,
+                    group="Group",
+                    dist.method =  "bray",
+                    gamma.method = "total",
+                    transfer = "none",
+                    null.model = "ecosphere"
+)
+
+nullModeltab <- result[[1]]
+ratiotab <- result[[2]]
+aovtab <- result[[3]]
+
+# 保存零模型结果
+write_sheet2(amplicon_assembly_wb, "null_model_results", nullModeltab)
+write_sheet2(amplicon_assembly_wb, "null_model_ratio", ratiotab)
+write_sheet2(amplicon_assembly_wb, "null_model_aov", aovtab)
+openxlsx::saveWorkbook(amplicon_assembly_wb, assembly_xlsx_path, overwrite = TRUE)
 
 ### ---------- 63. bNTICul: β最近分类单元指数计算 ----------
 
@@ -1859,121 +1865,126 @@ openxlsx::saveWorkbook(amplicon_assembly_wb, assembly_xlsx_path, overwrite = TRU
 
 
 # ===================== 7. 其他分析（Other Analysis） =====================
+if (FALSE) {
 
-# 创建其他分析目录
-amplicon_other_path <- file.path(amplicon_path, "07_other_analysis")
-dir.create(amplicon_other_path, recursive = TRUE, showWarnings = FALSE)
+  # 创建其他分析目录
+  amplicon_other_path <- file.path(amplicon_path, "07_other_analysis")
+  dir.create(amplicon_other_path, recursive = TRUE, showWarnings = FALSE)
 
-# 其他分析 Excel 文件路径
-other_xlsx_path <- file.path(amplicon_other_path, "other_analysis_results.xlsx")
+  # 其他分析 Excel 文件路径
+  other_xlsx_path <- file.path(amplicon_other_path, "other_analysis_results.xlsx")
 
-# 若已有，则在原文件基础上追加；否则新建
-if (file.exists(other_xlsx_path)) {
-  amplicon_other_wb <- openxlsx::loadWorkbook(other_xlsx_path)
-} else {
-  amplicon_other_wb <- openxlsx::createWorkbook()
+  # 若已有，则在原文件基础上追加；否则新建
+  if (file.exists(other_xlsx_path)) {
+    amplicon_other_wb <- openxlsx::loadWorkbook(other_xlsx_path)
+  } else {
+    amplicon_other_wb <- openxlsx::createWorkbook()
+  }
+
+  ##71. FEAST.micro: 溯源分析 ----------
+  data("ps")
+
+
+  result = FEAST.micro (ps = ps,
+                        group = "Group",
+                        sinkG = "OE",
+                        sourceG = c("WT","KO")
+  )
+
+  result
+
+
+  # 保存FEAST溯源分析数据
+  write_sheet2(amplicon_other_wb, "FEAST_results", result)
+  openxlsx::saveWorkbook(amplicon_other_wb, other_xlsx_path, overwrite = TRUE)
+
+  ##72. Plot_FEAST: 溯源分析可视化分组 ----------
+  p <- Plot_FEAST(data = result)
+
+  # 保存FEAST分组可视化结果
+  save_plot2(p, amplicon_other_path, "FEAST_group", width = 10, height = 8)
+
+  ##73. MuiPlot_FEAST: 溯源分析可视化样品 ----------
+  p2 = MuiPlot_FEAST(data = result)
+
+  # 保存FEAST样品可视化结果
+  save_plot2(p2, amplicon_other_path, "FEAST_sample", width = 10, height = 8)
+
 }
-
-##71. FEAST.micro: 溯源分析 ----------
-data("ps")
-
-
-result = FEAST.micro (ps = ps,
-                     group = "Group",
-                     sinkG = "OE",
-                     sourceG = c("WT","KO")
-)
-
-result
-
-
-# 保存FEAST溯源分析数据
-write_sheet2(amplicon_other_wb, "FEAST_results", result)
-openxlsx::saveWorkbook(amplicon_other_wb, other_xlsx_path, overwrite = TRUE)
-
-##72. Plot_FEAST: 溯源分析可视化分组 ----------
-p <- Plot_FEAST(data = result)
-
-# 保存FEAST分组可视化结果
-save_plot2(p, amplicon_other_path, "FEAST_group", width = 10, height = 8)
-
-##73. MuiPlot_FEAST: 溯源分析可视化样品 ----------
-p2 = MuiPlot_FEAST(data = result)
-
-# 保存FEAST样品可视化结果
-save_plot2(p2, amplicon_other_path, "FEAST_sample", width = 10, height = 8)
-
 
 # ===================== 8. 功能预测分析（Function Prediction） =====================
+if (FALSE) {
 
-# 创建功能预测分析目录
-amplicon_function_path <- file.path(amplicon_path, "08_function_prediction")
-dir.create(amplicon_function_path, recursive = TRUE, showWarnings = FALSE)
+  # 创建功能预测分析目录
+  amplicon_function_path <- file.path(amplicon_path, "08_function_prediction")
+  dir.create(amplicon_function_path, recursive = TRUE, showWarnings = FALSE)
 
-# 功能预测分析 Excel 文件路径
-function_xlsx_path <- file.path(amplicon_function_path, "function_prediction_results.xlsx")
+  # 功能预测分析 Excel 文件路径
+  function_xlsx_path <- file.path(amplicon_function_path, "function_prediction_results.xlsx")
 
-# 若已有，则在原文件基础上追加；否则新建
-if (file.exists(function_xlsx_path)) {
-  amplicon_function_wb <- openxlsx::loadWorkbook(function_xlsx_path)
-} else {
-  amplicon_function_wb <- openxlsx::createWorkbook()
+  # 若已有，则在原文件基础上追加；否则新建
+  if (file.exists(function_xlsx_path)) {
+    amplicon_function_wb <- openxlsx::loadWorkbook(function_xlsx_path)
+  } else {
+    amplicon_function_wb <- openxlsx::createWorkbook()
+  }
+
+  library(DOSE)
+  library(GO.db)
+  library(GSEABase)
+  library(ggtree)
+  library(aplot)
+  library(clusterProfiler)
+  library("GSVA")
+  library(dplyr)
+
+  ps.kegg = ps.kegg %>% filter_OTU_ps(Top = 1000)
+  tax = ps.kegg %>% phyloseq::tax_table()
+  colnames(tax)[3] = "KOid"
+  tax_table(ps.kegg) = tax
+
+  ### ---------- 81. EdgerSuper.metf: 差异分析 ----------
+
+  res = EdgerSuper.metf (ps = ps.kegg,
+                         group  = "Group",
+                         artGroup = NULL)
+  dat = res[[2]]
+
+  # 保存差异分析结果
+  write_sheet2(amplicon_function_wb, "differential_analysis", dat)
+  openxlsx::saveWorkbook(amplicon_function_wb, function_xlsx_path, overwrite = TRUE)
+
+  ### ---------- 82. KEGG_enrich.micro: taxfun2功能富集分析 ----------
+
+  res2 = KEGG_enrich.micro(ps =  ps.kegg, dif = dat)
+  dat1= res2$`KO-OE`
+  dat2= res2$`KO-WT`
+  dat3= res2$`OE-WT`
+
+  # 保存KEGG富集分析结果
+  write_sheet2(amplicon_function_wb, "KEGG_enrich_KO_OE", dat1)
+  write_sheet2(amplicon_function_wb, "KEGG_enrich_KO_WT", dat2)
+  write_sheet2(amplicon_function_wb, "KEGG_enrich_OE_WT", dat3)
+  openxlsx::saveWorkbook(amplicon_function_wb, function_xlsx_path, overwrite = TRUE)
+
+  ### ---------- 83. buplotall.micro: taxfun2功能富集分析气泡图 ----------
+
+  Desep_group <- ps.kegg %>% sample_data() %>%
+    .$Group %>%
+    as.factor() %>%
+    levels() %>%
+    as.character()
+  cbtab = combn(Desep_group,2)
+  Desep_group = cbtab[,1]
+  group = paste(Desep_group[1], Desep_group[2], sep = "-")
+  id = paste(group,"level",sep = "")
+
+  result = buplot.micro(dt=dat1, id = id)
+  p1 = result[[1]]
+  p2 = result[[2]]
+
+  # 保存功能富集气泡图结果
+  save_plot2(p1, amplicon_function_path, "function_bubble_plot1", width = 10, height = 8)
+  save_plot2(p2, amplicon_function_path, "function_bubble_plot2", width = 10, height = 8)
+
 }
-
-library(DOSE)
-library(GO.db)
-library(GSEABase)
-library(ggtree)
-library(aplot)
-library(clusterProfiler)
-library("GSVA")
-library(dplyr)
-
-ps.kegg = ps.kegg %>% filter_OTU_ps(Top = 1000)
-tax = ps.kegg %>% phyloseq::tax_table()
-colnames(tax)[3] = "KOid"
-tax_table(ps.kegg) = tax
-
-### ---------- 81. EdgerSuper.metf: 差异分析 ----------
-
-res = EdgerSuper.metf (ps = ps.kegg,
-                       group  = "Group",
-                       artGroup = NULL)
-dat = res[[2]]
-
-# 保存差异分析结果
-write_sheet2(amplicon_function_wb, "differential_analysis", dat)
-openxlsx::saveWorkbook(amplicon_function_wb, function_xlsx_path, overwrite = TRUE)
-
-### ---------- 82. KEGG_enrich.micro: taxfun2功能富集分析 ----------
-
-res2 = KEGG_enrich.micro(ps =  ps.kegg, dif = dat)
-dat1= res2$`KO-OE`
-dat2= res2$`KO-WT`
-dat3= res2$`OE-WT`
-
-# 保存KEGG富集分析结果
-write_sheet2(amplicon_function_wb, "KEGG_enrich_KO_OE", dat1)
-write_sheet2(amplicon_function_wb, "KEGG_enrich_KO_WT", dat2)
-write_sheet2(amplicon_function_wb, "KEGG_enrich_OE_WT", dat3)
-openxlsx::saveWorkbook(amplicon_function_wb, function_xlsx_path, overwrite = TRUE)
-
-### ---------- 83. buplotall.micro: taxfun2功能富集分析气泡图 ----------
-
-Desep_group <- ps.kegg %>% sample_data() %>%
-  .$Group %>%
-  as.factor() %>%
-  levels() %>%
-  as.character()
-cbtab = combn(Desep_group,2)
-Desep_group = cbtab[,1]
-group = paste(Desep_group[1], Desep_group[2], sep = "-")
-id = paste(group,"level",sep = "")
-
-result = buplot.micro(dt=dat1, id = id)
-p1 = result[[1]]
-p2 = result[[2]]
-
-# 保存功能富集气泡图结果
-save_plot2(p1, amplicon_function_path, "function_bubble_plot1", width = 10, height = 8)
-save_plot2(p2, amplicon_function_path, "function_bubble_plot2", width = 10, height = 8)
