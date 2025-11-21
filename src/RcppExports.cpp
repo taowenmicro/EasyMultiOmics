@@ -23,9 +23,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// schur
+arma::mat schur(arma::mat& a, arma::mat& b);
+RcppExport SEXP _EasyMultiOmics_schur(SEXP aSEXP, SEXP bSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat& >::type a(aSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type b(bSEXP);
+    rcpp_result_gen = Rcpp::wrap(schur(a, b));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_EasyMultiOmics_rarefy_matrix", (DL_FUNC) &_EasyMultiOmics_rarefy_matrix, 2},
+    {"_EasyMultiOmics_schur", (DL_FUNC) &_EasyMultiOmics_schur, 2},
     {NULL, NULL, 0}
 };
 

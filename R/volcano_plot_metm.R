@@ -41,6 +41,7 @@
 #' @export
 volcano_plot_metm <- function(
     x1,
+    group = group,
     p_cut   = 0.05,
     lfc_cut = 1,
     top_n   = 8,
@@ -137,7 +138,9 @@ volcano_plot_metm <- function(
       panel.grid.major.x = element_blank(),
       axis.line = element_blank(),
       legend.position = "right"
-    )
+    ) +
+    ggtitle(group)
+
 
   if (exists("theme_cell", mode = "function")) {
     p <- p + theme_cell()

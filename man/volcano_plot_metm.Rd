@@ -6,6 +6,7 @@
 \usage{
 volcano_plot_metm(
   x1,
+  group = group,
   p_cut = 0.05,
   lfc_cut = 1,
   top_n = 8,

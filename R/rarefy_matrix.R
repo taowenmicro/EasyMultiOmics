@@ -11,3 +11,4 @@
 rarefy_matrix <- function(mat, N) {
   .Call("_EasyMultiOmics_rarefy_matrix", PACKAGE = "EasyMultiOmics", mat, N)
 }
+

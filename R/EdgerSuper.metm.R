@@ -115,6 +115,7 @@ EdgerSuper.metm =function (otu = NULL, tax = NULL, map = NULL, tree = NULL, ps =
   d2 = edgeR::estimateGLMTagwiseDisp(d2, design.mat)
   fit = edgeR::glmFit(d2, design.mat)
   plot_list <- list()
+  # i = 1
   for (i in 1:dim(aaa)[2]) {
     Desep_group = aaa[, i]
     print(Desep_group)
@@ -157,7 +158,9 @@ EdgerSuper.metm =function (otu = NULL, tax = NULL, map = NULL, tree = NULL, ps =
     #                                                                                                                   "red2", "gray30")) + ggtitle(group) + theme_bw()
     # p
 
-    res <- volcano_plot_metm(x1, shade = TRUE)
+    res <- volcano_plot_metm(x1,
+                             group = group,
+                             shade = TRUE)
     p = res[[1]]
 
 
