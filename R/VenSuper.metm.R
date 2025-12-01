@@ -113,12 +113,12 @@ VenSuper.metm <- function(ps, group = "Group", num = 6) {
       phyloseq::sample_data(ps_rela)
     )
 
-    # 去掉没有OTU的分组
-    sub_groups <- colnames(ven2)[which(ven2[i, ] != 0)]
-    sample_map <- as.data.frame(phyloseq::sample_data(ps_sub))
-    sample_map <- sample_map[sample_map[[group]] %in% sub_groups, , drop = FALSE]
-    rownames(sample_map) <- rownames(sample_map)
-    phyloseq::sample_data(ps_sub) <- sample_map
+    # # 去掉没有OTU的分组
+    # sub_groups <- colnames(ven2)[which(ven2[i, ] != 0)]
+    # sample_map <- as.data.frame(phyloseq::sample_data(ps_sub))
+    # sample_map <- sample_map[sample_map[[group]] %in% sub_groups, , drop = FALSE]
+    # rownames(sample_map) <- rownames(sample_map)
+    # phyloseq::sample_data(ps_sub) <- sample_map
 
     # Step6: 堆叠柱状图
     bar_res <- barMainplot.metm(ps = ps_sub, j = "Phylum", Top = 10, tran = FALSE, sd = FALSE, label = FALSE)

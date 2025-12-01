@@ -20,12 +20,12 @@
 #' library(ggClusterNet)
 #' library(caret)
 #' ps =ps.kegg %>% filter_OTU_ps(Top = 1000)
-#' res =bagging.metf(ps =ps, top = 100, seed = 1010, k = 5)
+#' res =bagging_metf(ps =ps, top = 100, seed = 1010, k = 5)
 #' accuracy = res[[1]]
 #' accuracy
 #' importance = res[[2]]
 #' importance
-bagging.metf <- function(ps=ps, top = 20, seed = 1010, k = 5) {
+bagging_metf <- function(ps=ps, top = 20, seed = 1010, k = 5) {
   set.seed(seed)
 
   # 数据准备

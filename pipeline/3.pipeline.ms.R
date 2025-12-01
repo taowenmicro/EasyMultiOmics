@@ -1,6 +1,6 @@
 # 代谢组学数据挖掘-----
 rm(list=ls())
-# library(EasyMultiOmics)
+library(EasyMultiOmics)
 library(phyloseq)
 library(tidyverse)
 library(ggClusterNet)
@@ -8,1208 +8,1106 @@ library(ggrepel)
 library(EasyMultiOmics.db)
 library(openxlsx)
 
-ps.ms =  readRDS("../20250922集中分析一批次多组学项目测试asyMultiOmics包/石慧敏/data/ps_GC_soil.rds")
+## ===================== 0. 基础设置 & 通用函数 =====================
 
-#--提取有多少个分组
-gnum = phyloseq::sample_data(ps.ms)$Group %>% unique() %>% length()
-gnum
 
-# 设定排序顺序
-axis_order = phyloseq::sample_data(ps.ms)$Group %>% unique()
+## ===================== 1. 读入数据 & 主题设置 =====================
+# 方式一：交互选择
+# file_path <- tcltk::tk_choose.files(
+#   caption = "请选择 ps_ITS.rds 文件",
+#   multi   = FALSE,
+#   filters = matrix(c("RDS files", ".rds",
+#                      "All files", "*"), ncol = 2, byrow = TRUE)
+# )
+# 方式二：直接指定路径
+# file_path <- "./data/ps_16s.rds"
+# ps.16s    <- readRDS(file_path)
+# ps.16s
+# ps.ms <- EasyMultiOmics::ps.ms
+ps.ms <-readRDS( "E:/Shared_Folder/Help_project24.01/冯明峰病毒番茄微生物/data/ps_GC.rds") %>% subset_taxa.wt("KEGG COMPOUND ID",NA,TRUE)
 
-#-主题--
-package.amp()
-res = theme_my(ps.ms)
-mytheme1 = res[[1]]
-mytheme2 = res[[2]];
-colset1 = res[[3]];colset2 = res[[4]];colset3 = res[[5]];colset4 = res[[6]]
 
-# annoation & normalization
-#1 ann.HMDB: 代谢物注释------
-# 创建annotation目录
-dir.create("../20250922集中分析一批次多组学项目测试asyMultiOmics包/石慧敏//metabolite", showWarnings = FALSE)
-dir.create("../20250922集中分析一批次多组学项目测试asyMultiOmics包/石慧敏//annotation", showWarnings = FALSE)
-
-tax= ps.ms %>% vegan_tax() %>%
-  as.data.frame()
+tax = ps.ms %>% vegan_tax() %>% as.data.frame()
 head(tax)
-id = tax$Metabolite
 
-#-HMDB数据库注释
-tax1 = ann.HMDB (id = id)
-head(tax1)
-colnames(tax1)
-tax1 = tax1 %>% distinct(id,.keep_all = TRUE) %>%
+# # 基础路径
+# metabolite_path <- "../result/metabolite/"
+# dir.create(metabolite_path, recursive = TRUE, showWarnings = FALSE)
+out_dir <- create_omics_result_dir_auto(ps.ms,
+                                        base_dir = "../result",
+                                        include_time = FALSE)
+
+
+
+gnum <- phyloseq::sample_data(ps.ms)$Group %>% unique() %>% length()
+axis_order <- phyloseq::sample_data(ps.ms)$Group %>% unique()
+col.g <- get_group_cols(axis_order)
+scales::show_col(col.g)
+
+
+
+package.amp()
+res <- theme_my(ps.ms)
+mytheme1 <- res[[1]]
+mytheme2 <- res[[2]]
+colset1 <- res[[3]]
+colset2 <- res[[4]]
+colset3 <- res[[5]]
+colset4 <- res[[6]]
+
+## ===================== 2. 注释 & 标准化 =====================
+
+metabolite_annotation_path <- file.path(metabolite_path, "01_annotation")
+dir.create(metabolite_annotation_path, recursive = TRUE, showWarnings = FALSE)
+
+annotation_xlsx_path <- file.path(metabolite_annotation_path, "annotation_results.xlsx")
+
+if (file.exists(annotation_xlsx_path)) {
+  metabolite_annotation_wb <- openxlsx::loadWorkbook(annotation_xlsx_path)
+} else {
+  metabolite_annotation_wb <- openxlsx::createWorkbook()
+}
+
+### ---------- 1. ann.HMDB: 代谢物注释 ----------
+
+tax <- ps.ms %>% vegan_tax() %>%
+  as.data.frame()
+
+head(tax)
+id <- tax$ID
+
+tax1 <- ann.HMDB(id = id)
+
+
+tax1 <- tax1 %>% distinct(id, .keep_all = TRUE) %>%
   column_to_rownames("id")
-head(tax1)
 
-tax$ID = row.names(tax)
-colnames(tax)
-tax3 = tax %>% left_join(tax1,by = c("Metabolite" = "id.org"))
-head(tax3)
-row.names(tax3) = tax3$metab_id
-tax_table(ps.ms) = phyloseq::tax_table(as.matrix(tax3))
+tax$ID <- row.names(tax)
+tax3 <- tax %>% left_join(tax1, by = c("ID" = "id.org"))
+row.names(tax3) <- tax3$metab_id
+tax_table(ps.ms) <- phyloseq::tax_table(as.matrix(tax3))
 
-# 保存HMDB注释结果
-wb_annotation <- createWorkbook()
-addWorksheet(wb_annotation, "HMDB_annotation")
-writeData(wb_annotation, "HMDB_annotation", tax3, rowNames = TRUE)
+write_sheet2(metabolite_annotation_wb, "HMDB_annotation", tax3)
+openxlsx::saveWorkbook(metabolite_annotation_wb, annotation_xlsx_path, overwrite = TRUE)
 
-#2 ann.kegg2: 代谢物注释KEGG数据库导入文件 ----
-tax2 = ann.kegg(id)
-head(tax2)
+### ---------- 2. ann.kegg2: 代谢物注释KEGG数据库 ----------
 
-#--注释kegg数据库算法2
-tax2 = ann.kegg2(id)
-head(tax2)
+tax2 <- ann.kegg(id)
 
-# 保存KEGG注释结果
-addWorksheet(wb_annotation, "KEGG_annotation")
-writeData(wb_annotation, "KEGG_annotation", tax2, rowNames = TRUE)
-saveWorkbook(wb_annotation, "./result/metabolite/annotation/annotation_results.xlsx", overwrite = TRUE)
+write_sheet2(metabolite_annotation_wb, "KEGG_annotation", tax2)
+openxlsx::saveWorkbook(metabolite_annotation_wb, annotation_xlsx_path, overwrite = TRUE)
 
-#3 zone.fill.ms:空值均值填充-----
-ps.ms2 = zone.fill.ms(ps = ps.ms,method = "repeat")
+### ---------- 3. 数据预处理 ----------
 
-#4 scale_IS.ms ----
-ps.ms2 = scale_IS.ms(ps = ps.ms,IS = "metab_8497")
+ps.ms2 <- zone.fill.ms(ps = ps.ms, method = "repeat")
+# ps.ms2 <- scale_IS.ms(ps = ps.ms, IS = "metab_8497")
+# ps.ms2 <- scale_QC.ms(ps = ps.ms, QC = c("OE36_2", "OE36_3", "OE2_1"))
+ps.ms2 <- normalize.ms(ps = ps.ms, method = "rela")
 
-#5 scale_QC.ms  ----
-ps.ms2 = scale_QC.ms(ps = ps.ms,
-                     QC = c("OE36_2","OE36_3","OE2_1"))
+## ===================== 3. 排序分析 =====================
 
-#6 normalize.ms  ----
-ps.ms2 = normalize.ms(ps = ps.ms,method = "rela")
+metabolite_ordinate_path <- file.path(metabolite_path, "02_ordinate")
+dir.create(metabolite_ordinate_path, recursive = TRUE, showWarnings = FALSE)
 
-# ordinate analysis
-#7 ordinate.ms:  代谢物排序分析----
-# 创建ordinate目录
-dir.create("./result/metabolite/ordinate", showWarnings = FALSE)
+ordinate_xlsx_path <- file.path(metabolite_ordinate_path, "ordinate_results.xlsx")
 
-result = ordinate.ms(ps = ps.ms, group = "Group", dist = "bray",
-                     method = "PCoA", Micromet = "anosim", pvalue.cutoff = 0.05,
-                     pair = F)
-p3_1 = result[[1]]
-p3_1_final = p3_1 +
-  scale_fill_manual(values = colset1)+
-  scale_color_manual(values = colset1,guide = F) +
+if (file.exists(ordinate_xlsx_path)) {
+  metabolite_ordinate_wb <- openxlsx::loadWorkbook(ordinate_xlsx_path)
+} else {
+  metabolite_ordinate_wb <- openxlsx::createWorkbook()
+}
+
+### ---------- 7. ordinate.ms: 代谢物排序分析 ----------
+
+result <- ordinate.ms(ps = ps.ms, group = "Group", dist = "bray",
+                      method = "PCoA", Micromet = "anosim", pvalue.cutoff = 0.05,
+                      pair = FALSE)
+
+p3_1 <- result[[1]] +
+  scale_fill_manual(values = colset1) +
+  scale_color_manual(values = colset1, guide = FALSE) +
   mytheme1
 
-#带标签图形出图
-p3_2 = result[[3]]
-p3_2_final = p3_2 +
-  scale_fill_manual(values = colset1)+
-  scale_color_manual(values = colset1,guide = F) +
+plotdata <- result[[2]]
+
+p3_2 <- result[[3]] +
+  scale_fill_manual(values = colset1) +
+  scale_color_manual(values = colset1, guide = FALSE) +
   mytheme1
 
-#---------排序-精修图
-plotdata =result[[2]]
-head(plotdata)
-# 求均值
-cent <- aggregate(cbind(x,y) ~Group, data = plotdata, FUN = mean)
-cent
-# 合并到样本坐标数据中
-segs <- merge(plotdata, setNames(cent, c('Group','oNMDS1','oNMDS2')),
+cent <- aggregate(cbind(x, y) ~ Group, data = plotdata, FUN = mean)
+segs <- merge(plotdata, setNames(cent, c('Group', 'oNMDS1', 'oNMDS2')),
               by = 'Group', sort = FALSE)
 
-library(ggsci)
-p3_3 = p3_1 +geom_segment(data = segs,
-                          mapping = aes(xend = oNMDS1,
-                                        yend = oNMDS2,color = Group),show.legend=F,
-                          alpha = 0.5
-) + # spiders
-  geom_point(mapping = aes(x = x, y = y,fill = Group ),
-             data = cent, size = 5,pch = 23,
-             color = "black")
-p3_3_final = p3_3 +
-  scale_fill_manual(values = colset1)+
-  scale_color_manual(values = colset1,guide = F) +
+p3_3 <- p3_1 + geom_segment(data = segs,
+                            mapping = aes(xend = oNMDS1,
+                                          yend = oNMDS2, color = Group), show.legend = FALSE,
+                            alpha = 0.5
+) +
+  geom_point(mapping = aes(x = x, y = y, fill = Group),
+             data = cent, size = 5, pch = 23,
+             color = "black") +
+  scale_fill_manual(values = colset1) +
+  scale_color_manual(values = colset1, guide = FALSE) +
   mytheme1
 
-# 保存PCoA图形和数据
-ggsave("./result/metabolite/ordinate/PCoA_plot.pdf", p3_1_final, width = 8, height = 6)
-ggsave("./result/metabolite/ordinate/PCoA_plot.png", p3_1_final, width = 8, height = 6, dpi = 300)
-ggsave("./result/metabolite/ordinate/PCoA_with_labels.pdf", p3_2_final, width = 8, height = 6)
-ggsave("./result/metabolite/ordinate/PCoA_with_labels.png", p3_2_final, width = 8, height = 6, dpi = 300)
-ggsave("./result/metabolite/ordinate/PCoA_refined.pdf", p3_3_final, width = 8, height = 6)
-ggsave("./result/metabolite/ordinate/PCoA_refined.png", p3_3_final, width = 8, height = 6, dpi = 300)
+save_plot2(p3_1, metabolite_ordinate_path, "PCoA_basic", width = 8, height = 6)
+save_plot2(p3_2, metabolite_ordinate_path, "PCoA_labeled", width = 8, height = 6)
+save_plot2(p3_3, metabolite_ordinate_path, "PCoA_refined", width = 8, height = 6)
 
-wb_ordinate <- createWorkbook()
-addWorksheet(wb_ordinate, "PCoA_coordinates")
-writeData(wb_ordinate, "PCoA_coordinates", plotdata, rowNames = TRUE)
-addWorksheet(wb_ordinate, "centroids")
-writeData(wb_ordinate, "centroids", cent, rowNames = TRUE)
+write_sheet2(metabolite_ordinate_wb, "PCoA_coordinates", plotdata)
+write_sheet2(metabolite_ordinate_wb, "centroids", cent)
+openxlsx::saveWorkbook(metabolite_ordinate_wb, ordinate_xlsx_path, overwrite = TRUE)
 
-#8 MicroTest.ms:代谢组总体差异检测#-------
-dat1 = MicroTest.ms(ps = ps.ms, Micromet = "adonis", dist = "bray")
-dat1
+### ---------- 8. MicroTest.ms: 代谢组总体差异检测 ----------
 
-# 保存总体差异检测结果
-addWorksheet(wb_ordinate, "overall_test")
-writeData(wb_ordinate, "overall_test", dat1, rowNames = TRUE)
+dat1 <- MicroTest.ms(ps = ps.ms, Micromet = "adonis", dist = "bray")
 
-#9 pairMicroTest.ms:两两分组代谢总体水平差异检测#-------
-dat2 = pairMicroTest.ms(ps= ps.ms, Micromet = "MRPP", dist = "bray")
-dat2
+write_sheet2(metabolite_ordinate_wb, "overall_test", dat1)
+openxlsx::saveWorkbook(metabolite_ordinate_wb, ordinate_xlsx_path, overwrite = TRUE)
 
-# 保存两两比较结果
-addWorksheet(wb_ordinate, "pairwise_test")
-writeData(wb_ordinate, "pairwise_test", dat2, rowNames = TRUE)
+### ---------- 9. pairMicroTest.ms: 两两分组代谢总体水平差异检测 ----------
 
-#10 mantal.ms:代谢群落差异检测普鲁士分析-----
-map= sample_data(ps.ms)
-head(map)
+dat2 <- pairMicroTest.ms(ps = ps.ms, Micromet = "MRPP", dist = "bray")
+
+write_sheet2(metabolite_ordinate_wb, "pairwise_test", dat2)
+openxlsx::saveWorkbook(metabolite_ordinate_wb, ordinate_xlsx_path, overwrite = TRUE)
+
+### ---------- 10. mantal.ms: 代谢群落差异检测普鲁士分析 ----------
+
 result <- mantal.ms(ps = ps.ms,
-                    method =  "spearman",
+                    method = "spearman",
                     group = "Group",
                     ncol = gnum,
                     nrow = 1)
 
 data <- result[[1]]
-data
-p3_7 <- result[[2]]
+p3_7 <- result[[2]] + mytheme1
 
-# 保存mantel检验结果
-ggsave("./result/metabolite/ordinate/mantel_test.pdf", p3_7, width = 10, height = 6)
-ggsave("./result/metabolite/ordinate/mantel_test.png", p3_7, width = 10, height = 6, dpi = 300)
-addWorksheet(wb_ordinate, "mantel_test")
-writeData(wb_ordinate, "mantel_test", data, rowNames = TRUE)
+save_plot2(p3_7, metabolite_ordinate_path, "mantel_test", width = gnum*5, height = 6)
 
-#11 plsda.ms:plsda排序分析-----
+write_sheet2(metabolite_ordinate_wb, "mantel_test", data)
+openxlsx::saveWorkbook(metabolite_ordinate_wb, ordinate_xlsx_path, overwrite = TRUE)
+
+### ---------- 11. plsda.ms: plsda排序分析 ----------
+
 library(ggalt)
 library(vegan)
 library(mixOmics)
-library(ggplot2)
 library(ggforce)
 library(caret)
-res = plsda.ms(ps=ps.ms,Group = "Group")
-p11 = res [[1]]
-p11
-dat = res[[2]]
-dat
 
-# 保存PLS-DA结果
-ggsave("./result/metabolite/ordinate/PLSDA_plot.pdf", p11, width = 8, height = 6)
-ggsave("./result/metabolite/ordinate/PLSDA_plot.png", p11, width = 8, height = 6, dpi = 300)
-addWorksheet(wb_ordinate, "PLSDA_data")
-writeData(wb_ordinate, "PLSDA_data", dat, rowNames = TRUE)
+res <- plsda_ms(ps = ps.ms, Group = "Group")
+p11 <- res[[1]]
+dat <- res[[2]]
 
-#12 oplsda.ms:oplsda排序分析 ----
-library(pacman)
-library(ggsci)
+save_plot2(p11, metabolite_ordinate_path, "PLSDA_plot", width = 8, height = 6)
+
+write_sheet2(metabolite_ordinate_wb, "PLSDA_data", dat)
+openxlsx::saveWorkbook(metabolite_ordinate_wb, ordinate_xlsx_path, overwrite = TRUE)
+
+### ---------- 12. oplsda.ms: oplsda排序分析 ----------
+
 library(ropls)
-res = oplsda.ms(ps = ps.ms, ncol=3,nrow = 1)
 
-p12 = res[1]
-dat = res[2]
+res <- oplsda.ms(ps = ps.ms, ncol = 3, nrow = 1)
 
-# 保存OPLS-DA结果
+p12 <- res[1]
+dat <- res[2]
+
 if(is.ggplot(p12[[1]])) {
-  ggsave("./result/metabolite/ordinate/OPLSDA_plot.pdf", p12[[1]], width = 12, height = 4)
-  ggsave("./result/metabolite/ordinate/OPLSDA_plot.png", p12[[1]], width = 12, height = 4, dpi = 300)
+  save_plot2(p12[[1]], metabolite_ordinate_path, "OPLSDA_plot", width = 12, height = 4)
 }
 if(is.data.frame(dat[[1]])) {
-  addWorksheet(wb_ordinate, "OPLSDA_data")
-  writeData(wb_ordinate, "OPLSDA_data", dat[[1]], rowNames = TRUE)
+  write_sheet2(metabolite_ordinate_wb, "OPLSDA_data", dat[[1]])
 }
-saveWorkbook(wb_ordinate, "./result/metabolite/ordinate/ordinate_results.xlsx", overwrite = TRUE)
+openxlsx::saveWorkbook(metabolite_ordinate_wb, ordinate_xlsx_path, overwrite = TRUE)
 
-#  metabolite classification
-#13 Ven.Ups.mset.ms: 用于展示共有、特有的代谢物----
-# 创建classification目录
-dir.create("./result/metabolite/classification", showWarnings = FALSE)
+## ===================== 4. 代谢物分类 =====================
 
-# 分组小于6时使用
-res = Ven.Upset.ms(ps =  ps.ms,
-                   group = "Group",
-                   N = 0.5,
-                   size = 3)
-p10.1 = res[[1]]
-p10.1
-dat = res[[2]]
-dat
+metabolite_classification_path <- file.path(metabolite_path, "03_classification")
+dir.create(metabolite_classification_path, recursive = TRUE, showWarnings = FALSE)
 
-# 保存Venn/Upset图结果
-ggsave("./result/metabolite/classification/Venn_Upset_plot.pdf", p10.1, width = 10, height = 8)
-ggsave("./result/metabolite/classification/Venn_Upset_plot.png", p10.1, width = 10, height = 8, dpi = 300)
+classification_xlsx_path <- file.path(metabolite_classification_path, "classification_results.xlsx")
 
-wb_classification <- createWorkbook()
-addWorksheet(wb_classification, "Venn_Upset_data")
-writeData(wb_classification, "Venn_Upset_data", dat, rowNames = TRUE)
+if (file.exists(classification_xlsx_path)) {
+  metabolite_classification_wb <- openxlsx::loadWorkbook(classification_xlsx_path)
+} else {
+  metabolite_classification_wb <- openxlsx::createWorkbook()
+}
 
-#14 ggflower.ms: 花瓣图展示共有特有代谢物------
-res <- ggflower.ms(ps= ps.ms ,
-                   # rep = 1,
-                   group = "Group",
-                   start = 1, # 风车效果
-                   m1 = 1, # 花瓣形状，方形到圆形到棱形，数值逐渐减少。
-                   a = 0.2, # 花瓣胖瘦
-                   b = 1, # 花瓣距离花心的距离
-                   lab.leaf = 1, # 花瓣标签到圆心的距离
-                   col.cir = "yellow",
-                   N = 0.5 )
+### ---------- 13. Ven.Upset.ms: 用于展示共有、特有的代谢物 ----------
 
-p14 = res[[1]]
-p14
-dat = res[[2]]
-dat
-
-# 保存花瓣图结果
-ggsave("./result/metabolite/classification/flower_plot.pdf", p14, width = 8, height = 8)
-ggsave("./result/metabolite/classification/flower_plot.png", p14, width = 8, height = 8, dpi = 300)
-addWorksheet(wb_classification, "flower_data")
-writeData(wb_classification, "flower_data", dat, rowNames = TRUE)
-
-#15 Ms_tern.ms: 三元图展示组成----
-ps1 = ps.ms %>% filter_OTU_ps(500)
-res = Ms_tern.ms(ps1, color = "Mode")
-p15 = res[[1]]
-p15_final = p15[[1]] +theme_bw()
-
-dat =  res[[2]]
+res <- Ven.Upset.metm(ps = ps.ms,
+                      group = "Group",
+                      N = 0.5,
+                      size = 3)
+p10.1 <- res[[1]]
+dat <- res[[3]]
 head(dat)
+str(p10.1)
 
-# 保存三元图结果
-ggsave("./result/metabolite/classification/ternary_plot.pdf", p15_final, width = 8, height = 8)
-ggsave("./result/metabolite/classification/ternary_plot.png", p15_final, width = 8, height = 8, dpi = 300)
-addWorksheet(wb_classification, "ternary_data")
-writeData(wb_classification, "ternary_data", dat, rowNames = TRUE)
+save_plot2(p10.1, metabolite_classification_path, "Venn_Upset_plot", width = 10, height = 8)
 
-#16 barMainplot.ms 代谢物分类堆叠柱状图#--------
-rank.names(ps.ms)
+write_sheet2(metabolite_classification_wb, "Venn_Upset_data", dat)
+openxlsx::saveWorkbook(metabolite_classification_wb, classification_xlsx_path, overwrite = TRUE)
 
-tax = ps.ms %>% vegan_tax() %>% as.data.frame()
-head(tax)
-tax$compound_first_category %>% unique()
-ps.ms2 = ps.ms %>% subset_taxa.wt("compound_first_category",c("-"),TRUE)
-result = barMainplot.ms(ps = ps.ms2,
-                        j = "compound_second_category" ,
-                        # axis_ord = axis_order,
-                        label = FALSE,
-                        sd = FALSE,
-                        Top = 12)
-p4_1 <- result[[1]] +scale_fill_brewer(palette = "Paired")
-p4_1
-p4_2  <- result[[3]] +
+### ---------- 14. ggflower.ms: 花瓣图展示共有特有代谢物 ----------
+
+res <- ggflower.ms(ps = ps.ms,
+                   group = "Group",
+                   start = 1,
+                   m1 = 1,
+                   a = 0.2,
+                   b = 1,
+                   lab.leaf = 1,
+                   col.cir = "yellow",
+                   N = 0.5)
+
+p14 <- res[[1]]
+dat <- res[[2]]
+
+save_plot2(p14, metabolite_classification_path, "flower_plot", width = 8, height = 8)
+
+write_sheet2(metabolite_classification_wb, "flower_data", dat)
+openxlsx::saveWorkbook(metabolite_classification_wb, classification_xlsx_path, overwrite = TRUE)
+
+### ---------- 15. Ms_tern.ms: 三元图展示组成 ----------
+
+ps1 <- ps.ms %>% subset_samples.wt("Group","GM",TRUE) %>%
+  filter_OTU_ps(500)
+res <- Ms_tern.ms(ps1)
+p15 <- res[[1]]
+p15_final <- p15[[1]] + theme_bw()
+
+dat <- res[[2]]
+
+save_plot2(p15_final, metabolite_classification_path, "ternary_plot", width = 8, height = 8)
+
+write_sheet2(metabolite_classification_wb, "ternary_data", dat)
+openxlsx::saveWorkbook(metabolite_classification_wb, classification_xlsx_path, overwrite = TRUE)
+
+### ---------- 16. barMainplot.ms: 代谢物分类堆叠柱状图 ----------
+
+j <- "Class"
+result <- barMainplot.ms(ps = ps.ms,
+                         j = "Class",
+                         label = FALSE,
+                         sd = FALSE,
+                         Top = 12)
+p4_1 <- result[[1]] + scale_fill_brewer(palette = "Paired")
+p4_2 <- result[[3]] +
   scale_fill_manual(values = colset3) +
   scale_x_discrete(limits = axis_order)
-# mytheme1
-p4_2
 
 databar <- result[[2]] %>%
-  dplyr::group_by(Group,aa) %>%
+  dplyr::group_by(Group, aa) %>%
   dplyr::summarise(sum(Abundance)) %>% as.data.frame()
-colnames(databar) = c("Group",j,"Abundance(%)")
-head(databar)
+colnames(databar) <- c("Group", j, "Abundance(%)")
 
-# 保存堆叠柱状图结果
-ggsave("./result/metabolite/classification/stacked_barplot1.pdf", p4_1, width = 10, height = 6)
-ggsave("./result/metabolite/classification/stacked_barplot1.png", p4_1, width = 10, height = 6, dpi = 300)
-ggsave("./result/metabolite/classification/stacked_barplot2.pdf", p4_2, width = 10, height = 6)
-ggsave("./result/metabolite/classification/stacked_barplot2.png", p4_2, width = 10, height = 6, dpi = 300)
-addWorksheet(wb_classification, "stacked_bar_data")
-writeData(wb_classification, "stacked_bar_data", databar, rowNames = TRUE)
+save_plot2(p4_1, metabolite_classification_path, "stacked_barplot1", width = 10, height = 6)
+save_plot2(p4_2, metabolite_classification_path, "stacked_barplot2", width = 10, height = 6)
 
-#17 cluMicro.bar.micro: 聚类堆积柱状图展示组成 -----
-res <-  cluMicro.bar.ms (dist = "bray",
-                         ps= ps.ms,
-                         j = "Class",
-                         Top = 10, # 提取丰度前十的物种注释
-                         tran = TRUE, # 转化为相对丰度值
-                         hcluter_method = "complete",
-                         Group = "Group",
-                         cuttree = length(unique(phyloseq::sample_data(ps.ms)$Group)))
+write_sheet2(metabolite_classification_wb, "stacked_bar_data", databar)
+openxlsx::saveWorkbook(metabolite_classification_wb, classification_xlsx_path, overwrite = TRUE)
 
-p17.1 = res[[1]]
-p17.1
-p17.2 <- res[[2]]
-p17.2
-p17.3 <- res[[3]]
-p17.3
-p17.4 <- res[[4]]
-p17.4
-clubardata <- res[[5]]
-clubardata
+### ---------- 17. cluMicro.bar.ms: 聚类堆积柱状图展示组成 ----------
 
-# 保存聚类堆积柱状图结果
-ggsave("./result/metabolite/classification/cluster_barplot1.pdf", p17.1, width = 10, height = 6)
-ggsave("./result/metabolite/classification/cluster_barplot1.png", p17.1, width = 10, height = 6, dpi = 300)
-ggsave("./result/metabolite/classification/cluster_barplot2.pdf", p17.2, width = 10, height = 6)
-ggsave("./result/metabolite/classification/cluster_barplot2.png", p17.2, width = 10, height = 6, dpi = 300)
-ggsave("./result/metabolite/classification/cluster_barplot3.pdf", p17.3, width = 10, height = 6)
-ggsave("./result/metabolite/classification/cluster_barplot3.png", p17.3, width = 10, height = 6, dpi = 300)
-ggsave("./result/metabolite/classification/cluster_barplot4.pdf", p17.4, width = 10, height = 6)
-ggsave("./result/metabolite/classification/cluster_barplot4.png", p17.4, width = 10, height = 6, dpi = 300)
-addWorksheet(wb_classification, "cluster_bar_data")
-writeData(wb_classification, "cluster_bar_data", clubardata, rowNames = TRUE)
-saveWorkbook(wb_classification, "./result/metabolite/classification/classification_results.xlsx", overwrite = TRUE)
-
-# difference analysis
-#18 cluster_plot.ms:  代谢物 层次聚类--------
-# 创建difference目录
-dir.create("./result/metabolite/difference", showWarnings = FALSE)
-
-res = cluster_plot.ms (ps= ps.ms,
+res <- cluMicro.bar.ms(dist = "bray",
+                       ps = ps.ms,
+                       j = "Class",
+                       Top = 10,
+                       tran = TRUE,
                        hcluter_method = "complete",
-                       dist = "bray",cuttree = gnum,
+                       Group = "Group",
+                       cuttree = length(unique(phyloseq::sample_data(ps.ms)$Group)))
+
+p17.1 <- res[[1]]
+p17.2 <- res[[2]]
+p17.3 <- res[[3]]
+p17.4 <- res[[4]]
+clubardata <- res[[5]]
+
+save_plot2(p17.1, metabolite_classification_path, "cluster_barplot1", width = 10, height = 6)
+save_plot2(p17.2, metabolite_classification_path, "cluster_barplot2", width = 10, height = 6)
+save_plot2(p17.3, metabolite_classification_path, "cluster_barplot3", width = 10, height = 6)
+save_plot2(p17.4, metabolite_classification_path, "cluster_barplot4", width = 10, height = 6)
+
+write_sheet2(metabolite_classification_wb, "cluster_bar_data", clubardata)
+openxlsx::saveWorkbook(metabolite_classification_wb, classification_xlsx_path, overwrite = TRUE)
+
+## ===================== 5. 差异分析 =====================
+
+metabolite_difference_path <- file.path(metabolite_path, "04_difference")
+dir.create(metabolite_difference_path, recursive = TRUE, showWarnings = FALSE)
+
+difference_xlsx_path <- file.path(metabolite_difference_path, "difference_results.xlsx")
+
+if (file.exists(difference_xlsx_path)) {
+  metabolite_difference_wb <- openxlsx::loadWorkbook(difference_xlsx_path)
+} else {
+  metabolite_difference_wb <- openxlsx::createWorkbook()
+}
+
+### ---------- 18. cluster_plot.ms: 代谢物层次聚类 ----------
+
+res <- cluster_plot.ms(ps = ps.ms,
+                       hcluter_method = "complete",
+                       dist = "bray", cuttree = gnum,
                        row_cluster = TRUE,
-                       col_cluster =  TRUE)
+                       col_cluster = TRUE)
 
-p0 = res[[1]]
-p0
-p1 = res[[2]]
-p1
-p2 = res[[3]]
-p2
-dat = res[4]
-dat
+p0 <- res[[1]]
+p1 <- res[[2]]
+p2 <- res[[3]]
+dat <- res[4]
 
-# 保存聚类分析结果
-ggsave("./result/metabolite/difference/cluster_plot1.pdf", p0, width = 10, height = 8)
-ggsave("./result/metabolite/difference/cluster_plot1.png", p0, width = 10, height = 8, dpi = 300)
-ggsave("./result/metabolite/difference/cluster_plot2.pdf", p1, width = 10, height = 8)
-ggsave("./result/metabolite/difference/cluster_plot2.png", p1, width = 10, height = 8, dpi = 300)
-ggsave("./result/metabolite/difference/cluster_plot3.pdf", p2, width = 10, height = 8)
-ggsave("./result/metabolite/difference/cluster_plot3.png", p2, width = 10, height = 8, dpi = 300)
+save_plot2(p0, metabolite_difference_path, "cluster_plot1", width = 10, height = 8)
+save_plot2(p1, metabolite_difference_path, "cluster_plot2", width = 10, height = 8)
+save_plot2(p2, metabolite_difference_path, "cluster_plot3", width = 10, height = 8)
 
-wb_difference <- createWorkbook()
-addWorksheet(wb_difference, "cluster_data")
-writeData(wb_difference, "cluster_data", dat[[1]], rowNames = TRUE)
+write_sheet2(metabolite_difference_wb, "cluster_data", dat[[1]])
+openxlsx::saveWorkbook(metabolite_difference_wb, difference_xlsx_path, overwrite = TRUE)
 
-#19 heatmap.ms:  热图展示代谢物差异----
+### ---------- 19. heatmap.ms: 热图展示代谢物差异 ----------
+
 ps.ms_rela <- ps.ms %>% scale_micro(method = "rela") %>%
   tax_glom_wt(ranks = "Class")
-result <- heatmap.ms (ps_rela= ps.ms_rela,
-                      label =  TRUE,
-                      col_cluster = TRUE,
-                      row_cluster =TRUE )
+result <- heatmap.ms(ps_rela = ps.ms_rela,
+                     label = TRUE,
+                     col_cluster = TRUE,
+                     row_cluster = TRUE)
 p19 <- result[[1]]
-p19
-# p1 +  scale_fill_gradientn(colours =colorRampPalette(RColorBrewer::brewer.pal(11,"Set3"))(60))
-p19.1<- result[[2]]
-p19.1
-dat = result[[3]]
-dat
+p19.1 <- result[[2]]
+dat <- result[[3]]
 
-# 保存热图结果
-ggsave("./result/metabolite/difference/heatmap1.pdf", p19, width = 10, height = 8)
-ggsave("./result/metabolite/difference/heatmap1.png", p19, width = 10, height = 8, dpi = 300)
-ggsave("./result/metabolite/difference/heatmap2.pdf", p19.1, width = 10, height = 8)
-ggsave("./result/metabolite/difference/heatmap2.png", p19.1, width = 10, height = 8, dpi = 300)
-addWorksheet(wb_difference, "heatmap_data")
-writeData(wb_difference, "heatmap_data", dat, rowNames = TRUE)
+save_plot2(p19, metabolite_difference_path, "heatmap1", width = 10, height = 8)
+save_plot2(p19.1, metabolite_difference_path, "heatmap2", width = 10, height = 8)
 
-#20 statSuper:  差异代谢物#----------
-#--非参数检验
-result1 = statSuper(ps = ps.ms,group  = "Group",artGroup = NULL,method = "wilcox")
-head(result1)
+write_sheet2(metabolite_difference_wb, "heatmap_data", dat)
+openxlsx::saveWorkbook(metabolite_difference_wb, difference_xlsx_path, overwrite = TRUE)
 
-#--t检验检验--建议四个重复以上
-result2 = statSuper(ps = ps.ms,group  = "Group",artGroup = NULL,method = "ttext")
-head(result2)
+### ---------- 20. statSuper: 差异代谢物 ----------
 
-# 保存差异分析结果
-addWorksheet(wb_difference, "wilcox_test")
-writeData(wb_difference, "wilcox_test", result1, rowNames = TRUE)
-addWorksheet(wb_difference, "t_test")
-writeData(wb_difference, "t_test", result2, rowNames = TRUE)
+result1 <- statSuper(ps = ps.ms, group = "Group", artGroup = NULL, method = "wilcox")
+result2 <- statSuper(ps = ps.ms, group = "Group", artGroup = NULL, method = "ttext")
 
-#21 MuiKwWlx2: 分类化合物分组差异-------
+write_sheet2(metabolite_difference_wb, "wilcox_test", result1)
+write_sheet2(metabolite_difference_wb, "t_test", result2)
+openxlsx::saveWorkbook(metabolite_difference_wb, difference_xlsx_path, overwrite = TRUE)
+
+### ---------- 21. MuiKwWlx2: 分类化合物分组差异 ----------
+
 library(EasyStat)
-library(ggClusterNet)
-map = sample_data(ps.ms)
-head(map)
-map = map[,1:2]
-sample_data(ps.ms) = map
+
+map <- sample_data(ps.ms)
+map <- map[, 1:2]
+sample_data(ps.ms) <- map
 
 dat <- ps.ms %>% scale_micro(method = "rela") %>%
   tax_glom_wt(ranks = "Class") %>%
   vegan_otu() %>%
   as.data.frame()
-head(dat)
 
-dat$id = row.names(dat)
+dat$id <- row.names(dat)
 
-dat2 = dat %>%
-  dplyr::left_join(as.tibble(sample_data(ps.ms)),by = c("id" = "ID")) %>%
+dat2 <- dat %>%
+  dplyr::left_join(as.tibble(sample_data(ps.ms)), by = c("id" = "ID")) %>%
   dplyr::rename(group = Group) %>%
-  dplyr::select(id,group,everything())
-# dat2 %>%
-#   dim()
+  dplyr::select(id, group, everything())
 
-dat2$group = as.factor(dat2$group)
-head(dat2)
+dat2$group <- as.factor(dat2$group)
 
-result = MuiKwWlx2(data = dat2,num = c(3:dim(dat2)[2]))
+result <- MuiKwWlx2(data = dat2, num = c(3:dim(dat2)[2]))
 
-result1 = EasyStat::FacetMuiPlotresultBox(data = dat2,num = c(3:dim(dat2)[2]),result = result,sig_show ="abc",
-                                          ncol = 4 )
-p1_1 = result1[[1]] +
-  # scale_x_discrete(limits = axis_order) +
+result1 <- FacetMuiPlotresultBox(data = dat2, num = c(3:dim(dat2)[2]), result = result, sig_show = "abc",
+                                 ncol = 4)
+p1_1 <- result1[[1]] +
   mytheme2 +
   guides(fill = guide_legend(title = NULL)) +
   scale_fill_manual(values = colset1)
-p1_1
 
-res = FacetMuiPlotresultBar(data = dat2,num = c(3:dim(dat2)[2]),result = result,sig_show ="abc",
-                            ncol = 4)
-p1_2 = res[[1]]+
-  # scale_x_discrete(limits = axis_order) +
+res <- FacetMuiPlotresultBar(data = dat2, num = c(3:dim(dat2)[2]), result = result, sig_show = "abc",
+                             ncol = 4)
+p1_2 <- res[[1]] +
   guides(color = FALSE) +
   mytheme2 +
-  guides(fill = guide_legend(title = NULL))+
+  guides(fill = guide_legend(title = NULL)) +
   scale_fill_manual(values = colset1)
-p1_2
 
-res = FacetMuiPlotReBoxBar(data = dat2,num = c(3:dim(dat2)[2]),result = result,sig_show ="abc",ncol = 4)
-p1_3 = res[[1]]+
-  # scale_x_discrete(limits = axis_order) +
+res <- FacetMuiPlotReBoxBar(data = dat2, num = c(3:dim(dat2)[2]), result = result, sig_show = "abc", ncol = 4)
+p1_3 <- res[[1]] +
   mytheme2 +
-  guides(fill = guide_legend(title = NULL))+
+  guides(fill = guide_legend(title = NULL)) +
   scale_fill_manual(values = colset1)
-p1_3
 
-# 保存分类化合物差异分析结果
-ggsave("./result/metabolite/difference/class_boxplot.pdf", p1_1, width = 12, height = 8)
-ggsave("./result/metabolite/difference/class_boxplot.png", p1_1, width = 12, height = 8, dpi = 300)
-ggsave("./result/metabolite/difference/class_barplot.pdf", p1_2, width = 12, height = 8)
-ggsave("./result/metabolite/difference/class_barplot.png", p1_2, width = 12, height = 8, dpi = 300)
-ggsave("./result/metabolite/difference/class_boxbar.pdf", p1_3, width = 12, height = 8)
-ggsave("./result/metabolite/difference/class_boxbar.png", p1_3, width = 12, height = 8, dpi = 300)
-addWorksheet(wb_difference, "class_difference")
-writeData(wb_difference, "class_difference", result, rowNames = TRUE)
+save_plot2(p1_1, metabolite_difference_path, "class_boxplot", width = 12, height = 8)
+save_plot2(p1_2, metabolite_difference_path, "class_barplot", width = 12, height = 8)
+save_plot2(p1_3, metabolite_difference_path, "class_boxbar", width = 12, height = 8)
 
-#22 FacetMuiPlotresultBox :单变量统计分析-箱线图可视化--------
-#--提取差异代谢物标签
-dat = ps.ms %>%
+write_sheet2(metabolite_difference_wb, "class_difference", result)
+openxlsx::saveWorkbook(metabolite_difference_wb, difference_xlsx_path, overwrite = TRUE)
+
+### ---------- 22. FacetMuiPlotresultBox: 单变量统计分析-箱线图可视化 ----------
+
+dat <- ps.ms %>%
   ggClusterNet::vegan_otu() %>%
   as.data.frame()
-head(dat)
-# colnames(map)
-map = sample_data(ps.ms) %>% as.tibble() %>%
-  dplyr:: select(ID,Group)
-data = cbind(map[,c(1,2)],dat)
-head(data)
-colnames(data)[2] = "group"
 
-num = c(3:ncol(data))
+map <- sample_data(ps.ms) %>% as.tibble() %>%
+  dplyr::select(ID, Group)
+data <- cbind(map[, c(1, 2)], dat)
+colnames(data)[2] <- "group"
 
-#num = 18#--为了减少运行压力，修改为18个化合物
-num
+num <- c(3:ncol(data))
 
-#--分割数据
-n.fac = length(num)/ 25
-n.fac2 = ceiling(n.fac)
-A = list()
-# j  =2
+n.fac <- length(num) / 25
+n.fac2 <- ceiling(n.fac)
+A <- list()
+
 for (j in 1:n.fac2) {
-
   if (j == 1) {
-    A[[j]] = num[1:25]
+    A[[j]] <- num[1:25]
   } else if(j != n.fac2){
-    x = (25*(j - 1) + 1)
-    y = 25*j
-    A[[j]] = num[x:y]
+    x <- (25*(j - 1) + 1)
+    y <- 25*j
+    A[[j]] <- num[x:y]
   }else if (j == n.fac2){
-    x = (25*(j - 1) + 1)
-    y = 25*j
-    A[[j]] = num[x:length(num)]
+    x <- (25*(j - 1) + 1)
+    y <- 25*j
+    A[[j]] <- num[x:length(num)]
   }
-
 }
 
-plot_list1 = list()
-
-# i=1
-
 for (i in 1:n.fac2) {
-  result = EasyStat::MuiaovMcomper2(data = data,num = A[[i]])
+  result <- EasyStat::MuiaovMcomper2(data = data, num = A[[i]])
 
-  result1 = EasyStat::FacetMuiPlotresultBox(data = data,num = A[[i]],
-                                            result = result,
-                                            sig_show ="abc",ncol = 5 )
-  p1_1 = result1[[1]] +
+  result1 <- EasyStat::FacetMuiPlotresultBox(data = data, num = A[[i]],
+                                             result = result,
+                                             sig_show = "abc", ncol = 5)
+  p1_1 <- result1[[1]] +
     ggplot2::scale_x_discrete(limits = axis_order) +
     mytheme2 +
     ggplot2::guides(fill = guide_legend(title = NULL)) +
     ggplot2::scale_fill_manual(values = colset1)
-  p1_1
 
-  plot_list1[[i]] =  p1_1
+  save_plot2(p1_1, metabolite_difference_path, paste0("univariate_boxplot_batch", i), width = 15, height = 10)
 
-  # 保存箱线图结果
-  ggsave(paste0("./result/metabolite/difference/univariate_boxplot_batch", i, ".pdf"), p1_1, width = 15, height = 10)
-  ggsave(paste0("./result/metabolite/difference/univariate_boxplot_batch", i, ".png"), p1_1, width = 15, height = 10, dpi = 300)
-
-  # 保存统计结果
-  addWorksheet(wb_difference, paste0("univariate_stats_batch", i))
-  writeData(wb_difference, paste0("univariate_stats_batch", i), result, rowNames = TRUE)
-
-  return(plot_list1)
-
+  write_sheet2(metabolite_difference_wb, paste0("univariate_stats_batch", i), result)
 }
-res = plot_list1
 
-#23 FacetMuiPlotresultBar :单变量统计分析-柱状图可视化--------
-#--提取差异代谢物标签
-dat = ps.ms %>%
+openxlsx::saveWorkbook(metabolite_difference_wb, difference_xlsx_path, overwrite = TRUE)
+
+### ---------- 23. FacetMuiPlotresultBar: 单变量统计分析-柱状图可视化 ----------
+
+dat <- ps.ms %>%
   ggClusterNet::vegan_otu() %>%
   as.data.frame()
-head(dat)
-# colnames(map)
-map = sample_data(ps.ms) %>% as.tibble() %>%
-  dplyr:: select(ID,Group)
-data = cbind(map[,c(1,2)],dat)
-head(data)
-colnames(data)[2] = "group"
 
-num = c(3:ncol(data))
+map <- sample_data(ps.ms) %>% as.tibble() %>%
+  dplyr::select(ID, Group)
+data <- cbind(map[, c(1, 2)], dat)
+colnames(data)[2] <- "group"
 
-# num = 18#--为了减少运行压力，修改为18个化合物
-num
+num <- c(3:ncol(data))
 
-#--分割数据
-n.fac = length(num)/ 25
-n.fac2 = ceiling(n.fac)
-A = list()
-# j  =2
+n.fac <- length(num) / 25
+n.fac2 <- ceiling(n.fac)
+A <- list()
+
 for (j in 1:n.fac2) {
-
   if (j == 1) {
-    A[[j]] = num[1:25]
+    A[[j]] <- num[1:25]
   } else if(j != n.fac2){
-    x = (25*(j - 1) + 1)
-    y = 25*j
-    A[[j]] = num[x:y]
+    x <- (25*(j - 1) + 1)
+    y <- 25*j
+    A[[j]] <- num[x:y]
   }else if (j == n.fac2){
-    x = (25*(j - 1) + 1)
-    y = 25*j
-    A[[j]] = num[x:length(num)]
+    x <- (25*(j - 1) + 1)
+    y <- 25*j
+    A[[j]] <- num[x:length(num)]
   }
-
 }
-
-plot_list2 = list()
-
-# i=1
 
 for (i in 1:n.fac2) {
-  result = EasyStat::MuiaovMcomper2(data = data,num = A[[i]])
+  result <- EasyStat::MuiaovMcomper2(data = data, num = A[[i]])
 
-  res = EasyStat::FacetMuiPlotresultBar(data = data,num = A[[i]],
-                                        result = result,sig_show ="abc",ncol = 5)
+  res <- EasyStat::FacetMuiPlotresultBar(data = data, num = A[[i]],
+                                         result = result, sig_show = "abc", ncol = 5)
 
-  p1_2 = res[[1]]+ scale_x_discrete(limits = axis_order) + guides(color = FALSE) +
-    mytheme2+
-    guides(fill = guide_legend(title = NULL))+
-    scale_fill_manual(values = colset1)
-  p1_2
-
-  plot_list2[[i]] =  p1_2
-
-  # 保存柱状图结果
-  ggsave(paste0("./result/metabolite/difference/univariate_barplot_batch", i, ".pdf"), p1_2, width = 15, height = 10)
-  ggsave(paste0("./result/metabolite/difference/univariate_barplot_batch", i, ".png"), p1_2, width = 15, height = 10, dpi = 300)
-
-  return(plot_list2)
-
-}
-
-#24 FacetMuiPlotReBoxBar: 单变量统计分析-柱状图结合散点图可视化--------
-
-#--提取差异代谢物标签
-dat = ps.ms %>%
-  ggClusterNet::vegan_otu() %>%
-  as.data.frame()
-head(dat)
-# colnames(map)
-map = sample_data(ps.ms) %>% as.tibble() %>%
-  select(ID,Group)
-data = cbind(map[,c(1,2)],dat)
-head(data)
-colnames(data)[2] = "group"
-
-num = c(3:ncol(data))
-
-# num = 18#--为了减少运行压力，修改为18个化合物
-num
-
-#--分割数据
-n.fac = length(num)/ 25
-n.fac2 = ceiling(n.fac)
-A = list()
-# j  =2
-for (j in 1:n.fac2) {
-
-  if (j == 1) {
-    A[[j]] = num[1:25]
-  } else if(j != n.fac2){
-    x = (25*(j - 1) + 1)
-    y = 25*j
-    A[[j]] = num[x:y]
-  }else if (j == n.fac2){
-    x = (25*(j - 1) + 1)
-    y = 25*j
-    A[[j]] = num[x:length(num)]
-  }
-
-}
-
-plot_list3 = list()
-
-# i=1
-
-for (i in 1:n.fac2) {
-  result = EasyStat::MuiaovMcomper2(data = data,num = A[[i]])
-  res = EasyStat::FacetMuiPlotReBoxBar(data = data,num = A[[i]],
-                                       result = result,sig_show ="abc",ncol = 5)
-  p1_3 = res[[1]]+ scale_x_discrete(limits = axis_order) +
+  p1_2 <- res[[1]] +
+    scale_x_discrete(limits = axis_order) +
+    guides(color = FALSE) +
     mytheme2 +
-    guides(fill = guide_legend(title = NULL))+
+    guides(fill = guide_legend(title = NULL)) +
     scale_fill_manual(values = colset1)
-  p1_3
 
-  plot_list3[[i]] =  p1_3
-
-  # 保存柱状图结合散点图结果
-  ggsave(paste0("./result/metabolite/difference/univariate_boxbar_batch", i, ".pdf"), p1_3, width = 15, height = 10)
-  ggsave(paste0("./result/metabolite/difference/univariate_boxbar_batch", i, ".png"), p1_3, width = 15, height = 10, dpi = 300)
-
-  return(plot_list3)
-
+  save_plot2(p1_2, metabolite_difference_path, paste0("univariate_barplot_batch", i), width = 15, height = 10)
 }
 
-#25 MuiHeatmapBubplot: 单变量统计分析-气泡图可视化--------
+### ---------- 24. FacetMuiPlotReBoxBar: 单变量统计分析-柱状图结合散点图可视化 ----------
 
-#--提取差异代谢物标签
-dat = ps.ms %>%
+dat <- ps.ms %>%
   ggClusterNet::vegan_otu() %>%
   as.data.frame()
-head(dat)
-# colnames(map)
-map = sample_data(ps.ms) %>% as.tibble() %>%
-  dplyr:: select(ID,Group)
-data = cbind(map[,c(1,2)],dat)
-head(data)
-colnames(data)[2] = "group"
 
-num = c(3:ncol(data))
+map <- sample_data(ps.ms) %>% as.tibble() %>%
+  dplyr::select(ID, Group)
+data <- cbind(map[, c(1, 2)], dat)
+colnames(data)[2] <- "group"
 
-# num = 18#--为了减少运行压力，修改为18个化合物
-num
+num <- c(3:ncol(data))
 
-#--分割数据
-n.fac = length(num)/ 25
-n.fac2 = ceiling(n.fac)
-A = list()
-# j  =2
+n.fac <- length(num) / 25
+n.fac2 <- ceiling(n.fac)
+A <- list()
+
 for (j in 1:n.fac2) {
-
   if (j == 1) {
-    A[[j]] = num[1:25]
+    A[[j]] <- num[1:25]
   } else if(j != n.fac2){
-    x = (25*(j - 1) + 1)
-    y = 25*j
-    A[[j]] = num[x:y]
+    x <- (25*(j - 1) + 1)
+    y <- 25*j
+    A[[j]] <- num[x:y]
   }else if (j == n.fac2){
-    x = (25*(j - 1) + 1)
-    y = 25*j
-    A[[j]] = num[x:length(num)]
+    x <- (25*(j - 1) + 1)
+    y <- 25*j
+    A[[j]] <- num[x:length(num)]
   }
-
 }
 
-plot_list4 = list()
-plot_list5 = list()
-plot_list6 = list()
-plot_list7 = list()
-# i=1
+for (i in 1:n.fac2) {
+  result <- EasyStat::MuiaovMcomper2(data = data, num = A[[i]])
+
+  res <- EasyStat::FacetMuiPlotReBoxBar(data = data, num = A[[i]],
+                                        result = result, sig_show = "abc", ncol = 5)
+  p1_3 <- res[[1]] +
+    scale_x_discrete(limits = axis_order) +
+    mytheme2 +
+    guides(fill = guide_legend(title = NULL)) +
+    scale_fill_manual(values = colset1)
+
+  save_plot2(p1_3, metabolite_difference_path, paste0("univariate_boxbar_batch", i), width = 15, height = 10)
+}
+
+### ---------- 25. MuiHeatmapBubplot: 单变量统计分析-气泡图可视化 ----------
+
+dat <- ps.ms %>%
+  ggClusterNet::vegan_otu() %>%
+  as.data.frame()
+
+map <- sample_data(ps.ms) %>% as.tibble() %>%
+  dplyr::select(ID, Group)
+data <- cbind(map[, c(1, 2)], dat)
+colnames(data)[2] <- "group"
+
+num <- c(3:ncol(data))
+
+n.fac <- length(num) / 25
+n.fac2 <- ceiling(n.fac)
+A <- list()
+
+for (j in 1:n.fac2) {
+  if (j == 1) {
+    A[[j]] <- num[1:25]
+  } else if(j != n.fac2){
+    x <- (25*(j - 1) + 1)
+    y <- 25*j
+    A[[j]] <- num[x:y]
+  }else if (j == n.fac2){
+    x <- (25*(j - 1) + 1)
+    y <- 25*j
+    A[[j]] <- num[x:length(num)]
+  }
+}
 
 for (i in 1:n.fac2) {
-  result = EasyStat::MuiaovMcomper2(data = data,num = A[[i]])
-  res = EasyStat::MuiHeatmapBubplot(
+  result <- EasyStat::MuiaovMcomper2(data = data, num = A[[i]])
+
+  res <- EasyStat::MuiHeatmapBubplot(
     data = data,
-    i =A[[i]],
-    col_cluster = F,
-    row_cluster = F,
+    i = A[[i]],
+    col_cluster = FALSE,
+    row_cluster = FALSE,
     label = TRUE,
     result = result,
     sample = TRUE,
     scale = TRUE
   )
-  p1 = res[[1]]
-  p1
+  p1 <- res[[1]]
+  p2 <- res[[2]]
 
-  plot_list4[[i]] =  p1
+  save_plot2(p1, metabolite_difference_path, paste0("heatmap_sample_batch", i), width = 12, height = 8)
+  save_plot2(p2, metabolite_difference_path, paste0("bubble_sample_batch", i), width = 12, height = 8)
 
-  p2 = res[[2]]
-  p2
-
-  plot_list5[[i]] =  p2
-
-  res = EasyStat::MuiHeatmapBubplot(
+  res <- EasyStat::MuiHeatmapBubplot(
     data = data,
-    i =A[[i]],
+    i = A[[i]],
     result = result,
-    col_cluster = F,
-    row_cluster = F,
+    col_cluster = FALSE,
+    row_cluster = FALSE,
     label = TRUE,
     sample = FALSE,
     scale = TRUE
   )
 
-  p1 = res[[1]]
-  p1
-  plot_list6[[i]] =  p1
+  p1 <- res[[1]]
+  p2 <- res[[2]]
 
-  p2 = res[[2]]
-  p2
-  plot_list7[[i]] =  p2
-
-  # 保存气泡图和热图结果
-  ggsave(paste0("./result/metabolite/difference/heatmap_sample_batch", i, ".pdf"), plot_list4[[i]], width = 12, height = 8)
-  ggsave(paste0("./result/metabolite/difference/heatmap_sample_batch", i, ".png"), plot_list4[[i]], width = 12, height = 8, dpi = 300)
-  ggsave(paste0("./result/metabolite/difference/bubble_sample_batch", i, ".pdf"), plot_list5[[i]], width = 12, height = 8)
-  ggsave(paste0("./result/metabolite/difference/bubble_sample_batch", i, ".png"), plot_list5[[i]], width = 12, height = 8, dpi = 300)
-  ggsave(paste0("./result/metabolite/difference/heatmap_group_batch", i, ".pdf"), plot_list6[[i]], width = 12, height = 8)
-  ggsave(paste0("./result/metabolite/difference/heatmap_group_batch", i, ".png"), plot_list6[[i]], width = 12, height = 8, dpi = 300)
-  ggsave(paste0("./result/metabolite/difference/bubble_group_batch", i, ".pdf"), plot_list7[[i]], width = 12, height = 8)
-  ggsave(paste0("./result/metabolite/difference/bubble_group_batch", i, ".png"), plot_list7[[i]], width = 12, height = 8, dpi = 300)
-
-  return(plot_list4,plot_list5,plot_list6,plot_list7)
-
+  save_plot2(p1, metabolite_difference_path, paste0("heatmap_group_batch", i), width = 12, height = 8)
+  save_plot2(p2, metabolite_difference_path, paste0("bubble_group_batch", i), width = 12, height = 8)
 }
 
-#26 MuiHeatmapBubplot 单变量统计分析-热图可视化--------
+### ---------- 26. value_stackBar: 单变量统计分析-堆叠柱状图可视化 ----------
 
-#--提取差异代谢物标签
-dat = ps.ms %>%
+dat <- ps.ms %>%
   ggClusterNet::vegan_otu() %>%
   as.data.frame()
-head(dat)
-# colnames(map)
-map = sample_data(ps.ms) %>% as.tibble() %>%
-  dplyr:: select(ID,Group)
-data = cbind(map[,c(1,2)],dat)
-head(data)
-colnames(data)[2] = "group"
 
-num = c(3:ncol(data))
+map <- sample_data(ps.ms) %>% as.tibble() %>%
+  dplyr::select(ID, Group)
+data <- cbind(map[, c(1, 2)], dat)
+colnames(data)[2] <- "group"
 
-#num = 18#--为了减少运行压力，修改为18个化合物
-num
+num <- c(3:ncol(data))
 
-#--分割数据
-n.fac = length(num)/ 25
-n.fac2 = ceiling(n.fac)
-A = list()
-# j  =2
+n.fac <- length(num) / 25
+n.fac2 <- ceiling(n.fac)
+A <- list()
+
 for (j in 1:n.fac2) {
-
   if (j == 1) {
-    A[[j]] = num[1:25]
+    A[[j]] <- num[1:25]
   } else if(j != n.fac2){
-    x = (25*(j - 1) + 1)
-    y = 25*j
-    A[[j]] = num[x:y]
+    x <- (25*(j - 1) + 1)
+    y <- 25*j
+    A[[j]] <- num[x:y]
   }else if (j == n.fac2){
-    x = (25*(j - 1) + 1)
-    y = 25*j
-    A[[j]] = num[x:length(num)]
+    x <- (25*(j - 1) + 1)
+    y <- 25*j
+    A[[j]] <- num[x:length(num)]
   }
-
 }
 
-plot_list8 = list()
-# i=1
-
 for (i in 1:n.fac2) {
-  result = EasyStat::MuiaovMcomper2(data = data,num = A[[i]])
-  res = EasyStat::value_stackBar(
+  result <- EasyStat::MuiaovMcomper2(data = data, num = A[[i]])
+
+  res <- EasyStat::value_stackBar(
     data = data,
-    i =A[[i]],
+    i = A[[i]],
     result = result,
     add_abc = TRUE)
 
-  p1 = res[[1]]
-  p1
-  plot_list8[[i]] =  p1
+  p1 <- res[[1]]
 
-  # 保存堆叠条形图结果
-  ggsave(paste0("./result/metabolite/difference/stack_bar_batch", i, ".pdf"), p1, width = 12, height = 8)
-  ggsave(paste0("./result/metabolite/difference/stack_bar_batch", i, ".png"), p1, width = 12, height = 8, dpi = 300)
+  save_plot2(p1, metabolite_difference_path, paste0("stack_bar_batch", i), width = 12, height = 8)
+}
+## ===================== 6. 生物标志物识别 =====================
 
-  return(plot_list8)
+metabolite_biomarker_path <- file.path(metabolite_path, "05_biomarker")
+dir.create(metabolite_biomarker_path, recursive = TRUE, showWarnings = FALSE)
 
+biomarker_xlsx_path <- file.path(metabolite_biomarker_path, "biomarker_results.xlsx")
+
+if (file.exists(biomarker_xlsx_path)) {
+  metabolite_biomarker_wb <- openxlsx::loadWorkbook(biomarker_xlsx_path)
+} else {
+  metabolite_biomarker_wb <- openxlsx::createWorkbook()
 }
 
-# 保存差异分析总表
-saveWorkbook(wb_difference, "./result/metabolite/difference/difference_results.xlsx", overwrite = TRUE)
+id <- sample_data(ps.ms)$Group %>% unique()
+aaa <- combn(id, 2)
+i <- 1
+group <- c(aaa[1, i], aaa[2, i])
 
-# biomarker identification-----
-# 创建biomarker目录
-dir.create("./result/metabolite/biomarker", showWarnings = FALSE)
+pst <- ps.ms %>% subset_samples.wt("Group", group) %>%
+  filter_taxa(function(x) sum(x) > 10, TRUE)
 
-id = sample_data(ps.ms)$Group %>% unique()
-aaa = combn(id,2)
-i= 1
-group = c(aaa[1,i],aaa[2,i])
+### ---------- 27. rfcv.ms: 交叉验证结果 ----------
 
-pst = ps.ms %>% subset_samples.wt("Group",group) %>%
-  filter_taxa(function(x) sum(x ) > 10, TRUE)
-
-#27 rfcv.ms :交叉验证结果-------
 library(randomForest)
 library(caret)
-library(ROCR) ##用于计算ROC
+library(ROCR)
 library(e1071)
-result =rfcv.ms(ps = ps.ms,group  = "Group",optimal = 20,nrfcvnum = 6)
-prfcv = result[[1]]
-prfcv
-# result[[2]]# plotdata
-rfcvtable = result[[3]]
-rfcvtable
 
-# 保存交叉验证结果
-ggsave("./result/metabolite/biomarker/rfcv_plot.pdf", prfcv, width = 8, height = 6)
-ggsave("./result/metabolite/biomarker/rfcv_plot.png", prfcv, width = 8, height = 6, dpi = 300)
+result <- rfcv.ms(ps = ps.ms, group = "Group", optimal = 20, nrfcvnum = 6)
+prfcv <- result[[1]]
+rfcvtable <- result[[3]]
 
-wb_biomarker <- createWorkbook()
-addWorksheet(wb_biomarker, "rfcv_results")
-writeData(wb_biomarker, "rfcv_results", rfcvtable, rowNames = TRUE)
+save_plot2(prfcv, metabolite_biomarker_path, "rfcv_plot", width = 8, height = 6)
 
-#28 randomforest.ms: 筛选特征代谢物 ----
-res <- randomforest.ms( ps= ps.ms, group  = "Group", optimal = 50)
-p25 = res[[1]]
-p25
-dat =res[[2]]
-dat
+write_sheet2(metabolite_biomarker_wb, "rfcv_results", rfcvtable)
+openxlsx::saveWorkbook(metabolite_biomarker_wb, biomarker_xlsx_path, overwrite = TRUE)
 
-# 保存随机森林结果
-ggsave("./result/metabolite/biomarker/randomforest_plot.pdf", p25, width = 10, height = 8)
-ggsave("./result/metabolite/biomarker/randomforest_plot.png", p25, width = 10, height = 8, dpi = 300)
-addWorksheet(wb_biomarker, "randomforest_features")
-writeData(wb_biomarker, "randomforest_features", dat, rowNames = TRUE)
+### ---------- 28. randomforest.ms: 筛选特征代谢物 ----------
 
-#29 loadingPCA.ms 载荷矩阵挑选重要代谢物#------
-res = loadingPCA.ms(ps = ps.ms,Top = 20)
-p = res[[1]]
-p
-dat = res[[2]]
-dat
+res <- randomforest.ms(ps = ps.ms, group = "Group", optimal = 50)
+p25 <- res[[1]]
+dat <- res[[3]]
 
-# 保存PCA载荷结果
-ggsave("./result/metabolite/biomarker/PCA_loading_plot.pdf", p, width = 10, height = 8)
-ggsave("./result/metabolite/biomarker/PCA_loading_plot.png", p, width = 10, height = 8, dpi = 300)
-addWorksheet(wb_biomarker, "PCA_loading")
-writeData(wb_biomarker, "PCA_loading", dat, rowNames = TRUE)
+save_plot2(p25, metabolite_biomarker_path, "randomforest_plot", width = 10, height = 8)
 
-#30 LDA.ms: LDA筛选特征代谢物 -----
-tablda = LDA.ms(ps = ps.ms,
-                Top = 100,
-                p.lvl = 0.05,
-                lda.lvl = 1,
-                seed = 11,
-                adjust.p = F)
+write_sheet2(metabolite_biomarker_wb, "randomforest_features", dat)
+openxlsx::saveWorkbook(metabolite_biomarker_wb, biomarker_xlsx_path, overwrite = TRUE)
+
+### ---------- 29. loadingPCA.ms: 载荷矩阵挑选重要代谢物 ----------
+
+res <- loadingPCA.ms(ps = ps.ms, Top = 20)
+p <- res[[1]]
+dat <- res[[2]]
+
+save_plot2(p, metabolite_biomarker_path, "PCA_loading_plot", width = 10, height = 8)
+
+write_sheet2(metabolite_biomarker_wb, "PCA_loading", dat)
+openxlsx::saveWorkbook(metabolite_biomarker_wb, biomarker_xlsx_path, overwrite = TRUE)
+
+### ---------- 30. LDA.ms: LDA筛选特征代谢物 ----------
+
+tablda <- LDA.ms(ps = ps.ms,
+                 Top = 100,
+                 p.lvl = 0.05,
+                 lda.lvl = 1,
+                 seed = 11,
+                 adjust.p = FALSE)
 
 p35 <- lefse_bar(taxtree = tablda[[2]])
-p35
-dat = tablda[[2]]
-dat
+dat <- tablda[[2]]
 
-# 保存LDA结果
-ggsave("./result/metabolite/biomarker/LDA_plot.pdf", p35, width = 10, height = 8)
-ggsave("./result/metabolite/biomarker/LDA_plot.png", p35, width = 10, height = 8, dpi = 300)
-addWorksheet(wb_biomarker, "LDA_features")
-writeData(wb_biomarker, "LDA_features", dat, rowNames = TRUE)
+save_plot2(p35, metabolite_biomarker_path, "LDA_plot", width = 10, height = 8)
 
-#31 svm.ms:svm筛选特征微生物 ----
-res <- svm.ms(ps = pst %>% filter_OTU_ps(20), k = 5)
-AUC = res[[1]]
-AUC
-importance = res[[2]]
-importance
+write_sheet2(metabolite_biomarker_wb, "LDA_features", dat)
+openxlsx::saveWorkbook(metabolite_biomarker_wb, biomarker_xlsx_path, overwrite = TRUE)
 
-# 保存SVM结果
-addWorksheet(wb_biomarker, "SVM_AUC")
-writeData(wb_biomarker, "SVM_AUC", AUC, rowNames = TRUE)
-addWorksheet(wb_biomarker, "SVM_importance")
-writeData(wb_biomarker, "SVM_importance", importance, rowNames = TRUE)
+### ---------- 31. svm.ms: svm筛选特征微生物 ----------
 
-#32 xgboost.ms: xgboost筛选特征微生物----
+res <- svm_ms(ps = pst %>% filter_OTU_ps(20), k = 5)
+AUC <- res[[1]]
+importance <- res[[2]]
+
+write_sheet2(metabolite_biomarker_wb, "SVM_AUC", AUC)
+write_sheet2(metabolite_biomarker_wb, "SVM_importance", importance)
+openxlsx::saveWorkbook(metabolite_biomarker_wb, biomarker_xlsx_path, overwrite = TRUE)
+
+### ---------- 32. xgboost.ms: xgboost筛选特征微生物 ----------
+
 library(xgboost)
 library(Ckmeans.1d.dp)
 library(mia)
-res = xgboost.ms(ps =pst, top = 20  )
-accuracy = res[[1]]
-accuracy
-importance = res[[2]]
-importance
 
-# 保存XGBoost结果
-addWorksheet(wb_biomarker, "XGBoost_accuracy")
-writeData(wb_biomarker, "XGBoost_accuracy", accuracy, rowNames = TRUE)
-addWorksheet(wb_biomarker, "XGBoost_importance")
-writeData(wb_biomarker, "XGBoost_importance", importance, rowNames = TRUE)
+res <- xgboost.ms(ps = pst, top = 20)
+accuracy <- res[[1]]
+importance <- res[[2]]
+importance <- importance$importance
 
-#33 glm.ms:glm筛选特征微生物----
+write_sheet2(metabolite_biomarker_wb, "XGBoost_accuracy", accuracy)
+write_sheet2(metabolite_biomarker_wb, "XGBoost_importance", importance)
+openxlsx::saveWorkbook(metabolite_biomarker_wb, biomarker_xlsx_path, overwrite = TRUE)
+
+### ---------- 33. glm.ms: glm筛选特征微生物 ----------
+
 res <- glm.ms(ps = pst %>% filter_OTU_ps(50), k = 5)
-AUC = res[[1]]
-AUC
-importance = res[[2]]
-importance
+AUC <- res[[1]]
+importance <- res[[2]]
 
-# 保存GLM结果
-addWorksheet(wb_biomarker, "GLM_AUC")
-writeData(wb_biomarker, "GLM_AUC", AUC, rowNames = TRUE)
-addWorksheet(wb_biomarker, "GLM_importance")
-writeData(wb_biomarker, "GLM_importance", importance, rowNames = TRUE)
+write_sheet2(metabolite_biomarker_wb, "GLM_AUC", AUC)
+write_sheet2(metabolite_biomarker_wb, "GLM_importance", importance)
+openxlsx::saveWorkbook(metabolite_biomarker_wb, biomarker_xlsx_path, overwrite = TRUE)
 
-#34 lasso.ms: lasso筛选特征微生物----
+### ---------- 34. lasso.ms: lasso筛选特征微生物 ----------
+
 library(glmnet)
-res =lasso.ms (ps =  pst, top = 20, seed = 1010, k = 5)
-accuracy = res[[1]]
-accuracy
-importance = res[[2]]
-importance
 
-# 保存Lasso结果
-addWorksheet(wb_biomarker, "Lasso_accuracy")
-writeData(wb_biomarker, "Lasso_accuracy", accuracy, rowNames = TRUE)
-addWorksheet(wb_biomarker, "Lasso_importance")
-writeData(wb_biomarker, "Lasso_importance", importance, rowNames = TRUE)
+res <- lasso.ms(ps = pst, top = 20, seed = 1010, k = 5)
+accuracy <- res[[1]]
+importance <- res[[2]]
 
-#35 decisiontree.ms----
+write_sheet2(metabolite_biomarker_wb, "Lasso_accuracy", accuracy)
+write_sheet2(metabolite_biomarker_wb, "Lasso_importance", importance)
+openxlsx::saveWorkbook(metabolite_biomarker_wb, biomarker_xlsx_path, overwrite = TRUE)
+
+### ---------- 35. decisiontree.ms: 决策树 ----------
+
 library(rpart)
-res =decisiontree.ms(ps=ps.ms, top = 50, seed = 6358, k = 5)
-accuracy = res[[1]]
-accuracy
-importance = res[[2]]
-importance
 
-# 保存决策树结果
-addWorksheet(wb_biomarker, "DecisionTree_accuracy")
-writeData(wb_biomarker, "DecisionTree_accuracy", accuracy, rowNames = TRUE)
-addWorksheet(wb_biomarker, "DecisionTree_importance")
-writeData(wb_biomarker, "DecisionTree_importance", importance, rowNames = TRUE)
+res <- decisiontree.ms(ps = ps.ms, top = 50, seed = 6358, k = 5)
+accuracy <- res[[1]]
+importance <- res[[2]]
 
-#37 nnet.ms 神经网络筛选特征微生物  ------
-res =nnet.ms(ps=pst, top = 100, seed = 1010, k = 5)
-accuracy = res[[1]]
-accuracy
-importance = res[[2]]
-importance
+write_sheet2(metabolite_biomarker_wb, "DecisionTree_accuracy", accuracy)
+write_sheet2(metabolite_biomarker_wb, "DecisionTree_importance", importance)
+openxlsx::saveWorkbook(metabolite_biomarker_wb, biomarker_xlsx_path, overwrite = TRUE)
 
-# 保存神经网络结果
-addWorksheet(wb_biomarker, "NeuralNet_accuracy")
-writeData(wb_biomarker, "NeuralNet_accuracy", accuracy, rowNames = TRUE)
-addWorksheet(wb_biomarker, "NeuralNet_importance")
-writeData(wb_biomarker, "NeuralNet_importance", importance, rowNames = TRUE)
+### ---------- 36. nnet.ms: 神经网络筛选特征微生物 ----------
 
-#38 bagging.micro : Bootstrap Aggregating筛选特征微生物 ------
+res <- nnet.ms(ps = pst, top = 100, seed = 1010, k = 5)
+accuracy <- res[[1]]
+importance <- res[[2]]
+
+write_sheet2(metabolite_biomarker_wb, "NeuralNet_accuracy", accuracy)
+write_sheet2(metabolite_biomarker_wb, "NeuralNet_importance", importance)
+openxlsx::saveWorkbook(metabolite_biomarker_wb, biomarker_xlsx_path, overwrite = TRUE)
+
+### ---------- 37. bagging.ms: Bootstrap Aggregating筛选特征微生物 ----------
+
 library(ipred)
-res =bagging.ms(ps =  pst, top = 20, seed = 1010, k = 5)
-accuracy = res[[1]]
-accuracy
-importance = res[[2]]
-importance
 
-# 保存Bagging结果
-addWorksheet(wb_biomarker, "Bagging_accuracy")
-writeData(wb_biomarker, "Bagging_accuracy", accuracy, rowNames = TRUE)
-addWorksheet(wb_biomarker, "Bagging_importance")
-writeData(wb_biomarker, "Bagging_importance", importance, rowNames = TRUE)
+res <- bagging.ms(ps = pst, top = 20, seed = 1010, k = 5)
+accuracy <- res[[1]]
+importance <- res[[2]]
 
-# 保存生物标志物分析总表
-saveWorkbook(wb_biomarker, "./result/metabolite/biomarker/biomarker_results.xlsx", overwrite = TRUE)
+write_sheet2(metabolite_biomarker_wb, "Bagging_accuracy", accuracy)
+write_sheet2(metabolite_biomarker_wb, "Bagging_importance", importance)
+openxlsx::saveWorkbook(metabolite_biomarker_wb, biomarker_xlsx_path, overwrite = TRUE)
 
-# network analysis-------
-# 创建network目录
-dir.create("./result/metabolite/network", showWarnings = FALSE)
+## ===================== 7. 网络分析 =====================
 
-#39 network.pip:网络分析主#--------
-tab.r = network.pip(
+metabolite_network_path <- file.path(metabolite_path, "06_network")
+dir.create(metabolite_network_path, recursive = TRUE, showWarnings = FALSE)
+
+network_xlsx_path <- file.path(metabolite_network_path, "network_results.xlsx")
+
+if (file.exists(network_xlsx_path)) {
+  metabolite_network_wb <- openxlsx::loadWorkbook(network_xlsx_path)
+} else {
+  metabolite_network_wb <- openxlsx::createWorkbook()
+}
+
+### ---------- 38. network.pip: 网络分析主函数 ----------
+
+library(igraph)
+detach(package:mia)
+tax <- ps.ms %>% vegan_tax() %>% as.data.frame()
+tax$ID <- NULL
+tax_table(ps.ms) <- phyloseq::tax_table(as.matrix(tax))
+head(tax)
+tab.r <- network.pip(
   ps = ps.ms,
   N = 400,
-  # ra = 0.05,
   big = TRUE,
   select_layout = TRUE,
   layout_net = "model_maptree2",
   r.threshold = 0.6,
   p.threshold = 0.05,
   maxnode = 2,
-  # method = "sparcc",
-  label =  FALSE,
+  label = FALSE,
   lab = "elements",
   group = "Group",
   fill = "Super_class",
   size = "igraph.degree",
   zipi = TRUE,
   ram.net = TRUE,
-  #  clu_method = "cluster_fast_greedy",
   step = 100,
-  R=10,
+  R = 10,
   ncpus = 1
 )
 
-dat = tab.r[[2]]
-cortab = dat$net.cor.matrix$cortab
+dat <- tab.r[[2]]
+cortab <- dat$net.cor.matrix$cortab
 
-#-提取全部图片的存储对象
-plot = tab.r[[1]]
-# 提取网络图可视化结果
-p0 = plot[[1]]
-p0
+plot <- tab.r[[1]]
+p0 <- plot[[1]]
 
-# 保存网络图
-ggsave("./result/metabolite/network/network_plot.pdf", p0, width = 12, height = 10)
-ggsave("./result/metabolite/network/network_plot.png", p0, width = 12, height = 10, dpi = 300)
+save_plot2(p0, metabolite_network_path, "network_plot", width = 12, height = 10)
 
-wb_network <- createWorkbook()
+### ---------- 39. net_properties.4: 网络属性计算 ----------
 
-#40 net_properties.4:网络属性计算#---------
-i = 1
-cor = cortab
-id = names(cor)
-for (i in 1:length(id)) {
-  igraph= cor[[id[i]]] %>% make_igraph()
-  dat = net_properties.4(igraph,n.hub = F)
-  head(dat,n = 16)
-  colnames(dat) = id[i]
-
-  if (i == 1) {
-    dat2 = dat
-  } else{
-    dat2 = cbind(dat2,dat)
-  }
-}
-head(dat2)
-
-# 保存网络属性结果
-addWorksheet(wb_network, "network_properties")
-writeData(wb_network, "network_properties", dat2, rowNames = TRUE)
-
-#41 netproperties.sample:单个样本的网络属性#-------
+i <- 1
+cor <- cortab
+id <- names(cor)
 
 for (i in 1:length(id)) {
-  ps.mst = ps.ms %>% subset_samples.wt("Group",id[i]) %>% remove.zero()
-  dat.f = netproperties.sample(ps.mst = ps.mst,cor = cor[[id[i]]])
-  # head(dat.f)
+  igraph <- cor[[id[i]]] %>% make_igraph()
+  dat <- net_properties.4(igraph, n.hub = FALSE)
+  colnames(dat) <- id[i]
+
   if (i == 1) {
-    dat.f2 = dat.f
+    dat2 <- dat
   } else{
-    dat.f2 = rbind(dat.f2,dat.f)
+    dat2 <- cbind(dat2, dat)
   }
 }
 
-map= sample_data(ps.ms)
-map$ID = row.names(map)
-map = map %>% as.tibble()
-dat3 = dat.f2 %>% rownames_to_column("ID") %>% inner_join(map,by = "ID")
+write_sheet2(metabolite_network_wb, "network_properties", dat2)
+openxlsx::saveWorkbook(metabolite_network_wb, network_xlsx_path, overwrite = TRUE)
 
-head(dat3)
+### ---------- 40. netproperties.sample: 单个样本的网络属性 ----------
 
-# 保存样本网络属性结果
-addWorksheet(wb_network, "sample_network_properties")
-writeData(wb_network, "sample_network_properties", dat3, rowNames = TRUE)
-
-#42 node_properties:计算节点属性#---------
 for (i in 1:length(id)) {
-  igraph= cor[[id[i]]] %>% make_igraph()
-  nodepro = node_properties(igraph) %>% as.data.frame()
-  nodepro$Group = id[i]
-  head(nodepro)
-  colnames(nodepro) = paste0(colnames(nodepro),".",id[i])
-  nodepro = nodepro %>%
+  ps.mst <- ps.ms %>% subset_samples.wt("Group", id[i]) %>% remove.zero()
+  dat.f <- netproperties.sample(pst = ps.mst, cor = cor[[id[i]]])
+
+  if (i == 1) {
+    dat.f2 <- dat.f
+  } else{
+    dat.f2 <- rbind(dat.f2, dat.f)
+  }
+}
+
+map <- sample_data(ps.ms)
+map$ID <- row.names(map)
+map <- map %>% as.tibble()
+dat3 <- dat.f2 %>% rownames_to_column("ID") %>% inner_join(map, by = "ID")
+
+write_sheet2(metabolite_network_wb, "sample_network_properties", dat3)
+openxlsx::saveWorkbook(metabolite_network_wb, network_xlsx_path, overwrite = TRUE)
+
+### ---------- 41. node_properties: 计算节点属性 ----------
+
+for (i in 1:length(id)) {
+  igraph <- cor[[id[i]]] %>% make_igraph()
+  nodepro <- node_properties(igraph) %>% as.data.frame()
+  nodepro$Group <- id[i]
+  colnames(nodepro) <- paste0(colnames(nodepro), ".", id[i])
+  nodepro <- nodepro %>%
     as.data.frame() %>%
     rownames_to_column("ASV.name")
 
-
-  # head(dat.f)
   if (i == 1) {
-    nodepro2 = nodepro
+    nodepro2 <- nodepro
   } else{
-    nodepro2 = nodepro2 %>% full_join(nodepro,by = "ASV.name")
+    nodepro2 <- nodepro2 %>% full_join(nodepro, by = "ASV.name")
   }
 }
-head(nodepro2)
 
-# 保存节点属性结果
-addWorksheet(wb_network, "node_properties")
-writeData(wb_network, "node_properties", nodepro2, rowNames = TRUE)
+write_sheet2(metabolite_network_wb, "node_properties", nodepro2)
+openxlsx::saveWorkbook(metabolite_network_wb, network_xlsx_path, overwrite = TRUE)
 
-#43 module.compare.net.pip:网络显著性比较#-----
-dat = module.compare.net.pip(
-  ps.ms = NULL,
+### ---------- 42. module.compare.net.pip: 网络显著性比较 ----------
+
+dat <- module.compare.net.pip(
+  ps = NULL,
   corg = cor,
   degree = TRUE,
   zipi = FALSE,
-  r.threshold= 0.8,
-  p.threshold=0.05,
+  r.threshold = 0.8,
+  p.threshold = 0.05,
   method = "spearman",
-  padj = F,
+  padj = FALSE,
   n = 3)
-res = dat[[1]]
-head(res)
+res <- dat[[1]]
 
-# 保存网络比较结果
-addWorksheet(wb_network, "network_comparison")
-writeData(wb_network, "network_comparison", res, rowNames = TRUE)
+write_sheet2(metabolite_network_wb, "network_comparison", res)
+openxlsx::saveWorkbook(metabolite_network_wb, network_xlsx_path, overwrite = TRUE)
 
-# 保存网络分析总表
-saveWorkbook(wb_network, "./result/metabolite/network/network_results.xlsx", overwrite = TRUE)
+## ===================== 8. 通路富集分析 =====================
 
-# pathway enrich------
-# 创建pathway目录
-dir.create("./result/metabolite/pathway", showWarnings = FALSE)
+metabolite_pathway_path <- file.path(metabolite_path, "07_pathway")
+dir.create(metabolite_pathway_path, recursive = TRUE, showWarnings = FALSE)
 
-detach(package:mia, unload = TRUE)
-#44 pathway_enrich.ms：通路富集-------
-ps.ms3 = ps.ms %>% tax_glom_wt("KEGGID")
+pathway_xlsx_path <- file.path(metabolite_pathway_path, "pathway_results.xlsx")
 
-res2 = pathway_enrich.ms(ps = ps.ms3, dif.method = "wilcox")
-res2$plots$OE.WT.plot
-res2$plots$KO.OE.plot
-res2$plotdata$OE.WT
-
-# 保存通路富集结果
-ggsave("./result/metabolite/pathway/pathway_enrich_OE_WT.pdf", res2$plots$OE.WT.plot, width = 10, height = 8)
-ggsave("./result/metabolite/pathway/pathway_enrich_OE_WT.png", res2$plots$OE.WT.plot, width = 10, height = 8, dpi = 300)
-ggsave("./result/metabolite/pathway/pathway_enrich_KO_OE.pdf", res2$plots$KO.OE.plot, width = 10, height = 8)
-ggsave("./result/metabolite/pathway/pathway_enrich_KO_OE.png", res2$plots$KO.OE.plot, width = 10, height = 8, dpi = 300)
-
-wb_pathway <- createWorkbook()
-addWorksheet(wb_pathway, "pathway_enrich_OE_WT")
-writeData(wb_pathway, "pathway_enrich_OE_WT", res2$plotdata$OE.WT, rowNames = TRUE)
-if(!is.null(res2$plotdata$KO.OE)) {
-  addWorksheet(wb_pathway, "pathway_enrich_KO_OE")
-  writeData(wb_pathway, "pathway_enrich_KO_OE", res2$plotdata$KO.OE, rowNames = TRUE)
+if (file.exists(pathway_xlsx_path)) {
+  metabolite_pathway_wb <- openxlsx::loadWorkbook(pathway_xlsx_path)
+} else {
+  metabolite_pathway_wb <- openxlsx::createWorkbook()
 }
 
-#45 reaction.show.ms：反应展示-------
-res3 = reaction.show.ms(ps= ps.ms3,dif.method = "wilcox")
-res3$plots$OE.WT.plot
-res3$plotdata$OE.WT
+if ("package:mia" %in% search()) {
+  detach("package:mia", unload = TRUE)
+}
 
-# 保存反应展示结果
-ggsave("./result/metabolite/pathway/reaction_show_OE_WT.pdf", res3$plots$OE.WT.plot, width = 10, height = 8)
-ggsave("./result/metabolite/pathway/reaction_show_OE_WT.png", res3$plots$OE.WT.plot, width = 10, height = 8, dpi = 300)
-addWorksheet(wb_pathway, "reaction_show_OE_WT")
-writeData(wb_pathway, "reaction_show_OE_WT", res3$plotdata$OE.WT, rowNames = TRUE)
+### ---------- 43. pathway_enrich.ms: 通路富集 ----------
+head(tax)
 
-#46 bubble.enrich.ms：气泡图展示富集分析结果-------
-res4 = bubble.enrich.ms(ps= ps.ms3,dif.method = "wilcox")
-res4$plots$OE.WT.plot
-res4$plotdata$OE.WT
+ps.ms3 <- ps.ms %>% tax_glom_wt("KEGG COMPOUND ID")
 
-# 保存气泡图富集结果
-ggsave("./result/metabolite/pathway/bubble_enrich_OE_WT.pdf", res4$plots$OE.WT.plot, width = 10, height = 8)
-ggsave("./result/metabolite/pathway/bubble_enrich_OE_WT.png", res4$plots$OE.WT.plot, width = 10, height = 8, dpi = 300)
-addWorksheet(wb_pathway, "bubble_enrich_OE_WT")
-writeData(wb_pathway, "bubble_enrich_OE_WT", res4$plotdata$OE.WT, rowNames = TRUE)
+res2 <- pathway_enrich.ms(ps = ps.ms3, dif.method = "wilcox")
 
-#47 reaction_network.ms：反应网络展示-------
-reaction_network.ms()
+save_plot2(res2$plots$OE.WT.plot, metabolite_pathway_path, "pathway_enrich_OE_WT", width = 10, height = 8)
 
-# 保存通路分析总表
-saveWorkbook(wb_pathway, "./result/metabolite/pathway/pathway_results.xlsx", overwrite = TRUE)
+if(!is.null(res2$plots$KO.OE.plot)) {
+  save_plot2(res2$plots$KO.OE.plot, metabolite_pathway_path, "pathway_enrich_KO_OE", width = 10, height = 8)
+}
+
+write_sheet2(metabolite_pathway_wb, "pathway_enrich_OE_WT", res2$plotdata$OE.WT)
+
+if(!is.null(res2$plotdata$KO.OE)) {
+  write_sheet2(metabolite_pathway_wb, "pathway_enrich_KO_OE", res2$plotdata$KO.OE)
+}
+openxlsx::saveWorkbook(metabolite_pathway_wb, pathway_xlsx_path, overwrite = TRUE)
+
+### ---------- 44. reaction.show.ms: 反应展示 ----------
+
+res3 <- reaction.show.ms(ps = ps.ms3, dif.method = "wilcox")
+
+save_plot2(res3$plots$OE.WT.plot, metabolite_pathway_path, "reaction_show_OE_WT", width = 10, height = 8)
+
+write_sheet2(metabolite_pathway_wb, "reaction_show_OE_WT", res3$plotdata$OE.WT)
+openxlsx::saveWorkbook(metabolite_pathway_wb, pathway_xlsx_path, overwrite = TRUE)
+
+### ---------- 45. bubble.enrich.ms: 气泡图展示富集分析结果 ----------
+
+res4 <- buplotall.ms(ps = ps.ms3, dif.method = "wilcox")
+
+save_plot2(res4$plots$OE.WT.plot, metabolite_pathway_path, "bubble_enrich_OE_WT", width = 10, height = 8)
+
+write_sheet2(metabolite_pathway_wb, "bubble_enrich_OE_WT", res4$plotdata$OE.WT)
+openxlsx::saveWorkbook(metabolite_pathway_wb, pathway_xlsx_path, overwrite = TRUE)
+
+
+
+
+# 代谢组学特征挑选 -----
+
+map = ps.ms %>%  sample_data()
+map$Group
+ps.ms2 = ps.ms %>% subset_taxa.wt("KEGG COMPOUND ID",NA,TRUE)
+tax = ps.ms2 %>% vegan_tax() %>% as.data.frame()
+head(tax)
+
+tab_ms_selection = ps.ms2 %>% subset_samples.wt("Group",c("MM","MT")) %>% vegan_otu() %>%
+  as.data.frame()
+
+map = sample_data(ps.ms2 %>% subset_samples.wt("Group",c("MM","MT")))
+map$Group = as.factor(map$Group)
+map$ID = NULL
+map
+# 运行特征挑选主流程
+res_ms <- ms_feature_selection(
+  ms_mat         = tab_ms_selection,
+  sample_meta    = map,
+  group_var      = "Group",
+  batch_var      = NULL,
+  qc_flag_var    = NULL,
+  prevalence_threshold = 0.7,
+  impute_method  = "halfmin",
+  normalize_method = "median",
+  combat         = FALSE,
+  qc_drift_correction = TRUE,
+  qc_rsd_cut     = 0.30,
+  diff_method    = "limma",
+  ml_method      = "rf",
+  cor_method     = "spearman",
+  cor_threshold  = 0.6,
+  p_threshold    = 0.05,
+  weights = list(
+    abundance   = 0.3,
+    importance  = 0.3,
+    differential= 0.2,
+    network     = 0.2
+  ),
+  nfolds = 5,
+  ntree  = 300
+)
+
+# 查看结果
+names(res_ms)
+head(res_ms$final_ranking, 15)
+
+dat_ms = res_ms$final_ranking
+tax_ms = ps.ms2 %>% phyloseq::tax_table() %>% as.data.frame()
+head(tax_ms)
+tax_ms$metab_id = row.names(tax_ms)
+dat_ms_final = dat_ms %>% left_join(tax_ms, by = c("Metabolite"="metab_id"))
+we
+head(dat_ms_final)
+p = plot_physeq_metabolites(ps = ps.ms2 %>% subset_samples.wt("Group",c("MM","MT")),
+                            dat_ms = dat_ms_final,top_n = 50)
+
+
+p
+ggsave("./result/metabolite/feature.pdf",width = 24,height = 10)
+
+
+
+

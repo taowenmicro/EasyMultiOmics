@@ -19,12 +19,12 @@
 #' library(dplyr)
 #' library(ggClusterNet)
 #' library(caret)
-#' res =bagging.micro(ps =ps.ms, top = 100, seed = 1010, k = 5)
+#' res =bagging_micro(ps =ps.ms, top = 100, seed = 1010, k = 5)
 #' accuracy = res[[1]]
 #' accuracy
 #' importance = res[[2]]
 #' importance
-bagging.ms <- function(ps=ps, top = 20, seed = 1010, k = 5) {
+bagging_ms <- function(ps=ps, top = 20, seed = 1010, k = 5) {
   set.seed(seed)
 
   # 数据准备

@@ -56,7 +56,9 @@ KwWlx = function(data = data_wt, i= 6,method = "wilcox.test"){
   aa = wilcox.labels
   aa$group = row.names(aa)
   aa
-  aa =ord_sig(data = aa)
+  aa1 = aa %>% left_join(da,by = "group")
+ row.names(aa1) = aa$group
+  aa =ord_sig(data = aa1)
 
 
   return(list(aa,wilcox = krusk,kruskal = sumkrusk))

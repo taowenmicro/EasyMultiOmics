@@ -18,13 +18,13 @@
 #' library(dplyr)
 #' library(ggClusterNet)
 #' library(caret)
-#' res =bagging.metm(ps =  ps, top = 100, seed = 1010, k = 5)
+#' res =bagging_metm(ps =  ps, top = 100, seed = 1010, k = 5)
 #' accuracy = res[[1]]
 #' accuracy
 #' importance = res[[2]]
 #' importance
 
-bagging.metm <- function(ps=ps, top = 20, seed = 1010, k = 5) {
+bagging_metm <- function(ps=ps, top = 20, seed = 1010, k = 5) {
 
   # 数据准备
   ps.cs <- ps %>% filter_OTU_ps(top)

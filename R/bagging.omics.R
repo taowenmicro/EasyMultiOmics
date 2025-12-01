@@ -18,13 +18,13 @@
 #' library(dplyr)
 #' library(ggClusterNet)
 #' library(caret)
-#' res =bagging.omics(ps =  ps03, top = 100, seed = 1010, k = 5)
+#' res =bagging_omics(ps =  ps03, top = 100, seed = 1010, k = 5)
 #' accuracy = res[[1]]
 #' accuracy
 #' importance = res[[2]]
 #' importance
 
-bagging.omics <- function(ps=ps, top = 20, seed = 1010, k = 5) {
+bagging_omics <- function(ps=ps, top = 20, seed = 1010, k = 5) {
 
   # 数据准备
   ps.cs <- ps %>% filter_OTU_ps(top)

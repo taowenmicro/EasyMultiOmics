@@ -21,12 +21,12 @@
 #' library(caret)
 #' data(ps.trans)
 #' ps =ps.trans %>% filter_OTU_ps(Top = 100)
-#' res =bagging.trans(ps =ps, top = 100, seed = 1010, k = 5)
+#' res =bagging_trans(ps =ps, top = 100, seed = 1010, k = 5)
 #' accuracy = res[[1]]
 #' accuracy
 #' importance = res[[2]]
 #' importance
-bagging.trans <- function(ps=ps, top = 20, seed = 1010, k = 5) {
+bagging_trans <- function(ps=ps, top = 20, seed = 1010, k = 5) {
   set.seed(seed)
 
   # 数据准备

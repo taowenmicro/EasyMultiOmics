@@ -41,8 +41,8 @@ ord_sig <- function(data, group_col = "group", letter_col = "groups", mean_col =
 
   # 每个组的字母
   group_letters <- df %>%
-    mutate(letters = str_split(.[[letter_col]], "")) %>%
-    select(group = !!sym(group_col), mean = !!sym(mean_col), letters)
+    dplyr::mutate(letters = str_split(.[[letter_col]], "")) %>%
+    dplyr::select(group = !!sym(group_col), mean = !!sym(mean_col), letters)
 
   # 创建字母到组的映射（反向）
   letter_to_groups <- list()

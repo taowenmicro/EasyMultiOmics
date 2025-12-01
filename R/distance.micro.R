@@ -61,6 +61,16 @@ distance.micro <- function(ps = NULL, group = "Group") {
     )
 
     if (i == 1) table = dat else table = rbind(table, dat)
+
+
+    if (i == 1) {
+      table = dat
+    } else {
+      table = rbind(table, dat)
+    }
+
+
+
   }
 
   table$id = 1:nrow(table)
@@ -79,16 +89,16 @@ distance.micro <- function(ps = NULL, group = "Group") {
   }
 
   # 否则走原来的 EasyStat 流程
-  result  <- EasyStat::MuiKwWlx(data = data, num = 3)
-  result1 <- EasyStat::FacetMuiPlotresultBox(data = data, num = 3,
+  result  <- MuiKwWlx(data = data, num = 3)
+  result1 <- FacetMuiPlotresultBox(data = data, num = 3,
                                              result = result, sig_show = "abc", ncol = 1)
   p1_1 <- result1[[1]]
 
-  res2 <- EasyStat::FacetMuiPlotresultBar(data = data, num = 3,
+  res2 <- FacetMuiPlotresultBar(data = data, num = 3,
                                           result = result, sig_show = "abc", ncol = 1)
   p1_2 <- res2[[1]]
 
-  res3 <- EasyStat::FacetMuiPlotReBoxBar(data = data, num = 3,
+  res3 <- FacetMuiPlotReBoxBar(data = data, num = 3,
                                          result = result, sig_show = "abc", ncol = 1)
   p1_3 <- res3[[1]]
 
