@@ -27,15 +27,23 @@ library(fs)
 # ps.16s    <- readRDS(file_path)
 # ps.16s
 
-file_path <- "./data/ps.rhi.rds"
-ps.micro    <- readRDS(file_path)
-ps.micro
-
+res <- infer_sequencing_type(ps = ps.micro)  # ps 是你的 phyloseq 对象
+res$label
+sample_sums(ps.micro)
 map <- sample_data(ps.16s)
 head(map)
-# 假设 ps.micro 是你的 phyloseq 对象
-mg_path <- create_amplicon_result_dir(ps.micro, include_time =TRUE)
+
+
+
+# 创建文件夹#--------
+mg_path <- create_omics_result_dir_auto(
+  ps = ps.micro,
+  base_dir     = "./result",
+  include_time = FALSE
+)
+
 mg_path
+
 
 map <- sample_data(ps.micro)
 head(map)
@@ -685,13 +693,20 @@ if (file.exists(diff_xlsx_path)) {
 }
 
 ### ---------- 5.1 EdgerSuper.metm：EdgeR 差异物种（火山图列表） ----------
+otu = ps.micro %>% vegan_otu() %>% t() %>% as.data.frame()
+otu[1:5,1:5]
 
+
+map = ps.micro %>% sample_data()
+head(map)
 res_edger <- EdgerSuper.metm(
-  ps       = ps.micro,
+  ps       = ps.micro %>% remove.zero(),
   group    = "Group",
   artGroup = NULL,
   j        = "Species"
 )
+
+
 
 p25_1 <- res_edger[[1]][[1]]
 p25_2 <- res_edger[[1]][[2]]
@@ -989,6 +1004,8 @@ p42_2 <- res_rf[[2]]
 dat_rf <- res_rf[[3]]
 p42_4  <- res_rf[[4]]
 
+str(p42_2)
+
 save_plot2(p42_1 + theme_classic(), mg_biomarker_path, "rf_importance", width = 16, height = 11)
 save_plot2(p42_2, mg_biomarker_path, "rf_error",      width = 10, height = 8)
 save_plot2(p42_4, mg_biomarker_path, "rf_additional", width = 6, height = 4)
@@ -1201,12 +1218,12 @@ for (i in seq_along(grp_id)) {
   }
 }
 head(net_prop_all)
-
+str(net_prop_all)
 write_sheet2(
   wb       = mg_network_wb,
   sheet    = "network_properties_summary",
-  data     = net_prop_all,
-  rownames = TRUE
+  df     = net_prop_all,
+  row_names = TRUE
 )
 openxlsx::saveWorkbook(mg_network_wb, network_xlsx_path, overwrite = TRUE)
 
@@ -1226,10 +1243,26 @@ for (i in seq_along(grp_id)) {
   }
 }
 
-## 合并 map 信息
+# ## 合并 map 信息
+# map_df <- phyloseq::sample_data(ps.micro) %>%
+#   as.data.frame() %>%
+#   tibble::rownames_to_column("ID")
+# 先转成 data.frame
 map_df <- phyloseq::sample_data(ps.micro) %>%
-  as.data.frame() %>%
-  tibble::rownames_to_column("ID")
+  as.data.frame()
+
+# 如果已经有 ID 列，就把原来的改成 ID0
+if ("ID" %in% colnames(map_df)) {
+  colnames(map_df)[colnames(map_df) == "ID"] <- "ID0"
+}
+
+# 再把行名变成新的 ID 列
+map_df <- tibble::rownames_to_column(map_df, "ID")
+
+map_df
+
+
+
 
 dat3 <- net_prop_sample_all %>%
   tibble::rownames_to_column("ID") %>%
@@ -1238,8 +1271,8 @@ dat3 <- net_prop_sample_all %>%
 write_sheet2(
   wb       = mg_network_wb,
   sheet    = "sample_network_properties",
-  data     = net_prop_sample_all,
-  rownames = TRUE
+  df     = net_prop_sample_all,
+  row_names  = TRUE
 )
 write_sheet2(
   wb       = mg_network_wb,

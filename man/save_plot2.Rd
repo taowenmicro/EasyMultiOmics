@@ -14,7 +14,9 @@ save_plot2(
   base_width = 8,
   base_height = 6,
   x_per_inch = 6,
-  facets_per_row = 4
+  facets_per_row = 4,
+  save_png = TRUE,
+  save_pdf = TRUE
 )
 }
 \arguments{

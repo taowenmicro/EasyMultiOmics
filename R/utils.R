@@ -60,71 +60,115 @@ get_group_cols <- function(groups,
 save_plot2 <- function(p,
                        out_dir,
                        prefix,
-                       width       = NULL,
-                       height      = NULL,
-                       dpi         = 300,
-                       base_width  = 8,
-                       base_height = 6,
-                       x_per_inch      = 6,
-                       facets_per_row  = 4) {
+                       width        = NULL,
+                       height       = NULL,
+                       dpi          = 300,
+                       base_width   = 8,
+                       base_height  = 6,
+                       x_per_inch   = 6,
+                       facets_per_row = 4,
+                       save_png     = TRUE,
+                       save_pdf     = TRUE) {
 
+  # Create directory
   dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
 
-  # estimate number of x-axis categories
+  # ===================================================================
+  # 1. Safely extract x variable name (core fix: supports ~factor(id) etc.)
+  # ===================================================================
   n_x <- NA_integer_
   if (!is.null(p$mapping$x)) {
-    xvar <- rlang::as_name(p$mapping$x)
-    if (!is.null(p$data) && xvar %in% names(p$data)) {
-      n_x <- dplyr::n_distinct(p$data[[xvar]])
+    x_expr <- p$mapping$x
+
+    # Case 1: modern tidy-eval formula like ~factor(id) or ~Species
+    if (inherits(x_expr, "formula")) {
+      x_expr <- x_expr[[2]]  # strip the ~
+    }
+
+    # Now x_expr is either a name/symbol or a call like factor(id)
+    x_name <- tryCatch({
+      rlang::as_name(x_expr)
+    }, error = function(e) NULL)
+
+    # If data exists and variable is present, count distinct levels
+    if (!is.null(x_name) && !is.null(p$data) && !is.null(p$data) && x_name %in% names(p$data)) {
+      n_x <- dplyr::n_distinct(p$data[[x_name]], na.rm = TRUE)
     }
   }
 
-  # estimate number of facet panels
+  # ===================================================================
+  # 2. Estimate number of facet panels
+  # ===================================================================
   n_facets <- 1L
-  gb <- tryCatch(ggplot2::ggplot_build(p),
-                 error = function(e) NULL)
+  gb <- tryCatch(ggplot2::ggplot_build(p), error = function(e) NULL)
   if (!is.null(gb) && !is.null(gb$layout$layout$PANEL)) {
     n_facets <- length(unique(gb$layout$layout$PANEL))
   }
 
-  # width
+  # ===================================================================
+  # 3. Auto-calculate width
+  # ===================================================================
   if (is.null(width)) {
-    add_w <- if (!is.na(n_x)) max(0, n_x / x_per_inch) else 0
+    add_w <- if (!is.na(n_x)) max(0, (n_x - 5) / x_per_inch) else 0  # smoother scaling
     width_final <- base_width + add_w
+
+    # Special case: coord_polar() + many categories → needs more space
+    if (inherits(p$coordinates, "CoordPolar") && !is.na(n_x) && n_x > 15) {
+      width_final <- width_final + 2
+    }
   } else {
     width_final <- width
   }
 
-  # height
+  # ===================================================================
+  # 4. Auto-calculate height
+  # ===================================================================
   if (is.null(height)) {
     facet_rows <- ceiling(n_facets / facets_per_row)
-    add_h      <- max(0, (facet_rows - 1) * 2)  # +2 inch per extra facet row
+    add_h <- max(0, (facet_rows - 1) * 2.5)  # 2.5 inches per extra row
     height_final <- base_height + add_h
+
+    # For polar plots, height = width looks better
+    if (inherits(p$coordinates, "CoordPolar")) {
+      height_final <- width_final
+    }
   } else {
     height_final <- height
   }
 
-  # save PNG
-  ggplot2::ggsave(
-    filename  = file.path(out_dir, paste0(prefix, ".png")),
-    plot      = p,
-    width     = width_final,
-    height    = height_final,
-    dpi       = dpi,
-    units     = "in",
-    limitsize = FALSE
-  )
+  # ===================================================================
+  # 5. Final save (PNG + PDF)
+  # ===================================================================
+  if (save_png) {
+    ggplot2::ggsave(
+      filename  = file.path(out_dir, paste0(prefix, ".png")),
+      plot      = p,
+      width     = width_final,
+      height    = height_final,
+      dpi       = dpi,
+      units     = "in",
+      limitsize = FALSE,
+      bg        = "white"
+    )
+  }
 
-  # save PDF
-  ggplot2::ggsave(
-    filename  = file.path(out_dir, paste0(prefix, ".pdf")),
-    plot      = p,
-    width     = width_final,
-    height    = height_final,
-    units     = "in"
-  )
+  if (save_pdf) {
+    {
+      ggplot2::ggsave(
+        filename  = file.path(out_dir, paste0(prefix, ".pdf")),
+        plot      = p,
+        width     = width_final,
+        height    = height_final,
+        units     = "in",
+        bg        = "white"
+      )
+    }
 
-  invisible(NULL)
+    message("Saved: ", file.path(out_dir, prefix), ".*   (",
+            round(width_final, 1), "\" × ", round(height_final, 1), "\")")
+
+    invisible(NULL)
+  }
 }
 
 
