@@ -17,7 +17,8 @@ cluMicro.bar.metm(
   tran = TRUE,
   hcluter_method = "complete",
   Group = "Group",
-  cuttree = 3
+  cuttree = 3,
+  group_colors = NULL
 )
 }
 \arguments{

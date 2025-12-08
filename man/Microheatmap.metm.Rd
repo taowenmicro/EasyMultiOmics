@@ -12,9 +12,10 @@ Microheatmap.metm(
   row_cluster = TRUE,
   ord.col = TRUE,
   scale = TRUE,
-  axis_order.s = axis_order.s,
+  axis_order.s = NULL,
   row.lab = NULL,
-  col1 = (ggsci::pal_gsea(alpha = 1))(12)
+  col1 = (ggsci::pal_gsea(alpha = 1))(12),
+  y_text_size = 8
 )
 }
 \arguments{

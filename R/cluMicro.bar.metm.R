@@ -50,110 +50,131 @@
 #'   Peng-Hao Xie \email{2019103106@njau.edu.cn}
 #' @export
 cluMicro.bar.metm <- function(
-    dist = "bray", otu = NULL, tax = NULL, map = NULL, tree = NULL,
-    j = "Phylum", ps = NULL, rep = 6, Top = 10, tran = TRUE,
-    hcluter_method = "complete", Group = "Group", cuttree = 3
-){
+    dist = "bray",
+    otu = NULL,
+    tax = NULL,
+    map = NULL,
+    tree = NULL,
+    j = "Phylum",
+    ps = NULL,
+    rep = 6,
+    Top = 10,
+    tran = TRUE,
+    hcluter_method = "complete",
+    Group = "Group",
+    cuttree = 3,
+    group_colors = NULL    # 新增：Group颜色参数
+) {
+
   stopifnot(!is.null(ps))
 
-  ## 1. Sample-level clustering
-  ps1_rela <- phyloseq::transform_sample_counts(ps, function(x) x / sum(x))
-  dmat     <- phyloseq::distance(ps1_rela, method = dist)
-  hc       <- stats::hclust(dmat, method = hcluter_method)
-
+  ps1_rela <- phyloseq::transform_sample_counts(ps, function(x) x/sum(x))
+  dmat <- phyloseq::distance(ps1_rela, method = dist)
+  hc <- stats::hclust(dmat, method = hcluter_method)
   sd <- data.frame(phyloseq::sample_data(ps1_rela))
-  # 不要再加 sd$label <- rownames(sd)
 
-  p <- ggtree::`%<+%`(
-    ggtree::ggtree(hc),
-    sd
-  ) +
-    geom_tippoint(size = 3.5, shape = 21,
-                  ggplot2::aes(fill = .data[[Group]], x = x)) +
-    geom_tiplab(ggplot2::aes(color = .data[[Group]], x = x * 1.2),
-                hjust = 1, size = 3) +
+  # 如果未提供group_colors，使用默认颜色
+  if (is.null(group_colors)) {
+    group_levels <- unique(sd[[Group]])
+    default_colors <- c("#E64B35FF", "#4DBBD5FF", "#00A087FF", "#3C5488FF",
+                        "#F39B7FFF", "#8491B4FF", "#91D1C2FF", "#DC0000FF")
+    group_colors <- setNames(default_colors[seq_along(group_levels)], group_levels)
+  }
+
+  # 样本树图 - 添加 Group 颜色设置
+  p <- ggtree::`%<+%`(ggtree::ggtree(hc), sd) +
+    ggtree::geom_tippoint(size = 3.5, shape = 21,
+                          ggplot2::aes(fill = .data[[Group]], x = x)) +
+    ggtree::geom_tiplab(ggplot2::aes(color = .data[[Group]], x = x * 1.2),
+                        hjust = 1, size = 3) +
+    ggplot2::scale_fill_manual(values = group_colors) +
+    ggplot2::scale_color_manual(values = group_colors) +
     ggplot2::theme_minimal()
 
-
-  ## 2. Collapse taxa to rank j, merge non-top into "Other"
+  # 物种处理部分保持不变
   psdata <- ggClusterNet::tax_glom_wt(ps = ps1_rela, ranks = j)
+
   if (isTRUE(tran)) {
-    psdata <- phyloseq::transform_sample_counts(psdata, function(x) x / sum(x))
+    psdata <- phyloseq::transform_sample_counts(psdata, function(x) x/sum(x))
   }
+
   otu_tab <- phyloseq::otu_table(psdata)
-  if (!phyloseq::taxa_are_rows(psdata)) otu_tab <- t(otu_tab)
+  if (!phyloseq::taxa_are_rows(psdata))
+    otu_tab <- t(otu_tab)
   otu_mat <- as.matrix(otu_tab)
+
   top_taxa <- names(sort(rowSums(otu_mat), decreasing = TRUE))[seq_len(min(Top, nrow(otu_mat)))]
 
   tax_tab <- as.data.frame(phyloseq::tax_table(psdata))
   tax_tab[[j]][!(rownames(tax_tab) %in% top_taxa)] <- "Other"
   phyloseq::tax_table(psdata) <- as.matrix(tax_tab)
 
-  ## 3. Long-format table
   Taxonomies <- phyloseq::psmelt(psdata)
   Taxonomies$Abundance <- Taxonomies$Abundance * 100
   Taxonomies$OTU <- NULL
   colnames(Taxonomies)[1] <- "id"
 
-  ## 保证 Group 列存在
   if (!Group %in% colnames(Taxonomies)) {
     Taxonomies[[Group]] <- phyloseq::sample_data(psdata)[[Group]]
   }
 
-  ## 4. Sample-level stacked barplot + dendrogram
-  p  <- p + ggnewscale::new_scale_fill()
-  p1 <- ggtree::facet_plot(
-    p, panel = "Stacked Barplot", data = Taxonomies,
-    geom = ggstance::geom_barh,
-    mapping = ggplot2::aes(x = Abundance, fill = .data[[j]]),
-    color = NA, stat = "identity"
-  )   + ggplot2::scale_fill_brewer(palette = "Set2") +
+  p <- p + ggnewscale::new_scale_fill()
+
+  # 堆叠条形图 - 保持原始 Set2 调色板
+  p1 <- ggtree::facet_plot(p, panel = "Stacked Barplot", data = Taxonomies,
+                           geom = ggstance::geom_barh,
+                           mapping = ggplot2::aes(x = Abundance, fill = .data[[j]]),
+                           color = NA, stat = "identity") +
+    ggplot2::scale_fill_brewer(palette = "Set2") +
     ggplot2::theme_minimal()
 
-  ## 5. Group-level mean OTU matrix
+  # 组水平聚类
   otu_rel <- phyloseq::otu_table(ps1_rela)
-  if (!phyloseq::taxa_are_rows(ps1_rela)) otu_rel <- t(otu_rel)
+  if (!phyloseq::taxa_are_rows(ps1_rela))
+    otu_rel <- t(otu_rel)
   otu_rel <- as.matrix(otu_rel)
-  smeta   <- data.frame(phyloseq::sample_data(ps1_rela))
+
+  smeta <- data.frame(phyloseq::sample_data(ps1_rela))
   grp_vec <- smeta[[Group]]
-  otuG <- avg_by_group_matrix(otu_rel, grp_vec)
+
+  otuG <- EasyMultiOmics:::avg_by_group_matrix(otu_rel, grp_vec)
 
   ps_group <- phyloseq::phyloseq(
     phyloseq::otu_table(otuG, taxa_are_rows = TRUE),
     phyloseq::tax_table(phyloseq::tax_table(ps1_rela))
   )
+
   hc_g <- stats::hclust(phyloseq::distance(ps_group, method = dist),
                         method = hcluter_method)
-
-  ## 6. Group-level dendrogram
   clus_g <- stats::cutree(hc_g, k = cuttree)
   ddf <- data.frame(label = names(clus_g), member = factor(clus_g))
   rownames(ddf) <- ddf$label
 
-  p3 <- ggtree::`%<+%`(
-    ggtree::ggtree(hc_g),
-    ddf
-  ) +
-    geom_tippoint(size = 3.5, shape = 21,
-                  ggplot2::aes(fill = member, x = x)) +
-    geom_tiplab(ggplot2::aes(color = member, x = x * 1.2),
-                hjust = 1, size = 3) +
+  # 组树图 - 按 label (即Group名称) 设置颜色
+  p3 <- ggtree::`%<+%`(ggtree::ggtree(hc_g), ddf) +
+    ggtree::geom_tippoint(size = 3.5, shape = 21,
+                          ggplot2::aes(fill = label, x = x)) +
+    ggtree::geom_tiplab(ggplot2::aes(color = label, x = x * 1.2),
+                        hjust = 1, size = 3) +
+    ggplot2::scale_fill_manual(values = group_colors) +
+    ggplot2::scale_color_manual(values = group_colors) +
     ggplot2::theme_minimal()
 
-  ## 7. Group-level stacked barplot
-  grotax <- Taxonomies |>
-    dplyr::group_by(.data[[Group]], .data[[j]]) |>
-    dplyr::summarise(Abundance = mean(Abundance), .groups = "drop")
+  grotax <- dplyr::summarise(
+    dplyr::group_by(Taxonomies, .data[[Group]], .data[[j]]),
+    Abundance = mean(Abundance),
+    .groups = "drop"
+  )
 
   p3 <- p3 + ggnewscale::new_scale_fill()
-  p4 <- ggtree::facet_plot(
-    p3, panel = "Stacked Barplot", data = grotax,
-    geom = ggstance::geom_barh,
-    mapping = ggplot2::aes(x = Abundance, fill = .data[[j]]),
-    color = NA, stat = "identity"
-  ) + ggplot2::scale_fill_brewer(palette = "Set1") +
-    ggplot2::theme_minimal()
 
+  # 组堆叠条形图 - 保持原始 Set1 调色板
+  p4 <- ggtree::facet_plot(p3, panel = "Stacked Barplot", data = grotax,
+                           geom = ggstance::geom_barh,
+                           mapping = ggplot2::aes(x = Abundance, fill = .data[[j]]),
+                           color = NA, stat = "identity") +
+    ggplot2::scale_fill_brewer(palette = "Set1") +
+    ggplot2::theme_minimal()
 
   return(list(p, p1, p3, p4, Taxonomies))
 }
