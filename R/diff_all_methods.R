@@ -1,4 +1,8 @@
 
+
+
+
+
 diff_all_methods <- function(ps, group = "Group", alpha = 0.05) {
   results <- list()
 
@@ -103,9 +107,8 @@ diff_all_methods <- function(ps, group = "Group", alpha = 0.05) {
 
   # ---- 17. SongbirdR ----
   results[["songbirdR"]] <- tryCatch({
-    df <- songbirdR.micro(ps, group, collapse=TRUE, pseudo_p=TRUE, sig_alpha=alpha)$diff.tab
-    df <- df %>% dplyr::filter(significant == TRUE)
-    df$Group <- NULL; df$coef <- NULL; df$significant <- NULL
+    df <- songbirdR.micro(ps, group, collapse=TRUE, pseudo_p=TRUE, sig_alpha=alpha)$diff.sig
+    df <- df %>% dplyr::rename(micro = OTU)
     df %>% dplyr::select(micro, adjust.p, method)
   }, error=function(e) NULL)
 

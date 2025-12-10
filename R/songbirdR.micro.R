@@ -90,7 +90,8 @@ songbirdR.micro <- function(ps, group = "Group", alpha = 0, lambda = NULL,
   }
 
   # 只返回显著的
-  diff.sig <- diff.tab %>% dplyr::filter(significant)
+  diff.sig <- diff.tab %>% dplyr::filter(significant) %>% select(OTU,method,adjust.p) %>%
+    rename(micro = OTU)
 
   return(list(tab.songbirdR = coef_long,
               diff.tab = diff.tab,

@@ -14,7 +14,6 @@ library(fs)
 
 ## ===================== 1. 读入 phyloseq 对象 & 基础信息 =====================
 
-## ===================== 1. 读入 phyloseq 对象 =====================
 # 方式一：交互选择
 # file_path <- tcltk::tk_choose.files(
 #   caption = "请选择 ps_ITS.rds 文件",
@@ -30,15 +29,15 @@ library(fs)
 res <- infer_sequencing_type(ps = ps.micro)  # ps 是你的 phyloseq 对象
 res$label
 sample_sums(ps.micro)
-map <- sample_data(ps.16s)
+map <- sample_data(ps.micro)
 head(map)
 
 
 
-# 创建文件夹#--------
+### 创建文件夹#--------
 mg_path <- create_omics_result_dir_auto(
   ps = ps.micro,
-  base_dir     = "./result",
+  base_dir     = "../result",
   include_time = FALSE
 )
 
@@ -169,13 +168,13 @@ p1_0 <- res_box[[2]] %>%
   ggplot2::scale_fill_manual(values = col.g) +
   ggplot2::scale_color_manual(values = col.g)
 
-# ---- 保存 Alpha 图 ----
+# ---- 保存 Alpha 图
 save_plot2(p1_1, mg_alpha_path, "alpha_diversity_box",    width = 12, height = 6)
 save_plot2(p1_2, mg_alpha_path, "alpha_diversity_bar",    width = 12, height = 6)
 save_plot2(p1_3, mg_alpha_path, "alpha_diversity_boxbar", width = 12, height = 6)
 save_plot2(p1_0, mg_alpha_path, "alpha_diversity_violin", width = 12, height = 6)
 
-# ---- 保存 Alpha 表 ----
+# ---- 保存 Alpha 表
 write_sheet2(mg_alpha_wb, "alpha_diversity_data", data_alpha)
 write_sheet2(mg_alpha_wb, "alpha_diversity_stat", result_alpha)
 openxlsx::saveWorkbook(mg_alpha_wb, alpha_xlsx_path, overwrite = TRUE)
@@ -209,12 +208,12 @@ p2_3 <- res_rare[[4]] +
   scale_color_manual(values = col.g) +
   theme_nature()
 
-# ---- 保存稀释曲线图 ----
+# ---- 保存稀释曲线图
 save_plot2(p2_1, mg_alpha_path, "alpha_rarefaction_individual", width = 9,  height = 7)
 save_plot2(p2_2, mg_alpha_path, "alpha_rarefaction_group",      width = 10, height = 8)
 save_plot2(p2_3, mg_alpha_path, "alpha_rarefaction_group_sd",   width = 10, height = 8)
 
-# ---- 保存稀释数据 ----
+# ---- 保存稀释数据
 write_sheet2(mg_alpha_wb, "rarefaction_data", raretab)
 openxlsx::saveWorkbook(mg_alpha_wb, alpha_xlsx_path, overwrite = TRUE)
 
@@ -285,12 +284,12 @@ p3_3 <- p3_1 +
   theme_nature() +
   theme(axis.title.y = element_text(angle = 90))
 
-# ---- 保存 PCoA 图 ----
+# ---- 保存 PCoA 图
 save_plot2(p3_1, mg_beta_path, "pcoa_basic",   width = 12, height = 10)
 save_plot2(p3_2, mg_beta_path, "pcoa_labeled", width = 12, height = 10)
 save_plot2(p3_3, mg_beta_path, "pcoa_refined", width = 12, height = 10)
 
-# ---- 保存排序数据 ----
+# ---- 保存排序数据
 write_sheet2(mg_beta_wb, "ordination_data", plotdata)
 write_sheet2(mg_beta_wb, "ordination_cent", cent)
 write_sheet2(mg_beta_wb, "ordination_segs", segs)
@@ -407,14 +406,18 @@ if (file.exists(comp_xlsx_path)) {
 
 ### ---------- 4.1 Ven.Upset.metm：共有/特有 OTU/ASV ----------
 
+
 res_venn <- Ven.Upset.metm(
   ps    = ps.micro,
   group = "Group",
   N     = 0.5,
-  size  = 3
+  size  = 3,
+  fill_color = col.g
 )
 
-p10_1 <- res_venn[[1]] + theme_void()+ scale_fill_manual(values = col.g)
+p10_1 <- res_venn[[1]] + theme_void()
+
+
 p10_2 <- res_venn[[2]]
 p10_3 <- res_venn[[4]]
 dat10 <- res_venn[[3]]
@@ -499,8 +502,8 @@ openxlsx::saveWorkbook(mg_comp_wb, comp_xlsx_path, overwrite = TRUE)
 
 ### ---------- 4.6 多元 polygon 图（可选保存） ----------
 
-p_poly1 <- ps_polygon_plot(ps.micro, group = "Group", taxrank = "Phylum")
-
+ps1 <- ps.micro %>% filter_OTU_ps(500)
+p_poly1 <- ps_polygon_plot(ps1, group = "Group", taxrank = "Phylum")
 
 save_plot2(p_poly1, mg_comp_path, "polygon_Group2_Phylum", width = 18, height = 12)
 ### ---------- 4.7 barMainplot.metm：堆积柱状图 --------
@@ -544,6 +547,7 @@ openxlsx::saveWorkbook(mg_comp_wb, comp_xlsx_path, overwrite = TRUE)
 
 ### ---------- 4.8 cluMicro.bar.metm：聚类堆积柱状图 ----------
 
+
 res_clubar <- cluMicro.bar.metm(
   dist           = "bray",
   ps             = ps.micro,
@@ -552,10 +556,14 @@ res_clubar <- cluMicro.bar.metm(
   tran           = TRUE,
   hcluter_method = "complete",
   Group          = "Group",
-  cuttree        = length(unique(phyloseq::sample_data(ps.micro)$Group))
+  cuttree        = length(unique(phyloseq::sample_data(ps.micro)$Group)),
+  group_colors   = col.g
 )
 
+
+
 p5_2    <- res_clubar[[2]]
+
 p5_3    <- res_clubar[[3]]
 p5_4    <- res_clubar[[4]]
 
@@ -660,14 +668,16 @@ id_heat <- ps.micro %>%
   head(heatnum) %>%
   names()
 
+
+
 res_heat <- Microheatmap.metm(
   ps_rela     = ps_tem,
   id          = id_heat,
   col_cluster = FALSE,
   row_cluster = FALSE,
-  col1        = (ggsci::pal_gsea(alpha = 1))(12)
+  col1        = (ggsci::pal_gsea(alpha = 1))(12),
+  y_text_size = 8    # 调整 y 轴字号，默认为 8
 )
-
 p24_1 <- res_heat[[1]]
 p24_2 <- res_heat[[2]]
 dat24 <- res_heat[[3]]
@@ -734,12 +744,16 @@ openxlsx::saveWorkbook(mg_diff_wb, diff_xlsx_path, overwrite = TRUE)
 
 ### ---------- 5.3 DESep2Super.metm：DESeq2 差异物种 ----------
 
+
 res_deseq <- DESep2Super.metm(
-  ps       = ps.micro %>% ggClusterNet::filter_OTU_ps(500),
-  group    = "Group",
-  artGroup = NULL,
-  j        = "Species"
+  ps         = ps.micro %>% ggClusterNet::filter_OTU_ps(500),
+  group      = "Group",
+  artGroup   = NULL,
+  j          = "Species",
+  label_size = 3    # 调整标签字号（默认3，原来是1）
 )
+
+
 
 p26_1 <- res_deseq[[1]][[1]]
 p26_2 <- res_deseq[[1]][[2]]
@@ -832,12 +846,15 @@ if (FALSE) {
   i       <- 2
 
   ps.cs <- ps.micro %>% subset_samples.wt("Group", id.g[, i])
+  ps.cs <- clean_tax_table_symbols(ps.cs)
 
   res_all <- diff_all_methods(
-    ps.cs %>% filter_OTU_ps(400),
+    ps.cs %>% filter_OTU_ps(500),
     group = "Group",
     alpha = 0.05
   )
+
+
 
   # 树 + 全差异环图
   res_tree <- plot_resall_with_tree(
@@ -848,9 +865,11 @@ if (FALSE) {
     inner_gap  = -20,
     label_size = 2.8
   )
-
+  res_all$summary %>% filter(micro == "s__Mesorhizobium_caraganae")
+  res_all$summary$methods
   p_tree <- res_tree[[1]]
   save_plot2(p_tree, mg_diff_path, "diff_all_methods_tree", width = 12, height = 12)
+  # ggsave("./cs.pdf",   p_tree ,width = 15,height = 15)
 
   # 摘要表：每个方法是否显著
   details_tab <- res_all$details %>%
@@ -1182,8 +1201,8 @@ if (!is.null(cortab)) {
       write_sheet2(
         wb       = mg_network_wb,
         sheet    = paste0("cor_", group_name),
-        data     = cor_df,
-        rownames = TRUE
+        df     = cor_df,
+        row_names = TRUE
       )
     }
   }
@@ -1271,14 +1290,14 @@ dat3 <- net_prop_sample_all %>%
 write_sheet2(
   wb       = mg_network_wb,
   sheet    = "sample_network_properties",
-  df     = net_prop_sample_all,
+  df       = net_prop_sample_all,
   row_names  = TRUE
 )
 write_sheet2(
   wb       = mg_network_wb,
   sheet    = "sample_netprop_with_meta",
-  data     = dat3,
-  rownames = FALSE
+  df     = dat3,
+  row_names = FALSE
 )
 openxlsx::saveWorkbook(mg_network_wb, network_xlsx_path, overwrite = TRUE)
 
@@ -1308,8 +1327,8 @@ head(node_prop_all)
 write_sheet2(
   wb       = mg_network_wb,
   sheet    = "node_properties_combined",
-  data     = node_prop_all,
-  rownames = FALSE
+  df    = node_prop_all,
+  row_names = FALSE
 )
 openxlsx::saveWorkbook(mg_network_wb, network_xlsx_path, overwrite = TRUE)
 
@@ -1334,8 +1353,8 @@ head(res_mod)
 write_sheet2(
   wb       = mg_network_wb,
   sheet    = "network_comparison_results",
-  data     = res_mod,
-  rownames = FALSE
+  df    = res_mod,
+  row_names = FALSE
 )
 openxlsx::saveWorkbook(mg_network_wb, network_xlsx_path, overwrite = TRUE)
 
@@ -1373,7 +1392,7 @@ edge_rf <- edgeBuild(cor = cor_mat_rf, node = node_rf)
 ## 网络可视化
 p_rf_net <- ggplot() +
   geom_segment(aes(x = X1, y = Y1, xend = X2, yend = Y2, color = as.factor(cor)),
-               data = edge_rf, size = 1, alpha = 0.1) +
+               data = edge_rf, size = 1, alpha = 0.6) +
   geom_point(aes(X1, X2), pch = 21, data = node_rf) +
   ggrepel::geom_text_repel(aes(X1, X2, label = elements), data = node_rf) +
   scale_colour_brewer(palette = "Set1") +
