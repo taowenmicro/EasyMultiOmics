@@ -1,8 +1,8 @@
+# ps = ps.cs %>% filter_OTU_ps(500)
+# group = "Group"
+# alpha = 0.05
 
-
-
-
-
+#' @export
 diff_all_methods <- function(ps, group = "Group", alpha = 0.05) {
   results <- list()
 
@@ -19,7 +19,10 @@ diff_all_methods <- function(ps, group = "Group", alpha = 0.05) {
   }, error=function(e) NULL)
 
   # ---- 3. corncob ----
+
+
   results[["corncob"]] <- tryCatch({
+
     df <- corncob.micro(ps, group, alpha)$diff.tab
     colnames(df) <- c("micro", "adjust.p", "method")
     df
@@ -37,9 +40,10 @@ diff_all_methods <- function(ps, group = "Group", alpha = 0.05) {
       dplyr::select(micro, adjust.p, method)
   }, error=function(e) NULL)
 
+
   # ---- 6. LEfSe ----
   results[["LEfSe"]] <- tryCatch({
-    lefse.micro(ps, group, alpha)$diff.tab %>%
+    lefse.micro(ps, group, alpha,Top =  taxa_sums(ps) %>% length())$diff.tab %>%
       dplyr::select(micro, adjust.p, method)
   }, error=function(e) NULL)
 
@@ -107,9 +111,10 @@ diff_all_methods <- function(ps, group = "Group", alpha = 0.05) {
 
   # ---- 17. SongbirdR ----
   results[["songbirdR"]] <- tryCatch({
-    df <- songbirdR.micro(ps, group, collapse=TRUE, pseudo_p=TRUE, sig_alpha=alpha)$diff.sig
-    df <- df %>% dplyr::rename(micro = OTU)
-    df %>% dplyr::select(micro, adjust.p, method)
+    df <- songbirdR.micro(ps, group, collapse=TRUE, pseudo_p=TRUE, sig_alpha=alpha)
+    # df <- df %>% dplyr::filter(significant == TRUE)
+    # df$Group <- NULL; df$coef <- NULL; df$significant <- NULL
+    df$diff.sig
   }, error=function(e) NULL)
 
   # ==== 合并结果 ====
@@ -140,6 +145,7 @@ diff_all_methods <- function(ps, group = "Group", alpha = 0.05) {
 
 
 # --- 1. ALDEx2 ---
+#' @export
 aldex2.micro <- function(ps, group = "Group", alpha = 0.05, test = "t") {
   ASV_table <- ps %>% filter_taxa(function(x) sum(x) > 0 , TRUE) %>%
     vegan_otu() %>% t() %>% as.data.frame()
@@ -157,6 +163,7 @@ aldex2.micro <- function(ps, group = "Group", alpha = 0.05, test = "t") {
 }
 
 # --- 2. ANCOM-II ---
+#' @export
 ancom.micro <- function(ps, group = "Group", alpha = 0.05,
                         p_adj_method = "BH", ANCOM.value = "detected_0.6") {
   ASV_table <- vegan_otu(ps) %>% t() %>% as.data.frame()
@@ -214,7 +221,7 @@ corncob.micro <- function(ps, group = "Group", alpha = 0.05) {
 
 # --- 4. edgeR ---
 
-
+#' @export
 edgeR.micro <- function(ps, group = "Group", alpha = 0.05) {
 
   phyloseq_to_edgeR <- function(physeq, group, method = "RLE") {
@@ -271,8 +278,9 @@ deseq2.micro <- function(ps, group = "Group", alpha = 0.05) {
 }
 
 # --- 6. LEfSe ---
-lefse.micro <- function(ps, group = "Group", alpha = 0.05) {
-  tablda <- LDA_Micro(ps, group = group, p.lvl = alpha, lda.lvl = 0,
+#' @export
+lefse.micro <- function(ps, group = "Group",Top = 500, alpha = 0.05) {
+  tablda <- LDA_Micro(ps, group = group,Top = Top, p.lvl = alpha, lda.lvl = 0,
                       seed = 11, adjust.p = FALSE)
   dat <- tablda[[2]]; dat$ID <- row.names(dat)
   dat2 <- dat %>% dplyr::filter(stringr::str_detect(ID,"st__"))
@@ -285,6 +293,7 @@ lefse.micro <- function(ps, group = "Group", alpha = 0.05) {
 }
 
 # --- 7. limma voom ---
+#' @export
 limma.v.TMM.micro <- function(ps, group="Group", alpha=0.05, method="TMM") {
   # 构建公式
   my_formula <- as.formula(paste("~", paste(group, collapse=" + ")))
@@ -332,6 +341,7 @@ limma.v.TMM.micro <- function(ps, group="Group", alpha=0.05, method="TMM") {
 }
 
 # --- 8. Maaslin2 ---
+#' @export
 maaslin2.micro <- function(ps, group = "Group", alpha = 0.05, rare = FALSE) {
 
   # OTU 表
@@ -397,6 +407,7 @@ maaslin2.micro <- function(ps, group = "Group", alpha = 0.05, rare = FALSE) {
 }
 
 # --- 9. metagenomeSeq ---
+#' @export
 metaSeq.micro <- function(ps, group = "Group", alpha = 0.05) {
   # 提取 OTU 表，行 = OTU，列 = sample
   ASV_table <- ps %>%
@@ -437,8 +448,8 @@ metaSeq.micro <- function(ps, group = "Group", alpha = 0.05) {
 
   tab.d <- res_table %>%
     tibble::rownames_to_column("OTU") %>%
-    dplyr::filter(adjPvalues < alpha) %>%
-    dplyr::transmute(micro = OTU, method = "metagenomeSeq", adjust.p = adjPvalues)
+    dplyr::filter(pvalues < alpha) %>%
+    dplyr::transmute(micro = OTU, method = "metagenomeSeq", adjust.p = pvalues)
 
   return(list(
     tab.metaSeq = res_table,
@@ -447,6 +458,7 @@ metaSeq.micro <- function(ps, group = "Group", alpha = 0.05) {
 }
 
 # --- 10. t.test (rare) ---
+#' @export
 t.test.micro <- function(ps, group="Group", alpha=0.05) {
   ASV_table <- ps %>% scale_micro(method="sampling") %>% vegan_otu() %>% t() %>% as.data.frame()
   g <- sample_data(ps)[[group]]
@@ -458,6 +470,7 @@ t.test.micro <- function(ps, group="Group", alpha=0.05) {
 }
 
 # --- 11. Wilcoxon (rare) ---
+#' @export
 wilcox.sampl.micro <- function(ps, group="Group", alpha=0.05) {
   ASV_table <- ps %>% scale_micro(method="sampling") %>% vegan_otu() %>% t() %>% as.data.frame()
   g <- sample_data(ps)[[group]]
@@ -469,6 +482,7 @@ wilcox.sampl.micro <- function(ps, group="Group", alpha=0.05) {
 }
 
 # --- 12. Wilcoxon (CLR) ---
+#' @export
 wilcox.clr.micro <- function(ps, group="Group", alpha=0.05) {
   ASV_table <- vegan_otu(ps)%>%t()%>%as.data.frame()
   CLR_table <- data.frame(apply(ASV_table+1,2,function(x){log(x)-mean(log(x))}))
@@ -481,6 +495,7 @@ wilcox.clr.micro <- function(ps, group="Group", alpha=0.05) {
 }
 
 # --- 13. ANCOMBC ---
+#' @export
 ancombc2.micro <- function(ps, group = "Group", alpha = 0.05) {
   # 转换 phyloseq 为 TreeSummarizedExperiment
   message("正在将 phyloseq 转换为 TreeSummarizedExperiment...")
@@ -549,6 +564,7 @@ ancombc2.micro <- function(ps, group = "Group", alpha = 0.05) {
   ))
 }
 # --- 14. ZicoSeq ---
+#' @export
 zicoseq.micro <- function(ps, group = "Group", alpha = 0.05) {
   comm <- ps %>%
     filter_taxa(function(x) sum(x) > 0, TRUE) %>%
@@ -588,13 +604,16 @@ zicoseq.micro <- function(ps, group = "Group", alpha = 0.05) {
     dplyr::filter(p.adj < alpha) %>%
     dplyr::mutate(method = "ZicoSeq") %>%
     dplyr::rename(micro = id, adjust.p = p.adj)
-
+  tab.d$p.fwer = NULL
+  tab.d$p.raw = NULL
   return(list(
     tab.ZicoSeq = dat,
     diff.tab = tab.d
   ))
 }
 
+
+#' @export
 LDA_Micro = function(ps = ps,
                      group = "Group",
                      Top = 100,

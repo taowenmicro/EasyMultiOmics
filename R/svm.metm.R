@@ -1,89 +1,157 @@
-#' @title Svm model screening of characteristic microorganisms
-#' @description
-#' This function uses a Support Vector Machine (SVM) to classify microbial community samples based on OTU (Operational Taxonomic Unit) abundances. It performs k-fold cross-validation to evaluate the classification accuracy and ranks feature importance using Recursive Feature Elimination (RFE).
-#' @param ps A phyloseq format file used as an alternative for the input containing otu, tax, and map.
-#' @param k The number of folds for cross-validation.
-#' @return A list object including the following components:
-#' \item{AUC}{The average accuracy of the svm model.}
-#' \item{Importance}{A data frame showing the feature importance ranked in descending order.}
-#' @export
-#' @author
-#' Tao Wen \email{2018203048@njau.edu.cn},
-#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+#' Support Vector Machine model for screening characteristic microorganisms
+#'
+#' This function fits a Support Vector Machine (SVM) classification model
+#' on a phyloseq object using k-fold cross-validation. The OTU table is used
+#' as predictors and the sample grouping variable \code{Group} is used as
+#' the response. The function returns overall accuracy and feature importance.
+#'
+#' @param ps A \code{phyloseq} object containing an OTU table and sample data.
+#'   The sample_data slot must contain a column named \code{Group} indicating
+#'   the class labels.
+#' @param k Integer; the number of folds for cross-validation. Default is 5.
+#' @param seed Integer; random seed for reproducibility. Default is 123.
+#' @param top Optional integer. If not \code{NULL}, the OTU table is first
+#'   filtered to keep only the top abundant OTUs using \code{filter_OTU_ps(top)}.
+#'
+#' @return A list with the following elements:
+#' \describe{
+#'   \item{AUC}{A character string summarising the overall accuracy
+#'   (kept for backward compatibility with previous naming).}
+#'   \item{Importance}{A \code{varImp.train} object containing feature importance
+#'   scores as computed by \code{caret::varImp}.}
+#'   \item{Model}{The fitted \code{caret} \code{train} object using the
+#'   \code{"svmRadial"} method.}
+#' }
+#'
+#' @details
+#' This function relies on the following packages:
+#' \itemize{
+#'   \item \pkg{phyloseq} for handling microbiome data structures.
+#'   \item \pkg{ggClusterNet} for extracting OTU tables via \code{vegan_otu}.
+#'   \item \pkg{caret} for cross-validation and model training.
+#'   \item \pkg{kernlab} as the backend for the \code{"svmRadial"} method.
+#' }
+#' The function assumes that the grouping variable is stored in
+#' \code{sample_data(ps)$Group}. Column names of the OTU predictors are
+#' sanitized using \code{make.names} to avoid issues in model formulas.
+#'
 #' @examples
-#' library(dplyr)
-#' library(ggClusterNet)
-#' library(caret)
-#' library(e1071)
-#' res <- svm_metm(ps = ps.16s %>% filter_OTU_ps(20), k = 5)
-#' AUC = res[[1]]
-#' AUC
-#' importance = res[[2]]
-#' importance
+#' \dontrun{
+#'   library(phyloseq)
+#'   library(ggClusterNet)
+#'   library(caret)
+#'   library(kernlab)
+#'
+#'   res_svm <- svm_metm(ps = ps_example, k = 5, top = 100)
+#'   res_svm$AUC
+#'
+#'   # Extract importance as a data frame
+#'   imp_df <- res_svm$Importance$importance
+#'   imp_df$Feature <- rownames(imp_df)
+#'   rownames(imp_df) <- NULL
+#'   head(imp_df)
+#' }
+#'
+#' @export
+svm_metm <- function(ps,
+                     k    = 5,
+                     seed = 123,
+                     top  = NULL) {
 
-svm_metm <- function(ps=ps, k = 5) {
-  # 数据准备
-  map <- as.data.frame(phyloseq::sample_data(ps))
-  otutab <- as.data.frame(t(ggClusterNet::vegan_otu(ps)))
-  colnames(otutab) <- gsub("-", "_", colnames(otutab))
-  test <- as.data.frame(t(otutab))
-  test$group <- factor(map$Group)
-  colnames(test) <- paste("OTU", colnames(test), sep = "")
-
-  colnames(test) <- gsub("-", "_", colnames(test))
-  colnames(test) <- gsub("[/]", "_", colnames(test))
-  colnames(test) <- gsub("[(]", "_", colnames(test))
-  colnames(test) <- gsub("[)]", "_", colnames(test))
-  colnames(test) <- gsub("[:]", "_", colnames(test))
-  colnames(test) <- gsub("[[]", "", colnames(test))
-  colnames(test) <- gsub("[]]", "_", colnames(test))
-  colnames(test) <- gsub("[#]", "_", colnames(test))
-  colnames(test) <- gsub("[+]", "_", colnames(test))
-  colnames(test) <- gsub(" ", "_", colnames(test))
-
-  test <- dplyr::select(test, OTUgroup, everything())
-  train <- test
-
-  folds <- createFolds(y = test$OTUgroup, k = k)
-
-  fc <- as.numeric()
-  mod_pre <- as.numeric()
-  accuracy_values <- numeric(k)
-
-  for(i in 1:5){
-    fold_test<-train[folds[[i]],]
-    # head(fold_test)
-    fold_train<-train[-folds[[i]],]
-    model<-svm(OTUgroup~.,data=fold_train,probability=TRUE)
-    model
-    model_pre<-predict(model,newdata = fold_test,decision.values = TRUE, probability = TRUE)
-    fc<-append(fc,as.numeric(fold_test$OTUgroup))
-    mod_pre<-append(mod_pre,as.numeric(attr(model_pre, "probabilities")[,2]))
-
-    # 计算准确率
-    correct_predictions <- sum( model_pre == fold_test$OTUgroup)
-    accuracy <- correct_predictions / nrow(fold_test)
-    accuracy_values[i] <- accuracy
-    # print(paste("Fold", i, "Accuracy:", round(accuracy, 3)))
-
-
-
+  ## ---- basic checks ---------------------------------------------------------
+  if (!inherits(ps, "phyloseq")) {
+    stop("`ps` must be a phyloseq object.", call. = FALSE)
   }
 
-  # # 计算AUC
-  # pred <- prediction(mod_pre, fc)
-  # auc <- performance(pred, "auc")@y.values[[1]]
-  # auc_result <- paste("SVM AUC:", round(auc, 3))
+  if (!requireNamespace("phyloseq", quietly = TRUE)) {
+    stop("Package 'phyloseq' is required but not installed.", call. = FALSE)
+  }
+  if (!requireNamespace("ggClusterNet", quietly = TRUE)) {
+    stop("Package 'ggClusterNet' is required but not installed.", call. = FALSE)
+  }
+  if (!requireNamespace("caret", quietly = TRUE)) {
+    stop("Package 'caret' is required but not installed.", call. = FALSE)
+  }
+  if (!requireNamespace("kernlab", quietly = TRUE)) {
+    stop("Package 'kernlab' is required but not installed.", call. = FALSE)
+  }
 
-  # 特征重要性评估（RFE）
-  control <- rfeControl(functions = caretFuncs, method = "cv", number = k)
-  rfe_results <- rfe(train[, -1], train$OTUgroup, sizes = c(1:ncol(train) - 1), rfeControl = control)
-  importance <- varImp(rfe_results, scale = FALSE)
+  set.seed(seed)
 
+  ## ---- optional OTU filtering -----------------------------------------------
+  if (!is.null(top)) {
+    if (!is.numeric(top) || length(top) != 1L) {
+      stop("`top` must be a single numeric value.", call. = FALSE)
+    }
+    # Assuming filter_OTU_ps(ps, top) is available in the same package
+    ps <- filter_OTU_ps(ps, top = top)
+  }
 
-  mean_accuracy <- mean(accuracy_values)
-  accuracy_result <- paste("SVM Average Accuracy:", round(mean_accuracy, 3))
-  row.names(importance) =  gsub("OTU","",row.names(importance))
-  # 输出结果
-  list(AUC = accuracy_result, Importance = importance)
+  ## ---- extract sample data and OTU table ------------------------------------
+  map <- as.data.frame(phyloseq::sample_data(ps))
+
+  if (!"Group" %in% colnames(map)) {
+    stop("sample_data(ps) must contain a column named 'Group'.", call. = FALSE)
+  }
+
+  otu_mat <- ggClusterNet::vegan_otu(ps)   # OTU x sample
+  otu_df  <- as.data.frame(t(otu_mat))     # sample x OTU
+
+  # Build combined data frame: response + predictors
+  df <- cbind(Group = map$Group, otu_df)
+  df$Group <- as.factor(df$Group)
+
+  # Sanitize predictor names
+  colnames(df)[-1] <- make.names(colnames(df)[-1])
+
+  ## ---- caret training control -----------------------------------------------
+  n_class <- nlevels(df$Group)
+
+  if (n_class == 2L) {
+    # Binary classification: use ROC as metric
+    train_control <- caret::trainControl(
+      method          = "cv",
+      number          = k,
+      classProbs      = TRUE,
+      summaryFunction = caret::twoClassSummary,
+      savePredictions = "final",
+      allowParallel   = FALSE
+    )
+    metric <- "ROC"
+  } else {
+    # Multiclass: use Accuracy
+    train_control <- caret::trainControl(
+      method          = "cv",
+      number          = k,
+      classProbs      = FALSE,
+      savePredictions = "final",
+      allowParallel   = FALSE
+    )
+    metric <- "Accuracy"
+  }
+
+  ## ---- train SVM model (svmRadial) ------------------------------------------
+  model <- caret::train(
+    Group ~ .,
+    data      = df,
+    method    = "svmRadial",
+    trControl = train_control,
+    metric    = metric
+  )
+
+  ## ---- overall accuracy -----------------------------------------------------
+  pred <- stats::predict(model, newdata = df)
+  cm   <- caret::confusionMatrix(pred, df$Group)
+  acc  <- cm$overall["Accuracy"]
+  acc_txt <- paste("SVM Average Accuracy:", round(acc, 3))
+
+  ## ---- feature importance ----------------------------------------------------
+  imp <- caret::varImp(model, scale = FALSE)
+
+  ## ---- return ---------------------------------------------------------------
+  list(
+    AUC        = acc_txt,  # for backward compatibility with previous naming
+    Importance = imp,
+    Model      = model
+  )
 }

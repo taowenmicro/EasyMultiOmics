@@ -4,44 +4,28 @@
 \alias{xgboost.metm}
 \title{XGBoost model screening of characteristic microorganisms}
 \usage{
-xgboost.metm(ps = ps, seed = 200, top = 20, k = 5, adjust = F)
+xgboost.metm(ps, seed = 200, top = 20, k = 5, adjust = FALSE)
 }
 \arguments{
-\item{ps}{A phyloseq format file used as an alternative for the input containing otu, tax, and map.}
+\item{ps}{A phyloseq object containing otu, tax, and sample data.}
 
-\item{seed}{The random seed for reproducibility.}
+\item{seed}{Random seed for reproducibility.}
 
-\item{top}{The top microorganisms to consider.}
+\item{top}{The top microorganisms to keep (feature selection by abundance).}
 
-\item{k}{The number of folds for cross-validation.}
+\item{k}{Number of folds for cross-validation.}
 
-\item{adjust}{A logical value for whether to adjust XGBoost model parameters,default F.}
+\item{adjust}{Logical; whether to tune XGBoost hyperparameters (default FALSE).}
 }
 \value{
-A list object including the following components:
-\item{AUC}{The average accuracy of the XGBoost model.}
-\item{Importance}{A data frame showing the feature importance ranked in descending order.}
+A list with components:
+\item{Accuracy}{Overall accuracy of the final model.}
+\item{Accuracy_text}{A character string summarizing the accuracy.}
+\item{Importance}{A \code{varImp} object with feature importance.}
+\item{Model}{The fitted \code{caret} model object.}
 }
 \description{
-XGBoost, one of the machine learning methods, was used to screen for characteristic
-microorganisms, and the model was evaluated using k-fold cross-validation.
-}
-\examples{
-library(dplyr)
-library(ggClusterNet)
-library(caret)
-library(xgboost)
-library(Ckmeans.1d.dp)
-library(tidyverse)
-library(mia)
-res = xgboost.metm(ps =ps.16s, top = 50 )
-accuracy = res[[1]]
-accuracy
-importance = res[[2]]
-importance
-
-}
-\author{
-Tao Wen \email{2018203048@njau.edu.cn},
-Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+XGBoost, one of the machine learning methods, is used to screen for
+characteristic microorganisms, and the model is evaluated using
+k-fold cross-validation.
 }

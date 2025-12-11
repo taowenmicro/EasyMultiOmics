@@ -411,8 +411,7 @@ res_venn <- Ven.Upset.metm(
   ps    = ps.micro,
   group = "Group",
   N     = 0.5,
-  size  = 3,
-  fill_color = col.g
+  size  = 3
 )
 
 p10_1 <- res_venn[[1]] + theme_void()
@@ -749,8 +748,8 @@ res_deseq <- DESep2Super.metm(
   ps         = ps.micro %>% ggClusterNet::filter_OTU_ps(500),
   group      = "Group",
   artGroup   = NULL,
-  j          = "Species",
-  label_size = 3    # 调整标签字号（默认3，原来是1）
+  j          = "Species"
+
 )
 
 
@@ -865,11 +864,11 @@ if (FALSE) {
     inner_gap  = -20,
     label_size = 2.8
   )
-  res_all$summary %>% filter(micro == "s__Mesorhizobium_caraganae")
+
   res_all$summary$methods
   p_tree <- res_tree[[1]]
   save_plot2(p_tree, mg_diff_path, "diff_all_methods_tree", width = 12, height = 12)
-  # ggsave("./cs.pdf",   p_tree ,width = 15,height = 15)
+
 
   # 摘要表：每个方法是否显著
   details_tab <- res_all$details %>%
@@ -892,7 +891,19 @@ if (FALSE) {
 
 
 ## ===================== 6. 生物标志物分析（Biomarker Identification） =====================
-
+library(caret)
+library(pROC)
+library(zCompositions)
+library(compositions)
+library(xgboost)
+library(Ckmeans.1d.dp)
+library(mia)
+library(rpart)
+library(ipred)
+library(randomForest)
+library(caret)
+library(ROCR)
+library(e1071)
 mg_biomarker_path <- file.path(mg_path, "05_biomarker")
 dir.create(mg_biomarker_path, recursive = TRUE, showWarnings = FALSE)
 
@@ -954,7 +965,7 @@ openxlsx::saveWorkbook(mg_biomarker_wb, biomarker_xlsx_path, overwrite = TRUE)
 
 ### ---------- 6.3 svm_metm：SVM 筛选特征 ----------
 
-res_svm <- svm_metm(ps = pst %>% filter_OTU_ps(100), k = 5)
+res_svm <- svm_metm(ps = pst %>% filter_OTU_ps(1000), k = 5)
 AUC_svm <- res_svm[[1]]
 imp_svm <- res_svm[[2]]
 
@@ -986,21 +997,22 @@ openxlsx::saveWorkbook(mg_biomarker_wb, biomarker_xlsx_path, overwrite = TRUE)
 
 ### ---------- 6.6 xgboost.metm：XGBoost 特征选择 ----------
 
-library(xgboost)
-library(Ckmeans.1d.dp)
-library(mia)
-
-res_xgb <- xgboost.metm(ps = pst, top = 20)
+res_xgb <- xgboost.metm(ps = pst %>% filter_OTU_ps(500), top = 20)
 acc_xgb <- res_xgb[[1]]
-imp_xgb <- as.data.frame(res_xgb[[2]]$importance)
+# 提取变量重要性 data.frame
+imp_xgb <- res_xgb$Importance$importance
 
+# 把行名拿出来当成一列 Feature
+imp_xgb$Feature <- rownames(imp_xgb)
+rownames(imp_xgb) <- NULL
+
+imp_xgb
 write_sheet2(mg_biomarker_wb, "xgboost_accuracy", data.frame(Accuracy = acc_xgb))
 write_sheet2(mg_biomarker_wb, "xgboost_importance", imp_xgb)
 openxlsx::saveWorkbook(mg_biomarker_wb, biomarker_xlsx_path, overwrite = TRUE)
 
 ### ---------- 6.7 decisiontree.metm：决策树 ----------
 
-library(rpart)
 
 res_tree <- decisiontree.metm(ps = pst, top = 50, seed = 6358, k = 5)
 acc_tree <- res_tree[[1]]
@@ -1034,9 +1046,8 @@ openxlsx::saveWorkbook(mg_biomarker_wb, biomarker_xlsx_path, overwrite = TRUE)
 
 ### ---------- 6.9 bagging.metm：Bagging ----------
 
-library(ipred)
 
-res_bag <- bagging.metm(ps = pst, top = 20, seed = 1010, k = 5)
+res_bag <- bagging_metm(ps = pst, top = 20, seed = 1010, k = 5)
 acc_bag <- res_bag[[1]]
 imp_bag <- res_bag[[2]]
 
@@ -1068,7 +1079,7 @@ openxlsx::saveWorkbook(mg_biomarker_wb, biomarker_xlsx_path, overwrite = TRUE)
 
 ### ---------- 6.12 MLP / stacking 模型（可选，不强制写表） ----------
 
-if (FALSE) {
+if (TRUE) {
   # 39 多层感知机 MLP
   res_mlp <- mlp_metm_neuralnet(
     pst %>% filter_OTU_ps(1000),
@@ -1081,11 +1092,6 @@ if (FALSE) {
   print(res_mlp$Accuracy)
 
   # 40 集成学习 1：RF + XGB + SVM
-  library(caret)
-  library(pROC)
-  library(zCompositions)
-  library(compositions)
-  library(e1071)
 
   fit1 <- stacking_RF_XGB_SVM(pst, outcome_col = "Group", k = 5)
   print(fit1$summary_metrics)
@@ -1095,12 +1101,9 @@ if (FALSE) {
   print(fit2$summary_metrics)
 }
 
+
 ### ---------- 6.13 rfcv.metm：随机森林特征数交叉验证 ----------
 
-library(randomForest)
-library(caret)
-library(ROCR)
-library(e1071)
 
 res_rfcv <- rfcv.metm(
   ps        = pst %>% filter_OTU_ps(100),
@@ -1154,6 +1157,13 @@ if (file.exists(network_xlsx_path)) {
 
 library(ggClusterNet)
 library(igraph)
+## 如果会话中已经加载了 mia，就卸载
+if ("package:mia" %in% search()) {
+  detach("package:mia", unload = TRUE, character.only = TRUE)
+  message("mia 已卸载。")
+} else {
+  message("mia 当前并未加载。")
+}
 
 ### ---------- 7.1 network.pip：主协同网络构建 ----------
 
@@ -1215,7 +1225,7 @@ network_info <- data.frame(
   Value     = c("200", "0.6", "0.05", "2",
                 "model_maptree2", "cluster_fast_greedy")
 )
-write_sheet2(mg_network_wb, "network_parameters", network_info, rownames = FALSE)
+write_sheet2(mg_network_wb, "network_parameters", network_info, row_names  = FALSE)
 
 openxlsx::saveWorkbook(mg_network_wb, network_xlsx_path, overwrite = TRUE)
 
@@ -1364,7 +1374,7 @@ openxlsx::saveWorkbook(mg_network_wb, network_xlsx_path, overwrite = TRUE)
 ### ---------- 8.1 rf_network_from_phyloseq：随机森林网络 ----------
 library(ranger)
 rf_net <- rf_network_from_phyloseq(
-  ps           = ps.micro %>% filter_OTU_ps(50),
+  ps           = ps.micro %>% filter_OTU_ps(20),
   ntree        = 500,
   normalize    = TRUE,
   scale.method = "l1",
@@ -1408,10 +1418,10 @@ p_rf_net <- ggplot() +
 save_plot2(p_rf_net, mg_network_path, "rf_network_plot", width = 12, height = 10)
 
 ## 写 RF 网络表
-write_sheet2(mg_network_wb, "rf_edges_all",   edges_all,  rownames = FALSE)
-write_sheet2(mg_network_wb, "rf_edges_filt",  edges_filt, rownames = FALSE)
-write_sheet2(mg_network_wb, "rf_node_layout", node_rf,    rownames = FALSE)
-write_sheet2(mg_network_wb, "rf_cor_matrix",  as.data.frame(cor_mat_rf), rownames = TRUE)
+write_sheet2(mg_network_wb, "rf_edges_all",   edges_all,  row_names  = FALSE)
+write_sheet2(mg_network_wb, "rf_edges_filt",  edges_filt, row_names  = FALSE)
+write_sheet2(mg_network_wb, "rf_node_layout", node_rf,    row_names  = FALSE)
+write_sheet2(mg_network_wb, "rf_cor_matrix",  as.data.frame(cor_mat_rf), row_names =  TRUE)
 
 openxlsx::saveWorkbook(mg_network_wb, network_xlsx_path, overwrite = TRUE)
 
@@ -1429,7 +1439,16 @@ ml_net <- ML.network(
 )
 
 ## 主要返回：edges + 各模型重要性
-write_sheet2(mg_network_wb, "ML_network_edges", ml_net$edges,          rownames = FALSE)
-write_sheet2(mg_network_wb, "ML_network_importance", ml_net$importance_all, rownames = FALSE)
+write_sheet2(mg_network_wb, "ML_network_edges", ml_net$edges,          row_names =  FALSE)
+write_sheet2(mg_network_wb, "ML_network_importance", ml_net$importance_all, row_names =  FALSE)
 
 openxlsx::saveWorkbook(mg_network_wb, network_xlsx_path, overwrite = TRUE)
+
+#  查看全部结果tree#---------
+
+# 显示完整路径
+library(fs)
+dir_tree(mg_path, recurse = 2)
+
+
+

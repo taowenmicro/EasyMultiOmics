@@ -2,35 +2,66 @@
 % Please edit documentation in R/svm.metm.R
 \name{svm_metm}
 \alias{svm_metm}
-\title{Svm model screening of characteristic microorganisms}
+\title{Support Vector Machine model for screening characteristic microorganisms}
 \usage{
-svm_metm(ps = ps, k = 5)
+svm_metm(ps, k = 5, seed = 123, top = NULL)
 }
 \arguments{
-\item{ps}{A phyloseq format file used as an alternative for the input containing otu, tax, and map.}
+\item{ps}{A \code{phyloseq} object containing an OTU table and sample data.
+The sample_data slot must contain a column named \code{Group} indicating
+the class labels.}
 
-\item{k}{The number of folds for cross-validation.}
+\item{k}{Integer; the number of folds for cross-validation. Default is 5.}
+
+\item{seed}{Integer; random seed for reproducibility. Default is 123.}
+
+\item{top}{Optional integer. If not \code{NULL}, the OTU table is first
+filtered to keep only the top abundant OTUs using \code{filter_OTU_ps(top)}.}
 }
 \value{
-A list object including the following components:
-\item{AUC}{The average accuracy of the svm model.}
-\item{Importance}{A data frame showing the feature importance ranked in descending order.}
+A list with the following elements:
+\describe{
+  \item{AUC}{A character string summarising the overall accuracy
+  (kept for backward compatibility with previous naming).}
+  \item{Importance}{A \code{varImp.train} object containing feature importance
+  scores as computed by \code{caret::varImp}.}
+  \item{Model}{The fitted \code{caret} \code{train} object using the
+  \code{"svmRadial"} method.}
+}
 }
 \description{
-This function uses a Support Vector Machine (SVM) to classify microbial community samples based on OTU (Operational Taxonomic Unit) abundances. It performs k-fold cross-validation to evaluate the classification accuracy and ranks feature importance using Recursive Feature Elimination (RFE).
+This function fits a Support Vector Machine (SVM) classification model
+on a phyloseq object using k-fold cross-validation. The OTU table is used
+as predictors and the sample grouping variable \code{Group} is used as
+the response. The function returns overall accuracy and feature importance.
+}
+\details{
+This function relies on the following packages:
+\itemize{
+  \item \pkg{phyloseq} for handling microbiome data structures.
+  \item \pkg{ggClusterNet} for extracting OTU tables via \code{vegan_otu}.
+  \item \pkg{caret} for cross-validation and model training.
+  \item \pkg{kernlab} as the backend for the \code{"svmRadial"} method.
+}
+The function assumes that the grouping variable is stored in
+\code{sample_data(ps)$Group}. Column names of the OTU predictors are
+sanitized using \code{make.names} to avoid issues in model formulas.
 }
 \examples{
-library(dplyr)
-library(ggClusterNet)
-library(caret)
-library(e1071)
-res <- svm_metm(ps = ps.16s \%>\% filter_OTU_ps(20), k = 5)
-AUC = res[[1]]
-AUC
-importance = res[[2]]
-importance
+\dontrun{
+  library(phyloseq)
+  library(ggClusterNet)
+  library(caret)
+  library(kernlab)
+
+  res_svm <- svm_metm(ps = ps_example, k = 5, top = 100)
+  res_svm$AUC
+
+  # Extract importance as a data frame
+  imp_df <- res_svm$Importance$importance
+  imp_df$Feature <- rownames(imp_df)
+  rownames(imp_df) <- NULL
+  head(imp_df)
 }
-\author{
-Tao Wen \email{2018203048@njau.edu.cn},
-Peng-Hao Xie \email{2019103106@njqu.edu.cn}
+
 }
