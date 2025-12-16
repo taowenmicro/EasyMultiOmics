@@ -391,6 +391,7 @@ write_sheet2(mg_beta_wb, "cluster_matrix", dat_c)
 openxlsx::saveWorkbook(mg_beta_wb, beta_xlsx_path, overwrite = TRUE)
 
 
+
 ## ===================== 4. 组成（Composition）分析 =====================
 
 mg_comp_path <- file.path(mg_path, "03_composition")
@@ -544,6 +545,27 @@ write_sheet2(mg_comp_wb, "barplot_raw_data",  res_barMain[[2]])
 write_sheet2(mg_comp_wb, "barplot_summary",   dat16)
 openxlsx::saveWorkbook(mg_comp_wb, comp_xlsx_path, overwrite = TRUE)
 
+### ---------- 4.7.1 barMultiLevel.metm 多层级分类堆叠柱状图-------
+
+res_multiLevel <- barMultiLevel.metm(
+  ps = ps,
+  group = "Group",
+  Top = 10,
+  label_threshold = 10
+)
+
+
+p1 <- res_multiLevel[[1]]
+p2 <- res_multiLevel[[3]]
+p3 <- res_multiLevel[[4]]
+
+
+save_plot2(res_multiLevel[[1]], mg_comp_path, "multilevel_group1", width = 8, height = 6)
+save_plot2(res_multiLevel[[3]], mg_comp_path, "multilevel_group2", width = 8, height = 6)
+save_plot2(res_multiLevel[[4]], mg_comp_path, "multilevel_group3", width = 8, height = 6)
+
+
+
 ### ---------- 4.8 cluMicro.bar.metm：聚类堆积柱状图 ----------
 
 
@@ -674,9 +696,12 @@ res_heat <- Microheatmap.metm(
   id          = id_heat,
   col_cluster = FALSE,
   row_cluster = FALSE,
-  col1        = (ggsci::pal_gsea(alpha = 1))(12),
+  #col1        = (ggsci::pal_gsea(alpha = 1))(12),
+  col1        = colorRampPalette(c("#00CED1", "#FFFFFF", "#FF4500"))(100),
+  col.g      = col.g,
   y_text_size = 8    # 调整 y 轴字号，默认为 8
 )
+
 p24_1 <- res_heat[[1]]
 p24_2 <- res_heat[[2]]
 dat24 <- res_heat[[3]]
@@ -708,19 +733,24 @@ otu[1:5,1:5]
 
 map = ps.micro %>% sample_data()
 head(map)
+
+
 res_edger <- EdgerSuper.metm(
   ps       = ps.micro %>% remove.zero(),
   group    = "Group",
   artGroup = NULL,
-  j        = "Species"
+  j        = "Species",
+  col.g    = col.g,
+  gradient = TRUE,
+  top_n    = 5
 )
-
 
 
 p25_1 <- res_edger[[1]][[1]]
 p25_2 <- res_edger[[1]][[2]]
 p25_3 <- res_edger[[1]][[3]]
 dat25 <- res_edger[[2]]
+
 
 save_plot2(p25_1, mg_diff_path, "edger_volcano_1", width = 10, height = 8)
 save_plot2(p25_2, mg_diff_path, "edger_volcano_2", width = 10, height = 8)
@@ -744,14 +774,16 @@ openxlsx::saveWorkbook(mg_diff_wb, diff_xlsx_path, overwrite = TRUE)
 ### ---------- 5.3 DESep2Super.metm：DESeq2 差异物种 ----------
 
 
+
 res_deseq <- DESep2Super.metm(
-  ps         = ps.micro %>% ggClusterNet::filter_OTU_ps(500),
-  group      = "Group",
-  artGroup   = NULL,
-  j          = "Species"
-
+  ps        = ps.micro %>% ggClusterNet::filter_OTU_ps(500),
+  group     = "Group",
+  artGroup  = NULL,
+  j         = "Species",
+  col.g     = col.g,
+  gradient  = TRUE,
+  top_n     = 5
 )
-
 
 
 p26_1 <- res_deseq[[1]][[1]]

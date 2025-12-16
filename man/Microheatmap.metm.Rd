@@ -15,6 +15,7 @@ Microheatmap.metm(
   axis_order.s = NULL,
   row.lab = NULL,
   col1 = (ggsci::pal_gsea(alpha = 1))(12),
+  col.g = NULL,
   y_text_size = 8
 )
 }

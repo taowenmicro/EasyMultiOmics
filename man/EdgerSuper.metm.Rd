@@ -15,7 +15,10 @@ EdgerSuper.metm(
   lfc = 0,
   artGroup = NULL,
   method = "TMM",
-  j = 2
+  j = 2,
+  col.g = NULL,
+  gradient = TRUE,
+  top_n = 5
 )
 }
 \arguments{

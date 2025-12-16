@@ -9,7 +9,8 @@ stemp_diff.metm(
   Top = 20,
   ranks = 6,
   method = "TMM",
-  test.method = "t.test"
+  test.method = "t.test",
+  col.g = NULL
 )
 }
 \arguments{

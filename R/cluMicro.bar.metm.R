@@ -63,7 +63,7 @@ cluMicro.bar.metm <- function(
     hcluter_method = "complete",
     Group = "Group",
     cuttree = 3,
-    group_colors = NULL    # 新增：Group颜色参数
+    group_colors = NULL
 ) {
 
   stopifnot(!is.null(ps))
@@ -73,7 +73,7 @@ cluMicro.bar.metm <- function(
   hc <- stats::hclust(dmat, method = hcluter_method)
   sd <- data.frame(phyloseq::sample_data(ps1_rela))
 
-  # 如果未提供group_colors，使用默认颜色
+
   if (is.null(group_colors)) {
     group_levels <- unique(sd[[Group]])
     default_colors <- c("#E64B35FF", "#4DBBD5FF", "#00A087FF", "#3C5488FF",
@@ -81,7 +81,7 @@ cluMicro.bar.metm <- function(
     group_colors <- setNames(default_colors[seq_along(group_levels)], group_levels)
   }
 
-  # 样本树图 - 添加 Group 颜色设置
+
   p <- ggtree::`%<+%`(ggtree::ggtree(hc), sd) +
     ggtree::geom_tippoint(size = 3.5, shape = 21,
                           ggplot2::aes(fill = .data[[Group]], x = x)) +
@@ -91,7 +91,7 @@ cluMicro.bar.metm <- function(
     ggplot2::scale_color_manual(values = group_colors) +
     ggplot2::theme_minimal()
 
-  # 物种处理部分保持不变
+
   psdata <- ggClusterNet::tax_glom_wt(ps = ps1_rela, ranks = j)
 
   if (isTRUE(tran)) {
@@ -120,7 +120,7 @@ cluMicro.bar.metm <- function(
 
   p <- p + ggnewscale::new_scale_fill()
 
-  # 堆叠条形图 - 保持原始 Set2 调色板
+
   p1 <- ggtree::facet_plot(p, panel = "Stacked Barplot", data = Taxonomies,
                            geom = ggstance::geom_barh,
                            mapping = ggplot2::aes(x = Abundance, fill = .data[[j]]),
@@ -128,7 +128,7 @@ cluMicro.bar.metm <- function(
     ggplot2::scale_fill_brewer(palette = "Set2") +
     ggplot2::theme_minimal()
 
-  # 组水平聚类
+
   otu_rel <- phyloseq::otu_table(ps1_rela)
   if (!phyloseq::taxa_are_rows(ps1_rela))
     otu_rel <- t(otu_rel)
@@ -150,7 +150,7 @@ cluMicro.bar.metm <- function(
   ddf <- data.frame(label = names(clus_g), member = factor(clus_g))
   rownames(ddf) <- ddf$label
 
-  # 组树图 - 按 label (即Group名称) 设置颜色
+
   p3 <- ggtree::`%<+%`(ggtree::ggtree(hc_g), ddf) +
     ggtree::geom_tippoint(size = 3.5, shape = 21,
                           ggplot2::aes(fill = label, x = x)) +
@@ -168,7 +168,7 @@ cluMicro.bar.metm <- function(
 
   p3 <- p3 + ggnewscale::new_scale_fill()
 
-  # 组堆叠条形图 - 保持原始 Set1 调色板
+
   p4 <- ggtree::facet_plot(p3, panel = "Stacked Barplot", data = grotax,
                            geom = ggstance::geom_barh,
                            mapping = ggplot2::aes(x = Abundance, fill = .data[[j]]),

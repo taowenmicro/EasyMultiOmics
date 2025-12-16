@@ -62,6 +62,7 @@ Microheatmap.metm <- function(
     axis_order.s = NULL,
     row.lab = NULL,
     col1 = (ggsci::pal_gsea(alpha = 1))(12),
+    col.g = NULL,
     y_text_size = 8
 ) {
 
@@ -118,13 +119,20 @@ Microheatmap.metm <- function(
     ggtree_plot_col <- ggtree::ggtree(v_clust) + ggtree::layout_dendrogram()
   }
 
+
   if (label == TRUE) {
     map_label = data.frame(phyloseq::sample_data(ps_rela), check.names = FALSE)
     map_label$ID = row.names(map_label)
     labels = ggplot(map_label, aes(x = ID, y = 1, fill = Group)) +
       geom_tile() +
-      scale_fill_brewer(palette = "Set1", name = "Cell Type") +
       theme_void()
+
+
+    if (!is.null(col.g)) {
+      labels = labels + scale_fill_manual(values = col.g, name = "Group")
+    } else {
+      labels = labels + scale_fill_brewer(palette = "Set1", name = "Group")
+    }
   }
 
   if (!is.null(row.lab)) {
@@ -136,7 +144,6 @@ Microheatmap.metm <- function(
       theme_void()
   }
 
-  # 修复：正确转换 sample_data 为 data.frame
   map_order = data.frame(phyloseq::sample_data(ps_rela), check.names = FALSE)
   map_order$ID = row.names(map_order)
   map_order = map_order %>% dplyr::arrange(Group)
@@ -150,7 +157,6 @@ Microheatmap.metm <- function(
 
   pcm$id = factor(pcm$id, levels = rig$id)
 
-  # p1 - 修改 y 轴字号
   p1 = ggplot(pcm, aes(y = id, x = variable)) +
     geom_tile(aes(size = value, fill = value)) +
     labs(y = "", x = "", size = "Relative Abundance (%)", fill = "") +
@@ -164,7 +170,6 @@ Microheatmap.metm <- function(
       axis.text.x = element_text(colour = "black", angle = 90)
     )
 
-  # p2 - 添加 y 轴字号设置
   p2 = ggplot(pcm, aes(y = id, x = variable)) +
     geom_point(aes(size = value, fill = value), alpha = 0.75, shape = 21) +
     scale_size_continuous(limits = c(0.001, 1000), range = c(2, 25), breaks = c(0.1, 0.5, 1)) +

@@ -13,7 +13,11 @@ DESep2Super.metm(
   j = "Genus",
   group = "Group",
   pvalue = 0.05,
-  artGroup = NULL
+  artGroup = NULL,
+  col.g = NULL,
+  gradient = TRUE,
+  mid_color = "auto",
+  top_n = 5
 )
 }
 \arguments{

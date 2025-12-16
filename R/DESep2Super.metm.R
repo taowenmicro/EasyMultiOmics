@@ -65,143 +65,277 @@
 #' @export
 
 
+DESep2Super.metm <- function(otu = NULL, tax = NULL, map = NULL, tree = NULL, ps = NULL,
+                             j = "Genus", group = "Group", pvalue = 0.05, artGroup = NULL,
+                             col.g = NULL, gradient = TRUE, mid_color = "auto", top_n = 5) {
 
+  get_gradient_colors <- function(color1, color2) {
+    rgb1 <- col2rgb(color1)
+    rgb2 <- col2rgb(color2)
 
-DESep2Super.metm=function (otu = NULL, tax = NULL, map = NULL, tree = NULL, ps = NULL,
-          j = "Genus", group = "Group", pvalue = 0.05, artGroup = NULL)
-{
+    mid_rgb <- (rgb1 + rgb2) / 2
+    mid_col <- rgb(mid_rgb[1], mid_rgb[2], mid_rgb[3], maxColorValue = 255)
+
+    q1_rgb <- (rgb1 + mid_rgb) / 2
+    q1_col <- rgb(q1_rgb[1], q1_rgb[2], q1_rgb[3], maxColorValue = 255)
+
+    q3_rgb <- (rgb2 + mid_rgb) / 2
+    q3_col <- rgb(q3_rgb[1], q3_rgb[2], q3_rgb[3], maxColorValue = 255)
+
+    return(c(color2, q3_col, mid_col, q1_col, color1))
+  }
+
   ps = ggClusterNet::inputMicro(otu, tax, map, tree, ps, group = group)
+
   if (j %in% c("OTU", "gene", "meta")) {
     ps = ps
-  }
-  else if (j %in% c(1:7)) {
+  } else if (j %in% c(1:7)) {
     ps = ps %>% ggClusterNet::tax_glom_wt(ranks = j)
-  }
-  else if (j %in% c("Kingdom", "Phylum", "Class", "Order",
-                    "Family", "Genus", "Species")) {
-  }
-  else {
+  } else if (j %in% c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")) {
+    ps = ps %>% ggClusterNet::tax_glom_wt(ranks = j)
+  } else {
     ps = ps
     print("unknown j, checked please")
   }
-  Desep_group <- ps %>% phyloseq::sample_data() %>% .$Group %>%
-    as.factor() %>% levels() %>% as.character()
+
+  Desep_group <- ps %>%
+    phyloseq::sample_data() %>%
+    .$Group %>%
+    as.factor() %>%
+    levels() %>%
+    as.character()
+
   if (is.null(artGroup)) {
     aaa = combn(Desep_group, 2)
+  } else {
+    aaa = as.matrix(artGroup)
   }
-  else if (!is.null(artGroup)) {
-    aaa = as.matrix(b)
+
+  if (is.null(col.g)) {
+    library(ggsci)
+    col.g <- pal_npg()(length(Desep_group))
+    names(col.g) <- Desep_group
   }
-  count <- ps %>% ggClusterNet::vegan_otu() %>% round(0) %>%
+
+  count <- ps %>%
+    ggClusterNet::vegan_otu() %>%
+    round(0) %>%
     t()
-  map = ps %>% phyloseq::sample_data() %>% as.tibble() %>%
-    as.data.frame()
-  dds <- DESeq2::DESeqDataSetFromMatrix(countData = count,
-                                        colData = map, design = ~Group)
+
+  map = ps %>%
+    phyloseq::sample_data() %>%
+    data.frame(check.names = FALSE)
+
+  dds <- DESeq2::DESeqDataSetFromMatrix(
+    countData = count,
+    colData = map,
+    design = ~Group
+  )
   dds2 <- DESeq2::DESeq(dds)
+
   plot_list <- list()
+
   for (i in 1:dim(aaa)[2]) {
     Desep_group = aaa[, i]
-    group = paste(Desep_group[1], Desep_group[2], sep = "-")
-    group
-    res <- DESeq2::results(dds2, contrast = c("Group", Desep_group),
-                           alpha = 0.05)
+    print(Desep_group)
+
+    group_name = paste(Desep_group[1], Desep_group[2], sep = "-")
+    group1 = Desep_group[1]
+    group2 = Desep_group[2]
+
+    res <- DESeq2::results(dds2, contrast = c("Group", Desep_group), alpha = 0.05)
     x = res
-    head(x)
-    x$level = as.factor(ifelse(as.vector(x$padj) < 0.05 &
-                                 x$log2FoldChange > 0, "enriched", ifelse(as.vector(x$padj) <
-                                                                            0.05 & x$log2FoldChange < 0, "depleted", "nosig")))
-    x = data.frame(row.names = row.names(x), logFC = x$log2FoldChange,
-                   level = x$level, p = x$pvalue)
-    x1 = x %>% filter(level %in% c("enriched", "depleted",
-                                   "nosig"))
-    head(x1)
-    x1$Genus = row.names(x1)
-    x2 <- x1 %>% dplyr::mutate(ord = logFC^2) %>% dplyr::filter(level !=
-                                                                  "nosig") %>% dplyr::arrange(desc(ord)) %>% head(n = 5)
-    x3 <- x1 %>% dplyr::mutate(ord = logFC^2) %>% dplyr::filter(level !=
-                                                                  "nosig") %>% dplyr::arrange(desc(ord))
-    head(x2)
-    head(x1)
-    x1$p[is.na(x1$p)] = 1
-    p <- ggplot(x1, aes(x = logFC, y = -log2(p), colour = level)) +
-      geom_point() + geom_hline(yintercept = -log10(0.2),
-                                linetype = 4, color = "black", size = 0.5) + geom_vline(xintercept = c(-1,
-                                                                                                       1), linetype = 3, color = "black", size = 0.5) +
-      ggrepel::geom_text_repel(data = x2, aes(x = logFC,
-                                              y = -log2(p), label = Genus), size = 1) + scale_color_manual(values = c("blue2",
-                                                                                                                      "red2", "gray30")) + ggtitle(group) + theme_bw()
-    p
-    plot_list[[i]] <- p
-    colnames(x) = paste(group, colnames(x), sep = "")
-    if (i == 1) {
-      table = x
+
+    x$level = as.factor(ifelse(
+      as.vector(x$padj) < pvalue & x$log2FoldChange > 0, "enriched",
+      ifelse(as.vector(x$padj) < pvalue & x$log2FoldChange < 0, "depleted", "nosig")
+    ))
+
+    x = data.frame(
+      row.names = row.names(x),
+      logFC = x$log2FoldChange,
+      level = x$level,
+      p = x$pvalue
+    )
+
+    x$taxa = row.names(x)
+    x$p[is.na(x$p)] = 1
+    x$log10p = -log10(x$p)
+
+    df_nosig <- x %>% dplyr::filter(level == "nosig")
+    df_sig <- x %>% dplyr::filter(level != "nosig")
+
+    df_top <- df_sig %>%
+      dplyr::mutate(ord = logFC^2) %>%
+      dplyr::arrange(desc(ord)) %>%
+      head(n = top_n)
+
+    df_sig_no_border <- df_sig %>%
+      dplyr::filter(!taxa %in% df_top$taxa)
+
+    color1 <- as.character(col.g[group1])
+    color2 <- as.character(col.g[group2])
+
+    grad_colors <- get_gradient_colors(color1, color2)
+    cat("  渐变色:", paste(grad_colors, collapse = " -> "), "\n")
+
+    if (gradient) {
+      max_abs_fc <- max(abs(x$logFC), na.rm = TRUE)
+
+      p <- ggplot2::ggplot() +
+        ggplot2::annotate("rect", xmin = -Inf, xmax = -1, ymin = -Inf, ymax = Inf,
+                          fill = color2, alpha = 0.05) +
+        ggplot2::annotate("rect", xmin = 1, xmax = Inf, ymin = -Inf, ymax = Inf,
+                          fill = color1, alpha = 0.05) +
+        ggplot2::geom_point(data = df_nosig,
+                            ggplot2::aes(x = logFC, y = log10p),
+                            color = "grey80", size = 2, alpha = 0.5) +
+        ggplot2::geom_point(data = df_sig_no_border,
+                            ggplot2::aes(x = logFC, y = log10p, color = logFC),
+                            size = 2.5, alpha = 0.8) +
+        ggplot2::geom_point(data = df_top,
+                            ggplot2::aes(x = logFC, y = log10p, fill = logFC),
+                            shape = 21,
+                            color = "black",
+                            size = 3.5,
+                            stroke = 0.8,
+                            alpha = 0.9) +
+        ggplot2::scale_color_gradientn(
+          colours = grad_colors,
+          values = seq(0, 1, 0.25),
+          limits = c(-max_abs_fc, max_abs_fc),
+          name = "log2FC"
+        ) +
+        ggplot2::scale_fill_gradientn(
+          colours = grad_colors,
+          values = seq(0, 1, 0.25),
+          limits = c(-max_abs_fc, max_abs_fc),
+          guide = "none"
+        ) +
+        ggplot2::geom_hline(yintercept = -log10(pvalue), linetype = "dashed", color = "grey40") +
+        ggplot2::geom_vline(xintercept = c(-1, 1), linetype = "dashed", color = "grey40") +
+        ggrepel::geom_text_repel(
+          data = df_top,
+          ggplot2::aes(x = logFC, y = log10p, label = taxa),
+          size = 3, max.overlaps = 20, segment.color = "grey50"
+        ) +
+        ggplot2::labs(
+          title = paste(group1, "vs", group2),
+          x = "log2 Fold Change",
+          y = "-log10(P-value)"
+        ) +
+        ggplot2::theme_bw() +
+        ggplot2::theme(
+          plot.title = ggplot2::element_text(hjust = 0.5, face = "bold", size = 14),
+          legend.position = "right",
+          panel.grid.minor = ggplot2::element_blank()
+        )
+
+    } else {
+      my_colors <- c(
+        "enriched" = color1,
+        "depleted" = color2
+      )
+
+      p <- ggplot2::ggplot() +
+        ggplot2::annotate("rect", xmin = -Inf, xmax = -1, ymin = -Inf, ymax = Inf,
+                          fill = color2, alpha = 0.05) +
+        ggplot2::annotate("rect", xmin = 1, xmax = Inf, ymin = -Inf, ymax = Inf,
+                          fill = color1, alpha = 0.05) +
+        ggplot2::geom_point(data = df_nosig,
+                            ggplot2::aes(x = logFC, y = log10p),
+                            color = "grey70", size = 2, alpha = 0.7) +
+        ggplot2::geom_point(data = df_sig_no_border,
+                            ggplot2::aes(x = logFC, y = log10p, color = level),
+                            size = 2, alpha = 0.7) +
+        ggplot2::geom_point(data = df_top,
+                            ggplot2::aes(x = logFC, y = log10p, fill = level),
+                            shape = 21,
+                            color = "black",
+                            size = 3.5,
+                            stroke = 0.8,
+                            alpha = 0.9) +
+        ggplot2::scale_color_manual(
+          values = my_colors,
+          labels = c(
+            "enriched" = paste0(group1, " enriched"),
+            "depleted" = paste0(group2, " enriched")
+          )
+        ) +
+        ggplot2::scale_fill_manual(
+          values = my_colors,
+          guide = "none"
+        ) +
+        ggplot2::geom_hline(yintercept = -log10(pvalue), linetype = "dashed", color = "grey40") +
+        ggplot2::geom_vline(xintercept = c(-1, 1), linetype = "dashed", color = "grey40") +
+        ggrepel::geom_text_repel(
+          data = df_top,
+          ggplot2::aes(x = logFC, y = log10p, label = taxa),
+          size = 3, max.overlaps = 20, segment.color = "grey50"
+        ) +
+        ggplot2::labs(
+          title = paste(group1, "vs", group2),
+          x = "log2 Fold Change",
+          y = "-log10(P-value)",
+          color = "Regulation"
+        ) +
+        ggplot2::theme_bw() +
+        ggplot2::theme(
+          plot.title = ggplot2::element_text(hjust = 0.5, face = "bold", size = 14),
+          legend.position = "right",
+          panel.grid.minor = ggplot2::element_blank()
+        )
     }
-    if (i != 1) {
-      table = cbind(table, x)
+
+    plot_list[[i]] <- p
+
+    x_out <- x[, c("logFC", "level", "p")]
+    colnames(x_out) = paste(group_name, colnames(x_out), sep = "")
+
+    if (i == 1) {
+      table = x_out
+    } else {
+      table = cbind(table, x_out)
     }
   }
+
   count = as.matrix(count)
-  norm = t(t(count)/colSums(count))
-  dim(norm)
+  norm = t(t(count) / colSums(count))
   norm1 = norm %>% t() %>% as.data.frame()
-  head(norm1)
+
   iris.split <- split(norm1, as.factor(map$Group))
   iris.apply <- lapply(iris.split, function(x) colMeans(x))
   iris.combine <- do.call(rbind, iris.apply)
-  norm2 = t(iris.combine)
-  str(norm2)
-  norm2 = as.data.frame(norm2)
-  head(norm2)
+  norm2 = t(iris.combine) %>% as.data.frame()
+
   x = cbind(table, norm2)
-  head(x)
+
   if (!is.null(ps@tax_table)) {
     taxonomy = as.data.frame(ggClusterNet::vegan_tax(ps))
-    head(taxonomy)
+
     if (length(colnames(taxonomy)) == 6) {
-      colnames(taxonomy) = c("kingdom", "phylum", "class",
-                             "order", "family", "genus")
+      colnames(taxonomy) = c("kingdom", "phylum", "class", "order", "family", "genus")
+    } else if (length(colnames(taxonomy)) == 7) {
+      colnames(taxonomy) = c("kingdom", "phylum", "class", "order", "family", "genus", "species")
+    } else if (length(colnames(taxonomy)) == 8) {
+      colnames(taxonomy) = c("kingdom", "phylum", "class", "order", "family", "genus", "species", "rep")
     }
-    else if (length(colnames(taxonomy)) == 7) {
-      colnames(taxonomy) = c("kingdom", "phylum", "class",
-                             "order", "family", "genus", "species")
-    }
-    else if (length(colnames(taxonomy)) == 8) {
-      colnames(taxonomy) = c("kingdom", "phylum", "class",
-                             "order", "family", "genus", "species", "rep")
-    }
-    library(dplyr)
+
     taxonomy$id = rownames(taxonomy)
     tax = taxonomy[row.names(x), ]
     x = x[rownames(tax), ]
-    if (length(colnames(taxonomy)) == 7) {
-      x = x[rownames(tax), ]
-      x$phylum = gsub("", "", tax$phylum, perl = TRUE)
-      x$class = gsub("", "", tax$class, perl = TRUE)
-      x$order = gsub("", "", tax$order, perl = TRUE)
-      x$family = gsub("", "", tax$family, perl = TRUE)
-      x$genus = gsub("", "", tax$genus, perl = TRUE)
+
+    if (length(colnames(taxonomy)) >= 7) {
+      x$phylum = tax$phylum
+      x$class = tax$class
+      x$order = tax$order
+      x$family = tax$family
+      x$genus = tax$genus
     }
-    else if (length(colnames(taxonomy)) == 8) {
-      x$phylum = gsub("", "", tax$phylum, perl = TRUE)
-      x$class = gsub("", "", tax$class, perl = TRUE)
-      x$order = gsub("", "", tax$order, perl = TRUE)
-      x$family = gsub("", "", tax$family, perl = TRUE)
-      x$genus = gsub("", "", tax$genus, perl = TRUE)
-      x$species = gsub("", "", tax$species, perl = TRUE)
-    }
-    else if (length(colnames(taxonomy)) == 9) {
-      x = x[rownames(tax), ]
-      x$phylum = gsub("", "", tax$phylum, perl = TRUE)
-      x$class = gsub("", "", tax$class, perl = TRUE)
-      x$order = gsub("", "", tax$order, perl = TRUE)
-      x$family = gsub("", "", tax$family, perl = TRUE)
-      x$genus = gsub("", "", tax$genus, perl = TRUE)
-      x$species = gsub("", "", tax$species, perl = TRUE)
+    if (length(colnames(taxonomy)) >= 8) {
+      x$species = tax$species
     }
   }
-  else {
-    x = x
-  }
+
   return(list(plot_list, x))
 }

@@ -34,7 +34,7 @@ ps.16s
 map <- sample_data(ps.16s)
 head(map)
 # 假设 ps.micro 是你的 phyloseq 对象
-amplicon_path <- create_amplicon_result_dir(ps_16s, include_time = FALSE)
+amplicon_path <- create_amplicon_result_dir(ps.16s, include_time = FALSE)
 amplicon_path
 
 

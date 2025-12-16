@@ -10,7 +10,8 @@ cluster_metm(
   dist = "bray",
   cuttree = gnum,
   row_cluster = TRUE,
-  col_cluster = TRUE
+  col_cluster = TRUE,
+  col1 = NULL
 )
 }
 \arguments{

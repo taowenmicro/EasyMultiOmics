@@ -12,7 +12,8 @@ Ven.Upset.metm(
   ps = NULL,
   group = "Group",
   N = 0.5,
-  size = 3
+  size = 3,
+  fill_color = NULL
 )
 }
 \arguments{

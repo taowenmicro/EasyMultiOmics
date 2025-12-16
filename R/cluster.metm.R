@@ -33,11 +33,21 @@
 #' p4_2
 #' dat = res[[4]]# cluster distance
 #' head(dat)
+cluster_metm <- function(
+    ps = ps.16s,
+    hcluter_method = "complete",
+    dist = "bray",
+    cuttree = gnum,
+    row_cluster = TRUE,
+    col_cluster = TRUE,
+    col1 = NULL
+) {
 
-cluster_metm=function (ps = ps.16s, hcluter_method = "complete", dist = "bray",
-          cuttree = gnum, row_cluster = TRUE, col_cluster = TRUE)
 
-{
+  if (is.null(col1)) {
+    col1 = colorRampPalette(c("#00CED1", "#FFFFFF", "#FF4500"))(100)
+  }
+
   ps1_rela = phyloseq::transform_sample_counts(ps, function(x) x/sum(x))
   otu = as.data.frame(t(ggClusterNet::vegan_otu(ps1_rela)))
   unif = phyloseq::distance(ps1_rela, method = dist)
@@ -48,55 +58,65 @@ cluster_metm=function (ps = ps.16s, hcluter_method = "complete", dist = "bray",
   dd = merge(d, map, by = "row.names", all = FALSE)
   row.names(dd) = dd$Row.names
   dd$Row.names = NULL
+
   library(ggtree)
-  p0 = ggtree::ggtree(hc) %<+% dd + geom_tippoint(size = 5,
-                                                  shape = 21, aes(fill = Group, x = x)) +
-    geom_tiplab(aes(color = Group,  x = x * 1.2), hjust = 1)
-  p0
+  p0 = ggtree::ggtree(hc) %<+% dd +
+    geom_tippoint(size = 5, shape = 21, aes(fill = Group, x = x)) +
+    geom_tiplab(aes(color = Group, x = x * 1.2), hjust = 1)
 
   if (col_cluster == TRUE) {
     clust <- hclust(unif)
     ggtree_plot <- ggtree::ggtree(clust)
   }
+
   if (row_cluster == TRUE) {
     clust <- hclust(unif)
     ggtree_plot_col <- ggtree::ggtree(clust) + ggtree::layout_dendrogram()
   }
+
   tem = unif %>% as.matrix()
   tem = 1 - tem
   tem = tem %>% as.data.frame()
   tem$id = row.names(tem)
   pcm = reshape2::melt(tem, id = c("id"))
-  head(pcm)
-  p1 = ggplot(pcm, aes(y = id, x = variable)) + geom_tile(aes(fill = value)) +
-    scale_size_continuous(limits = c(1e-06, 100), range = c(2,
-                                                            25), breaks = c(0.1, 0.5, 1)) + labs(y = "", x = "",
-                                                                                                 size = "Relative Abundance (%)", fill = "") + scale_x_discrete(limits = (levels(pcm$variable))) +
-    scale_y_discrete(limits = rev(levels(pcm$variable)),
-                     position = "right") + scale_fill_gradientn(colours = colorRampPalette(RColorBrewer::brewer.pal(11,
-                                                                                                                    "Spectral")[11:1])(60)) + theme(panel.background = element_blank(),
-                                                                                                                                                    panel.grid = element_blank(), axis.text.x = element_text(colour = "black",
-                                                                                                                                                                                                             angle = 90, hjust = 1, vjust = 0))
-  p1
-  p2 = ggplot(pcm, aes(y = id, x = variable)) + geom_point(aes(size = value,
-                                                               fill = value), alpha = 0.75, shape = 21) + scale_size_continuous(limits = c(1e-06,
-                                                                                                                                           100), range = c(2, 25), breaks = c(0.1, 0.5, 1)) + labs(y = "",
-                                                                                                                                                                                                   x = "", size = "Relative Abundance (%)", fill = "") +
-    scale_x_discrete(limits = (levels(pcm$variable))) + scale_y_discrete(limits = rev(levels(pcm$variable)),
-                                                                         position = "right") + scale_fill_gradientn(colours = colorRampPalette(RColorBrewer::brewer.pal(11,
-                                                                                                                                                                        "Spectral")[11:1])(60)) + theme(panel.background = element_blank(),
-                                                                                                                                                                                                        panel.grid = element_blank(), axis.text.x = element_text(colour = "black",
-                                                                                                                                                                                                                                                                 angle = 90, hjust = 1, vjust = 0))
-  p2
+
+
+  p1 = ggplot(pcm, aes(y = id, x = variable)) +
+    geom_tile(aes(fill = value)) +
+    scale_size_continuous(limits = c(1e-06, 100), range = c(2, 25), breaks = c(0.1, 0.5, 1)) +
+    labs(y = "", x = "", size = "Relative Abundance (%)", fill = "") +
+    scale_x_discrete(limits = (levels(pcm$variable))) +
+    scale_y_discrete(limits = rev(levels(pcm$variable)), position = "right") +
+    scale_fill_gradientn(colours = col1) +  # 修改这里
+    theme(
+      panel.background = element_blank(),
+      panel.grid = element_blank(),
+      axis.text.x = element_text(colour = "black", angle = 90, hjust = 1, vjust = 0)
+    )
+
+
+  p2 = ggplot(pcm, aes(y = id, x = variable)) +
+    geom_point(aes(size = value, fill = value), alpha = 0.75, shape = 21) +
+    scale_size_continuous(limits = c(1e-06, 100), range = c(2, 25), breaks = c(0.1, 0.5, 1)) +
+    labs(y = "", x = "", size = "Relative Abundance (%)", fill = "") +
+    scale_x_discrete(limits = (levels(pcm$variable))) +
+    scale_y_discrete(limits = rev(levels(pcm$variable)), position = "right") +
+    scale_fill_gradientn(colours = col1) +
+    theme(
+      panel.background = element_blank(),
+      panel.grid = element_blank(),
+      axis.text.x = element_text(colour = "black", angle = 90, hjust = 1, vjust = 0)
+    )
+
   if (col_cluster == TRUE) {
     p1 <- p1 %>% aplot::insert_left(ggtree_plot, width = 0.2)
     p2 <- p2 %>% aplot::insert_left(ggtree_plot, width = 0.2)
   }
+
   if (row_cluster == TRUE) {
     p1 <- p1 %>% aplot::insert_top(ggtree_plot_col, height = 0.2)
     p2 <- p2 %>% aplot::insert_top(ggtree_plot_col, height = 0.2)
   }
-
 
   return(list(p0, p1, p2, tem))
 }

@@ -622,6 +622,7 @@ compare_phylum_structure_three <- function(
 #'   - node_tax: 这些节点中能在 tax_table 里匹配到的微生物注释
 #'   - phylum_summary: 按门统计的节点数
 #'   - genus_summary: 按属统计的节点数
+#' @export
 get_shared_nodes_from_align <- function(
     align_res,
     tax_table  = NULL,
