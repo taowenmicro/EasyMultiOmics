@@ -749,40 +749,90 @@ create_omics_result_dir_auto0 <- function(ps,
 #' @return A character scalar giving the path of the created directory.
 #' @export
 create_omics_result_dir_auto <- function(ps,
-                                         base_dir          = "./result",
-                                         include_time      = FALSE,
-                                         metagenome_prefix = "metagenome",
-                                         amplicon_prefix   = "amplicon",
-                                         metabolome_prefix = "metabolome",
-                                         verbose           = TRUE) {
+                                         base_dir = "./result",
+                                         include_time = FALSE,
+                                         prefix = NULL,
+                                         verbose = TRUE,
+                                         force_data_type = NULL) {
 
-  # Check if the data looks like metabolomics
-  data_type <- guess_phyloseq_data_type(ps)
+  # ===== 1. 确定数据类型 =====
+  if (!is.null(force_data_type)) {
+    data_type <- force_data_type
+  } else {
+    # 尝试标准推断
+    data_type <- tryCatch(
+      guess_phyloseq_data_type(ps),
+      error = function(e) "amplicon"
+    )
 
-  if (data_type == "metabolome") {
-    # Create metabolome result directory
-    metabolite_path <- create_metabolome_result_dir(ps,
-                                                    base_dir = base_dir,
-                                                    prefix = metabolome_prefix,
-                                                    include_time = include_time)
-    return(metabolite_path)
+    # 代谢组特殊检测：检查 tax_table 列名关键词
+    if (data_type != "metabolome") {
+      tax_cols <- tryCatch(colnames(phyloseq::tax_table(ps)), error = function(e) NULL)
+      meta_keywords <- c("KEGG", "COMPOUND", "MASS", "MZ", "RT", "METABOLITE", "CID", "KEGG_ID")
+
+      if (!is.null(tax_cols) && any(toupper(tax_cols) %in% toupper(meta_keywords))) {
+        data_type <- "metabolome"
+      }
+    }
+
+    # 宏基因组 vs 扩增子判断
+    if (data_type != "metabolome") {
+      seq_info <- tryCatch(
+        infer_sequencing_type(ps, verbose = FALSE),
+        error = function(e) list(label = "amplicon")
+      )
+      data_type <- seq_info$label
+    }
   }
 
-  # If not metabolome, proceed with regular amplicon/metagenome handling
-  seq_type <- infer_sequencing_type(ps, verbose = FALSE)
-  if (verbose) {
-    message("Inferred sequencing type: ", seq_type$label,
-            " (amp_score = ", seq_type$amp_score,
-            ", meta_score = ", seq_type$meta_score, ")")
+  # ===== 2. 确定目录前缀 =====
+  if (is.null(prefix)) {
+    prefix <- data_type  # 默认用数据类型作为前缀
+  } else if (is.list(prefix)) {
+    # 如果传入命名列表，提取对应类型的前缀
+    prefix <- prefix[[data_type]] %||% data_type
   }
 
-  if (identical(seq_type$label, "metagenome")) {
-    return(create_metagenome_result_dir(ps,
-                                        base_dir     = base_dir,
-                                        prefix       = metagenome_prefix,
-                                        include_time = include_time))
+  # ===== 3. 构建目录路径 =====
+  dir_name <- if (include_time) {
+    paste0(prefix, "_", format(Sys.Date(), "%Y%m%d"))
+  } else {
+    prefix
   }
+  dir_path <- file.path(base_dir, dir_name)
 
-  # Default for amplicon
-  create_amplicon_result_dir(ps, base_dir = base_dir, prefix = amplicon_prefix, include_time = include_time)
+  # ===== 4. 创建目录（智能选择策略）=====
+  result <- tryCatch({
+    # 先检查标准函数是否会接受这个对象
+    # 如果是代谢组但 guess_phyloseq_data_type(ps) != 'metabolome'，直接用手动创建
+    if (data_type == "metabolome") {
+      guess_result <- tryCatch(
+        guess_phyloseq_data_type(ps),
+        error = function(e) NULL
+      )
+
+      if (!is.null(guess_result) && guess_result == "metabolome") {
+        # 标准函数会接受，使用标准函数
+        create_metabolome_result_dir(ps, base_dir, prefix, include_time)
+      } else {
+        # 标准函数会拒绝，直接手动创建（避免警告）
+        dir.create(dir_path, recursive = TRUE, showWarnings = FALSE)
+        dir_path
+      }
+    } else {
+      # 非代谢组，使用标准函数
+      switch(data_type,
+             metagenome = create_metagenome_result_dir(ps, base_dir, prefix, include_time),
+             amplicon   = create_amplicon_result_dir(ps, base_dir, prefix, include_time),
+             stop("Unknown data type: ", data_type)
+      )
+    }
+  }, error = function(e) {
+    # 兜底方案：手动创建目录
+    dir.create(dir_path, recursive = TRUE, showWarnings = FALSE)
+    dir_path
+  })
+
+  invisible(result)
 }
+

@@ -18,7 +18,8 @@ EdgerSuper.metm(
   j = 2,
   col.g = NULL,
   gradient = TRUE,
-  top_n = 5
+  top_n = 5,
+  select_by = "pvalue"
 )
 }
 \arguments{

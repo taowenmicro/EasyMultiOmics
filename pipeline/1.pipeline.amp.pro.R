@@ -27,14 +27,15 @@ library(fs)
 # ps.16s    <- readRDS(file_path)
 # ps.16s
 
-file_path <- "./data/ps.rhi.rds"
-ps.16s    <- readRDS(file_path)
+
 ps.16s
 
 map <- sample_data(ps.16s)
 head(map)
 # 假设 ps.micro 是你的 phyloseq 对象
-amplicon_path <- create_amplicon_result_dir(ps.16s, include_time = FALSE)
+amplicon_path <- create_omics_result_dir_auto(ps.16s,
+                                              base_dir = "../result",
+                                              include_time = FALSE)
 amplicon_path
 
 
@@ -1866,3 +1867,9 @@ if (FALSE) {
   save_plot2(p2, amplicon_function_path, "function_bubble_plot2", width = 10, height = 8)
 
 }
+
+
+
+# 显示完整路径#-------
+library(fs)
+dir_tree(amplicon_path, recurse = 2)

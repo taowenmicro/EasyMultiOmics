@@ -63,25 +63,22 @@
 #'
 #' @author Contact: Tao Wen \email{2018203048@njau.edu.cn}, Peng-Hao Xie \email{2019103106@njau.edu.cn}
 #' @export
-
-
 DESep2Super.metm <- function(otu = NULL, tax = NULL, map = NULL, tree = NULL, ps = NULL,
                              j = "Genus", group = "Group", pvalue = 0.05, artGroup = NULL,
-                             col.g = NULL, gradient = TRUE, mid_color = "auto", top_n = 5) {
+                             col.g = NULL, gradient = TRUE, mid_color = "auto", top_n = 5,
+                             select_by = "pvalue")
+{
+  library(grid)
 
   get_gradient_colors <- function(color1, color2) {
     rgb1 <- col2rgb(color1)
     rgb2 <- col2rgb(color2)
-
-    mid_rgb <- (rgb1 + rgb2) / 2
+    mid_rgb <- (rgb1 + rgb2)/2
     mid_col <- rgb(mid_rgb[1], mid_rgb[2], mid_rgb[3], maxColorValue = 255)
-
-    q1_rgb <- (rgb1 + mid_rgb) / 2
+    q1_rgb <- (rgb1 + mid_rgb)/2
     q1_col <- rgb(q1_rgb[1], q1_rgb[2], q1_rgb[3], maxColorValue = 255)
-
-    q3_rgb <- (rgb2 + mid_rgb) / 2
+    q3_rgb <- (rgb2 + mid_rgb)/2
     q3_col <- rgb(q3_rgb[1], q3_rgb[2], q3_rgb[3], maxColorValue = 255)
-
     return(c(color2, q3_col, mid_col, q1_col, color1))
   }
 
@@ -91,19 +88,16 @@ DESep2Super.metm <- function(otu = NULL, tax = NULL, map = NULL, tree = NULL, ps
     ps = ps
   } else if (j %in% c(1:7)) {
     ps = ps %>% ggClusterNet::tax_glom_wt(ranks = j)
-  } else if (j %in% c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")) {
+  } else if (j %in% c("Kingdom", "Phylum", "Class", "Order",
+                      "Family", "Genus", "Species")) {
     ps = ps %>% ggClusterNet::tax_glom_wt(ranks = j)
   } else {
     ps = ps
     print("unknown j, checked please")
   }
 
-  Desep_group <- ps %>%
-    phyloseq::sample_data() %>%
-    .$Group %>%
-    as.factor() %>%
-    levels() %>%
-    as.character()
+  Desep_group <- ps %>% phyloseq::sample_data() %>% .$Group %>%
+    as.factor() %>% levels() %>% as.character()
 
   if (is.null(artGroup)) {
     aaa = combn(Desep_group, 2)
@@ -117,20 +111,9 @@ DESep2Super.metm <- function(otu = NULL, tax = NULL, map = NULL, tree = NULL, ps
     names(col.g) <- Desep_group
   }
 
-  count <- ps %>%
-    ggClusterNet::vegan_otu() %>%
-    round(0) %>%
-    t()
-
-  map = ps %>%
-    phyloseq::sample_data() %>%
-    data.frame(check.names = FALSE)
-
-  dds <- DESeq2::DESeqDataSetFromMatrix(
-    countData = count,
-    colData = map,
-    design = ~Group
-  )
+  count <- ps %>% ggClusterNet::vegan_otu() %>% round(0) %>% t()
+  map = ps %>% phyloseq::sample_data() %>% data.frame(check.names = FALSE)
+  dds <- DESeq2::DESeqDataSetFromMatrix(countData = count, colData = map, design = ~Group)
   dds2 <- DESeq2::DESeq(dds)
 
   plot_list <- list()
@@ -138,26 +121,17 @@ DESep2Super.metm <- function(otu = NULL, tax = NULL, map = NULL, tree = NULL, ps
   for (i in 1:dim(aaa)[2]) {
     Desep_group = aaa[, i]
     print(Desep_group)
-
     group_name = paste(Desep_group[1], Desep_group[2], sep = "-")
     group1 = Desep_group[1]
     group2 = Desep_group[2]
 
     res <- DESeq2::results(dds2, contrast = c("Group", Desep_group), alpha = 0.05)
     x = res
-
-    x$level = as.factor(ifelse(
-      as.vector(x$padj) < pvalue & x$log2FoldChange > 0, "enriched",
-      ifelse(as.vector(x$padj) < pvalue & x$log2FoldChange < 0, "depleted", "nosig")
-    ))
-
-    x = data.frame(
-      row.names = row.names(x),
-      logFC = x$log2FoldChange,
-      level = x$level,
-      p = x$pvalue
-    )
-
+    x$level = as.factor(ifelse(as.vector(x$padj) < pvalue &
+                                 x$log2FoldChange > 0, "enriched", ifelse(as.vector(x$padj) <
+                                                                            pvalue & x$log2FoldChange < 0, "depleted", "nosig")))
+    x = data.frame(row.names = row.names(x), logFC = x$log2FoldChange,
+                   level = x$level, p = x$pvalue)
     x$taxa = row.names(x)
     x$p[is.na(x$p)] = 1
     x$log10p = -log10(x$p)
@@ -165,22 +139,44 @@ DESep2Super.metm <- function(otu = NULL, tax = NULL, map = NULL, tree = NULL, ps
     df_nosig <- x %>% dplyr::filter(level == "nosig")
     df_sig <- x %>% dplyr::filter(level != "nosig")
 
-    df_top <- df_sig %>%
-      dplyr::mutate(ord = logFC^2) %>%
-      dplyr::arrange(desc(ord)) %>%
-      head(n = top_n)
+    if (select_by == "pvalue") {
+      df_top_up <- df_sig %>%
+        dplyr::filter(level == "enriched") %>%
+        dplyr::arrange(desc(log10p)) %>%
+        head(n = top_n)
+
+      df_top_down <- df_sig %>%
+        dplyr::filter(level == "depleted") %>%
+        dplyr::arrange(desc(log10p)) %>%
+        head(n = top_n)
+    } else {
+      df_top_up <- df_sig %>%
+        dplyr::filter(level == "enriched") %>%
+        dplyr::arrange(desc(abs(logFC))) %>%
+        head(n = top_n)
+
+      df_top_down <- df_sig %>%
+        dplyr::filter(level == "depleted") %>%
+        dplyr::arrange(desc(abs(logFC))) %>%
+        head(n = top_n)
+    }
+
+    df_top <- rbind(df_top_up, df_top_down)
 
     df_sig_no_border <- df_sig %>%
       dplyr::filter(!taxa %in% df_top$taxa)
 
     color1 <- as.character(col.g[group1])
     color2 <- as.character(col.g[group2])
-
     grad_colors <- get_gradient_colors(color1, color2)
+
     cat("  渐变色:", paste(grad_colors, collapse = " -> "), "\n")
 
+    max_abs_fc <- max(abs(x$logFC), na.rm = TRUE) * 1.1
+    max_log10p <- max(x$log10p, na.rm = TRUE) * 1.1
+
     if (gradient) {
-      max_abs_fc <- max(abs(x$logFC), na.rm = TRUE)
+      max_abs_fc_color <- max(abs(x$logFC), na.rm = TRUE)
 
       p <- ggplot2::ggplot() +
         ggplot2::annotate("rect", xmin = -Inf, xmax = -1, ymin = -Inf, ymax = Inf,
@@ -195,47 +191,110 @@ DESep2Super.metm <- function(otu = NULL, tax = NULL, map = NULL, tree = NULL, ps
                             size = 2.5, alpha = 0.8) +
         ggplot2::geom_point(data = df_top,
                             ggplot2::aes(x = logFC, y = log10p, fill = logFC),
-                            shape = 21,
-                            color = "black",
-                            size = 3.5,
-                            stroke = 0.8,
-                            alpha = 0.9) +
+                            shape = 21, color = "black", size = 3.5, stroke = 0.8, alpha = 0.9) +
         ggplot2::scale_color_gradientn(
           colours = grad_colors,
           values = seq(0, 1, 0.25),
-          limits = c(-max_abs_fc, max_abs_fc),
-          name = "log2FC"
-        ) +
+          limits = c(-max_abs_fc_color, max_abs_fc_color),
+          name = "log2FC") +
         ggplot2::scale_fill_gradientn(
           colours = grad_colors,
           values = seq(0, 1, 0.25),
-          limits = c(-max_abs_fc, max_abs_fc),
-          guide = "none"
-        ) +
-        ggplot2::geom_hline(yintercept = -log10(pvalue), linetype = "dashed", color = "grey40") +
-        ggplot2::geom_vline(xintercept = c(-1, 1), linetype = "dashed", color = "grey40") +
+          limits = c(-max_abs_fc_color, max_abs_fc_color),
+          guide = "none") +
+        ggplot2::geom_hline(yintercept = -log10(pvalue),
+                            linetype = "dashed", color = "grey40") +
+        ggplot2::geom_vline(xintercept = c(-1, 1),
+                            linetype = "dashed", color = "grey40") +
         ggrepel::geom_text_repel(
-          data = df_top,
+          data = df_top_up,
           ggplot2::aes(x = logFC, y = log10p, label = taxa),
-          size = 3, max.overlaps = 20, segment.color = "grey50"
+          size = 3,
+          max.overlaps = 20,
+          box.padding = 0.5,
+          nudge_x = 0.5,
+          nudge_y = 0.2,
+          segment.curvature = -0.1,
+          segment.ncp = 3,
+          segment.color = "grey50",
+          direction = "y",
+          hjust = "left"
+        ) +
+        ggrepel::geom_text_repel(
+          data = df_top_down,
+          ggplot2::aes(x = logFC, y = log10p, label = taxa),
+          size = 3,
+          max.overlaps = 20,
+          box.padding = 0.5,
+          nudge_x = -0.5,
+          nudge_y = 0.2,
+          segment.curvature = 0.1,
+          segment.ncp = 3,
+          segment.color = "grey50",
+          direction = "y",
+          hjust = "right"
         ) +
         ggplot2::labs(
           title = paste(group1, "vs", group2),
           x = "log2 Fold Change",
-          y = "-log10(P-value)"
-        ) +
+          y = "-log10(P-value)") +
         ggplot2::theme_bw() +
         ggplot2::theme(
           plot.title = ggplot2::element_text(hjust = 0.5, face = "bold", size = 14),
           legend.position = "right",
-          panel.grid.minor = ggplot2::element_blank()
+          panel.grid.minor = ggplot2::element_blank(),
+          plot.margin = ggplot2::margin(t = 30, r = 10, b = 10, l = 10, unit = "pt")
+        ) +
+        ggplot2::xlim(c(-max_abs_fc, max_abs_fc)) +
+        ggplot2::ylim(c(0, max_log10p)) +
+        ggplot2::coord_cartesian(clip = "off") +
+        ggplot2::annotation_custom(
+          grob = grid::segmentsGrob(
+            y0 = unit(-10, "pt"),
+            y1 = unit(-10, "pt"),
+            arrow = arrow(angle = 45, length = unit(0.2, "cm"), ends = "first"),
+            gp = grid::gpar(lwd = 3, col = color2)
+          ),
+          xmin = -max_abs_fc,
+          xmax = -max_abs_fc * 0.3,
+          ymin = max_log10p,
+          ymax = max_log10p
+        ) +
+        ggplot2::annotation_custom(
+          grob = grid::textGrob(
+            label = "Down",
+            gp = grid::gpar(col = color2, fontsize = 10, fontface = "bold")
+          ),
+          xmin = -max_abs_fc,
+          xmax = -max_abs_fc * 0.3,
+          ymin = max_log10p,
+          ymax = max_log10p
+        ) +
+        ggplot2::annotation_custom(
+          grob = grid::segmentsGrob(
+            y0 = unit(-10, "pt"),
+            y1 = unit(-10, "pt"),
+            arrow = arrow(angle = 45, length = unit(0.2, "cm"), ends = "last"),
+            gp = grid::gpar(lwd = 3, col = color1)
+          ),
+          xmin = max_abs_fc * 0.3,
+          xmax = max_abs_fc,
+          ymin = max_log10p,
+          ymax = max_log10p
+        ) +
+        ggplot2::annotation_custom(
+          grob = grid::textGrob(
+            label = "Up",
+            gp = grid::gpar(col = color1, fontsize = 10, fontface = "bold")
+          ),
+          xmin = max_abs_fc * 0.3,
+          xmax = max_abs_fc,
+          ymin = max_log10p,
+          ymax = max_log10p
         )
 
     } else {
-      my_colors <- c(
-        "enriched" = color1,
-        "depleted" = color2
-      )
+      my_colors <- c(enriched = color1, depleted = color2)
 
       p <- ggplot2::ggplot() +
         ggplot2::annotate("rect", xmin = -Inf, xmax = -1, ymin = -Inf, ymax = Inf,
@@ -250,40 +309,100 @@ DESep2Super.metm <- function(otu = NULL, tax = NULL, map = NULL, tree = NULL, ps
                             size = 2, alpha = 0.7) +
         ggplot2::geom_point(data = df_top,
                             ggplot2::aes(x = logFC, y = log10p, fill = level),
-                            shape = 21,
-                            color = "black",
-                            size = 3.5,
-                            stroke = 0.8,
-                            alpha = 0.9) +
-        ggplot2::scale_color_manual(
-          values = my_colors,
-          labels = c(
-            "enriched" = paste0(group1, " enriched"),
-            "depleted" = paste0(group2, " enriched")
-          )
-        ) +
-        ggplot2::scale_fill_manual(
-          values = my_colors,
-          guide = "none"
-        ) +
-        ggplot2::geom_hline(yintercept = -log10(pvalue), linetype = "dashed", color = "grey40") +
-        ggplot2::geom_vline(xintercept = c(-1, 1), linetype = "dashed", color = "grey40") +
+                            shape = 21, color = "black", size = 3.5, stroke = 0.8, alpha = 0.9) +
+        ggplot2::scale_color_manual(values = my_colors,
+                                    labels = c(enriched = "Up", depleted = "Down")) +
+        ggplot2::scale_fill_manual(values = my_colors, guide = "none") +
+        ggplot2::geom_hline(yintercept = -log10(pvalue),
+                            linetype = "dashed", color = "grey40") +
+        ggplot2::geom_vline(xintercept = c(-1, 1),
+                            linetype = "dashed", color = "grey40") +
         ggrepel::geom_text_repel(
-          data = df_top,
+          data = df_top_up,
           ggplot2::aes(x = logFC, y = log10p, label = taxa),
-          size = 3, max.overlaps = 20, segment.color = "grey50"
+          size = 3,
+          max.overlaps = 20,
+          box.padding = 0.5,
+          nudge_x = 0.5,
+          nudge_y = 0.2,
+          segment.curvature = -0.1,
+          segment.ncp = 3,
+          segment.color = "grey50",
+          direction = "y",
+          hjust = "left"
+        ) +
+        ggrepel::geom_text_repel(
+          data = df_top_down,
+          ggplot2::aes(x = logFC, y = log10p, label = taxa),
+          size = 3,
+          max.overlaps = 20,
+          box.padding = 0.5,
+          nudge_x = -0.5,
+          nudge_y = 0.2,
+          segment.curvature = 0.1,
+          segment.ncp = 3,
+          segment.color = "grey50",
+          direction = "y",
+          hjust = "right"
         ) +
         ggplot2::labs(
           title = paste(group1, "vs", group2),
           x = "log2 Fold Change",
           y = "-log10(P-value)",
-          color = "Regulation"
-        ) +
+          color = "Regulation") +
         ggplot2::theme_bw() +
         ggplot2::theme(
           plot.title = ggplot2::element_text(hjust = 0.5, face = "bold", size = 14),
           legend.position = "right",
-          panel.grid.minor = ggplot2::element_blank()
+          panel.grid.minor = ggplot2::element_blank(),
+          plot.margin = ggplot2::margin(t = 30, r = 10, b = 10, l = 10, unit = "pt")
+        ) +
+        ggplot2::xlim(c(-max_abs_fc, max_abs_fc)) +
+        ggplot2::ylim(c(0, max_log10p)) +
+        ggplot2::coord_cartesian(clip = "off") +
+        ggplot2::annotation_custom(
+          grob = grid::segmentsGrob(
+            y0 = unit(-10, "pt"),
+            y1 = unit(-10, "pt"),
+            arrow = arrow(angle = 45, length = unit(0.2, "cm"), ends = "first"),
+            gp = grid::gpar(lwd = 3, col = color2)
+          ),
+          xmin = -max_abs_fc,
+          xmax = -max_abs_fc * 0.3,
+          ymin = max_log10p,
+          ymax = max_log10p
+        ) +
+        ggplot2::annotation_custom(
+          grob = grid::textGrob(
+            label = "Down",
+            gp = grid::gpar(col = color2, fontsize = 10, fontface = "bold")
+          ),
+          xmin = -max_abs_fc,
+          xmax = -max_abs_fc * 0.3,
+          ymin = max_log10p,
+          ymax = max_log10p
+        ) +
+        ggplot2::annotation_custom(
+          grob = grid::segmentsGrob(
+            y0 = unit(-10, "pt"),
+            y1 = unit(-10, "pt"),
+            arrow = arrow(angle = 45, length = unit(0.2, "cm"), ends = "last"),
+            gp = grid::gpar(lwd = 3, col = color1)
+          ),
+          xmin = max_abs_fc * 0.3,
+          xmax = max_abs_fc,
+          ymin = max_log10p,
+          ymax = max_log10p
+        ) +
+        ggplot2::annotation_custom(
+          grob = grid::textGrob(
+            label = "Up",
+            gp = grid::gpar(col = color1, fontsize = 10, fontface = "bold")
+          ),
+          xmin = max_abs_fc * 0.3,
+          xmax = max_abs_fc,
+          ymin = max_log10p,
+          ymax = max_log10p
         )
     }
 
@@ -300,19 +419,16 @@ DESep2Super.metm <- function(otu = NULL, tax = NULL, map = NULL, tree = NULL, ps
   }
 
   count = as.matrix(count)
-  norm = t(t(count) / colSums(count))
+  norm = t(t(count)/colSums(count))
   norm1 = norm %>% t() %>% as.data.frame()
-
   iris.split <- split(norm1, as.factor(map$Group))
   iris.apply <- lapply(iris.split, function(x) colMeans(x))
   iris.combine <- do.call(rbind, iris.apply)
   norm2 = t(iris.combine) %>% as.data.frame()
-
   x = cbind(table, norm2)
 
   if (!is.null(ps@tax_table)) {
     taxonomy = as.data.frame(ggClusterNet::vegan_tax(ps))
-
     if (length(colnames(taxonomy)) == 6) {
       colnames(taxonomy) = c("kingdom", "phylum", "class", "order", "family", "genus")
     } else if (length(colnames(taxonomy)) == 7) {
@@ -320,11 +436,9 @@ DESep2Super.metm <- function(otu = NULL, tax = NULL, map = NULL, tree = NULL, ps
     } else if (length(colnames(taxonomy)) == 8) {
       colnames(taxonomy) = c("kingdom", "phylum", "class", "order", "family", "genus", "species", "rep")
     }
-
     taxonomy$id = rownames(taxonomy)
     tax = taxonomy[row.names(x), ]
     x = x[rownames(tax), ]
-
     if (length(colnames(taxonomy)) >= 7) {
       x$phylum = tax$phylum
       x$class = tax$class

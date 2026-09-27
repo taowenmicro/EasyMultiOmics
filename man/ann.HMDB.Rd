@@ -4,7 +4,7 @@
 \alias{ann.HMDB}
 \title{Retrieve metabolite information from the HMDB database}
 \usage{
-ann.HMDB(id = id)
+ann.HMDB(id, verbose = FALSE)
 }
 \arguments{
 \item{id}{The metabolite ID for which information is to be retrieved.}

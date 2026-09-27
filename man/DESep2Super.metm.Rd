@@ -17,7 +17,8 @@ DESep2Super.metm(
   col.g = NULL,
   gradient = TRUE,
   mid_color = "auto",
-  top_n = 5
+  top_n = 5,
+  select_by = "pvalue"
 )
 }
 \arguments{

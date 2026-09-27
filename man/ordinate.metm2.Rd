@@ -2,152 +2,60 @@
 % Please edit documentation in R/ordinate.metm2.R
 \name{ordinate.metm2}
 \alias{ordinate.metm2}
-\title{Enhanced Beta Diversity Ordination Analysis}
+\title{Ordination analysis with group ellipses}
 \usage{
 ordinate.metm2(
-  otu = NULL,
-  tax = NULL,
-  map = NULL,
-  ps = NULL,
-  group = "Group",
-  dist = "bray",
-  method = "PCoA",
-  Micromet = "adonis",
-  pvalue.cutoff = 0.05,
-  pair = FALSE,
-  width = 0.005,
-  height = 0.005,
-  stroke = 2
+  ...,
+  ellipse = TRUE,
+  ellipse.level = 0.95,
+  ellipse.type = c("confidence", "data"),
+  ellipse.scale = 1,
+  ellipse.alpha = 0.12
 )
 }
 \arguments{
-\item{otu}{OTU/ASV abundance table with samples as rows and taxa as columns. Can be NULL if \code{ps} is provided.}
+\item{...}{Arguments passed to [ordinate.metm()].}
 
-\item{tax}{Taxonomic table with taxa as rows and taxonomic ranks as columns. Can be NULL if \code{ps} is provided.}
+\item{ellipse}{Logical. Whether to add group ellipses.}
 
-\item{map}{Sample metadata table with samples as rows and variables as columns. Can be NULL if \code{ps} is provided.}
+\item{ellipse.level}{Numeric. Confidence or probability level used
+for ellipse construction. Default is `0.95`.}
 
-\item{ps}{A phyloseq object containing OTU table, taxonomic table, and sample metadata. Alternative input to \code{otu}, \code{tax}, and \code{map}.}
+\item{ellipse.type}{Character. Ellipse type. `"confidence"` draws
+a confidence ellipse around the group centroid, whereas `"data"`
+describes the dispersion of observations.}
 
-\item{group}{Character vector specifying grouping variable name(s) from sample metadata. Supports 1-3 variables:
-\itemize{
-  \item 1 variable: mapped to point color
-  \item 2 variables: mapped to color and shape
-  \item 3 variables: mapped to color, shape, and fill
-}}
+\item{ellipse.scale}{Numeric. Multiplicative scaling factor for
+ellipse size.}
 
-\item{dist}{Distance metric for beta diversity calculation. Options include:
-\itemize{
-  \item \strong{Phylogenetic}: "unifrac", "wunifrac"
-  \item \strong{Ecological}: "bray", "jaccard", "kulczynski", "gower", "morisita", "horn"
-  \item \strong{Geometric}: "euclidean", "manhattan", "canberra"
-  \item \strong{Other}: "jsd", "cao", "binomial", "chao" and 30+ additional metrics
-}
-Default: "bray"}
-
-\item{method}{Ordination method. Options:
-\itemize{
-  \item \strong{"PCoA"}: Principal Coordinates Analysis (default)
-  \item \strong{"NMDS"}: Non-metric Multidimensional Scaling
-  \item \strong{"PCA"}: Principal Component Analysis
-  \item \strong{"DCA"}: Detrended Correspondence Analysis
-  \item \strong{"CCA"}: Canonical Correspondence Analysis
-  \item \strong{"RDA"}: Redundancy Analysis
-  \item \strong{"MDS"}: Multidimensional Scaling
-  \item \strong{"LDA"}: Linear Discriminant Analysis
-  \item \strong{"t-sne"}: t-Distributed Stochastic Neighbor Embedding
-}}
-
-\item{Micromet}{Statistical test method for group comparison: "adonis", "anosim", or "MRPP". Default: "adonis"}
-
-\item{pvalue.cutoff}{P-value threshold for statistical significance. Default: 0.05}
-
-\item{pair}{Logical value indicating whether to perform pairwise group comparisons. Default: FALSE}
+\item{ellipse.alpha}{Numeric. Transparency of the ellipse polygon.}
 }
 \value{
-A list containing:
-\describe{
-  \item{\code{plot}}{Main ggplot2 object with ordination visualization}
-  \item{\code{points}}{Data frame with ordination coordinates and metadata}
-  \item{\code{plot_labeled}}{ggplot2 object with sample labels added}
-  \item{\code{eigenvalues/stress}}{Eigenvalues (for most methods) or stress value (for NMDS)}
-}
+The same list returned by [ordinate.metm()], with ellipse
+  layers added to available ggplot objects. An additional element
+  named `ellipse` contains the calculated ellipse coordinates.
 }
 \description{
-Performs beta diversity ordination analysis with multiple group support and enhanced visualization.
-This function extends traditional ordination methods by supporting up to three grouping variables
-with distinct aesthetic mappings (color, shape, fill) for comprehensive multivariate visualization.
+Extends [ordinate.metm()] by adding confidence or data ellipses
+to ordination plots. Ellipses are calculated only for groups
+containing at least three valid observations.
 }
 \details{
-The function performs several key steps:
-\enumerate{
-  \item Converts abundance data to relative abundances
-  \item Calculates distance matrix using specified metric
-  \item Performs ordination analysis using specified method
-  \item Creates publication-ready ggplot2 visualization with intelligent aesthetic mapping
-  \item Supports multiple grouping variables with distinct visual encodings
-}
-
-\strong{Aesthetic Mapping Strategy:}
-\itemize{
-  \item \strong{1 group}: Color differentiation with solid shapes
-  \item \strong{2 groups}: Color (group 1) + Shape (group 2) with expanded shape palette
-  \item \strong{3 groups}: Color (group 1) + Shape (group 2) + Fill (group 3) with fillable shapes
-}
-
-\strong{Shape Selection:}
-\itemize{
-  \item 2 groups: Uses extended shape palette including solid and hollow shapes (16,17,15,18,8,11,13,14,0,1,2,5,6)
-  \item 3 groups: Automatically uses fillable shapes (21-25) to support the fill aesthetic
-}
-}
-\note{
-\itemize{
-  \item Requires \code{phyloseq}, \code{ggplot2}, \code{ggrepel} packages
-  \item For LDA method, automatically reduces feature dimensionality if > 10 features
-  \item NMDS method returns stress value instead of eigenvalues
-  \item Function automatically handles sample-wise relative abundance transformation
-}
+Groups with fewer than three valid samples are not assigned an ellipse.
+The original ordination results from [ordinate.metm()] are otherwise
+retained.
 }
 \examples{
 \dontrun{
-# Load required packages and data
-library(phyloseq)
-library(ggplot2)
+res <- ordinate.metm2(
+  ps = ps,
+  group = "Group",
+  ellipse = TRUE,
+  ellipse.level = 0.95,
+  ellipse.type = "confidence"
+)
 
-# Single grouping variable
-result1 <- ordinate.metm2(ps = ps.16s,
-                        group = "Treatment",
-                        dist = "bray",
-                        method = "PCoA")
-print(result1[[1]])  # Main plot
-
-# Two grouping variables
-result2 <- ordinate.metm2(ps = ps.16s,
-                        group = c("Treatment", "Timepoint"),
-                        dist = "unifrac",
-                        method = "PCoA")
-print(result2[[1]])
-
-# Three grouping variables
-result3 <- ordinate.metm2(ps = ps.16s,
-                        group = c("Treatment", "Timepoint", "Subject"),
-                        dist = "bray",
-                        method = "PCoA")
-print(result3[[1]])
-
-# NMDS analysis
-nmds_result <- ordinate.metm2(ps = ps.16s,
-                            group = "Treatment",
-                            dist = "bray",
-                            method = "NMDS")
-print(nmds_result[[1]])  # Plot includes stress value
+res[[1]]
 }
 
-}
-\seealso{
-\code{\link[phyloseq]{distance}}, \code{\link[phyloseq]{ordinate}}, \code{\link[vegan]{vegdist}}
-}
-\author{
-Contact: taowen \email{taowen@njau.edu.cn}
 }

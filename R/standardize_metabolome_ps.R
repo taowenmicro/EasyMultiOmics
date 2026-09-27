@@ -4,7 +4,7 @@
 
 # ========== 1. 文本预处理 ==========
 
-#' 标准化字符串（保留语义信息）
+#' @export
 normalize_text <- function(x) {
   x %>%
     tolower() %>%
@@ -27,138 +27,150 @@ extract_keywords <- function(text) {
 }
 
 
-#' Get semantic rules for column name matching
-#'
-#' This function returns a list of semantic rules used for matching
-#' column names in metabolomics data. The rules include mandatory,
-#' optional, and excluded keywords for different types of columns such
-#' as "Metabolite", "Formula", and "KEGG_ID".
-#'
-#' @return A list of semantic rules, each containing:
-#'   - `must_contain`: A list of word groups that must appear in the column name.
-#'   - `should_contain`: A list of words that can improve the match.
-#'   - `must_not_contain`: A list of words that should not appear.
-#'   - `weight`: A numeric weight for the importance of the rule.
-#' @examples
-#' get_semantic_rules()
-#' @export
+# ========== 2. 语义规则库 ==========
+
+#' 定义语义识别规则
+#' 每个规则包含：必须词、可选词、排除词、权重
 get_semantic_rules <- function() {
   list(
-    # Define rules for different types of columns (e.g., Metabolite, Formula, KEGG_ID, etc.)
+    # ===== 代谢物标识 =====
     "metab_id" = list(
-      must_contain = list(c("id")),  # At least one word group
+      must_contain = list(c("id")),  # 至少包含一个
       should_contain = c("metabolite", "metab", "compound", "feature"),
       must_not_contain = c("name", "description"),
       weight = 10
     ),
+
     "Metabolite" = list(
-      must_contain = list(c("name"), c("metabolite")),  # At least one group with "name" or "metabolite"
+      must_contain = list(c("name"), c("metabolite")),
       should_contain = c("compound", "annotation"),
       must_not_contain = c("id", "number", "score", "error"),
       weight = 10
     ),
+
+    # ===== 化学信息 =====
     "Formula" = list(
       must_contain = list(c("formula")),
       should_contain = c("chemical", "molecular"),
       must_not_contain = c(),
       weight = 15
     ),
+
     "m.z" = list(
       must_contain = list(c("m.z", "m/z", "mass")),
       should_contain = c("precursor", "observed", "measured"),
       must_not_contain = c("error", "difference", "delta", "accuracy"),
       weight = 10
     ),
+
     "Retention.time" = list(
       must_contain = list(c("Retention.time", "retention", "time")),
       should_contain = c("chromatographic"),
       must_not_contain = c("error", "difference", "delta", "start", "end", "window"),
       weight = 10
     ),
+
     "Mode" = list(
       must_contain = list(c("mode", "polarity")),
       should_contain = c("ion", "ionization", "detection"),
       must_not_contain = c("score", "error"),
       weight = 8
     ),
+
+    # ===== 数据库标识符（通过特定格式识别）=====
     "KEGG_ID" = list(
       must_contain = list(c("kegg")),
       should_contain = c("id", "compound"),
       must_not_contain = c("pathway", "map", "module"),
       weight = 12
     ),
+
     "HMDB_ID" = list(
       must_contain = list(c("hmdb")),
       should_contain = c("id", "number"),
       must_not_contain = c(),
       weight = 12
     ),
+
     "CAS" = list(
       must_contain = list(c("cas")),
       should_contain = c("number", "registry", "rn"),
       must_not_contain = c("score", "match", "similarity", "fragmentation", "theoretical"),
       weight = 12
     ),
+
     "PUBCHEM_ID" = list(
       must_contain = list(c("pubchem", "cid")),
       should_contain = c("id", "compound"),
       must_not_contain = c(),
       weight = 12
     ),
+
     "CHEBI_ID" = list(
       must_contain = list(c("chebi")),
       should_contain = c("id", "number"),
       must_not_contain = c(),
       weight = 12
     ),
+
     "INCHIKEY" = list(
       must_contain = list(c("inchi")),
       should_contain = c("key", "standard"),
       must_not_contain = c(),
       weight = 12
     ),
+
     "SMILES" = list(
       must_contain = list(c("smiles")),
       should_contain = c("canonical", "isomeric"),
       must_not_contain = c(),
       weight = 12
     ),
+
+    # ===== 分类学信息 =====
     "Super_Class" = list(
       must_contain = list(c("super", "main", "primary", "kingdom")),
       should_contain = c("class"),
       must_not_contain = c("sub", "secondary", "minor"),
       weight = 8
     ),
+
     "Class" = list(
       must_contain = list(c("class")),
       should_contain = c("taxonomy", "classification"),
       must_not_contain = c("super", "sub", "main", "primary", "secondary"),
       weight = 7
     ),
+
     "Sub_Class" = list(
       must_contain = list(c("sub", "minor", "secondary")),
       should_contain = c("class"),
       must_not_contain = c("super", "main", "primary"),
       weight = 8
     ),
+
     "Pathway" = list(
       must_contain = list(c("pathway")),
       should_contain = c("metabolic", "biological", "kegg"),
       must_not_contain = c(),
       weight = 10
     ),
+
+    # ===== 质谱评分 =====
     "Frag_Score" = list(
       must_contain = list(c("fragmentation", "fragment", "frag", "ms2", "msms", "spectrum")),
       should_contain = c("score", "quality"),
       must_not_contain = c("theoretical", "expected", "reference", "library"),
       weight = 10
     ),
+
     "Theoretical_Frag_Score" = list(
       must_contain = list(c("theoretical", "expected", "reference")),
       should_contain = c("fragmentation", "fragment", "frag", "score"),
       must_not_contain = c(),
-      weight = 12
+      weight = 12  # 更高权重，优先匹配
     ),
+
     "Score" = list(
       must_contain = list(c("score", "confidence", "match", "similarity")),
       should_contain = c("identification", "annotation"),
@@ -166,42 +178,51 @@ get_semantic_rules <- function() {
                            "spectrum", "mass", "error", "ppm", "theoretical"),
       weight = 6
     ),
+
     "Mass_Error_PPM" = list(
       must_contain = list(c("ppm", "mass"), c("error", "accuracy")),
       should_contain = c("delta", "difference"),
       must_not_contain = c("score", "fragmentation"),
       weight = 10
     ),
+
     "Level" = list(
       must_contain = list(c("level")),
       should_contain = c("confidence", "identification", "annotation", "id"),
       must_not_contain = c(),
       weight = 8
     ),
+
     "Adducts" = list(
       must_contain = list(c("adduct")),
       should_contain = c("ion", "type", "form"),
       must_not_contain = c(),
       weight = 10
     ),
+
+    # ===== 定量信息 =====
     "Intensity" = list(
       must_contain = list(c("intensity", "abundance", "signal")),
       should_contain = c("peak", "ion"),
       must_not_contain = c("relative", "normalized", "ratio"),
       weight = 8
     ),
+
     "Concentration" = list(
       must_contain = list(c("concentration", "conc", "amount", "quantity")),
       should_contain = c("measured", "calculated"),
       must_not_contain = c(),
       weight = 8
     ),
+
+    # ===== 其他 =====
     "Description" = list(
       must_contain = list(c("description", "comment", "note", "remark")),
       should_contain = c(),
       must_not_contain = c(),
       weight = 5
     ),
+
     "Synonym" = list(
       must_contain = list(c("synonym", "alias", "alternative")),
       should_contain = c("name"),
@@ -212,7 +233,7 @@ get_semantic_rules <- function() {
 }
 
 
-
+# ========== 3. 智能匹配引擎 ==========
 
 #' 计算列名与规则的匹配分数
 calculate_match_score <- function(col_name, rule) {
@@ -289,9 +310,7 @@ smart_column_mapping <- function(col_names) {
 }
 
 
-
-
-
+#' @export
 standardize_metabolome_tax <- function(tax, verbose = FALSE) {
 
   # 0. 保存原始行名
@@ -383,7 +402,7 @@ standardize_metabolome_tax <- function(tax, verbose = FALSE) {
 }
 
 
-#' 直接标准化phyloseq对象
+#' @export
 standardize_metabolome_ps <- function(ps, verbose = TRUE) {
 
   tax_df <- as.data.frame(phyloseq::tax_table(ps))
@@ -405,3 +424,11 @@ standardize_metabolome_ps <- function(ps, verbose = TRUE) {
   return(ps)
 }
 
+
+# ========== 使用示例 ==========
+#
+# ps.ms <- standardize_metabolome_ps(ps.ms, verbose = TRUE)
+# head(vegan_tax(ps.ms))
+#
+# check_standardization(vegan_tax(ps.ms))
+#

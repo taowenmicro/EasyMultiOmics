@@ -110,7 +110,10 @@ Imports:
     vegan,
     VennDiagram,
     WGCNA,
-    Rcpp
+    Rcpp,
+    magrittr,
+    openxlsx,
+    poweRlaw
 Suggests: 
     ape,
     BiocManager,

@@ -44,61 +44,6 @@ ann.kegg = function(id){
   return(tax)
 }
 
-#' @title Another matching mode for retrieving KEGG metabolite information based on input metabolite IDs
-#' @description
-#' This function matches the input metabolite ID to common names in the KEGG database by formatting it,
-#' and finally outputs its storage ID in the KEGG database.
-#' @param id The metabolite ID for which KEGG information is to be retrieved.
-#' @return A data frame with KEGG IDs and matched metabolite names for input metabolite IDs.
-#' @author
-#' Tao Wen \email{2018203048@njau.edu.cn},
-#' Peng-Hao Xie \email{2019103106@njqu.edu.cn}
-#' @examples
-#' library(dplyr)
-#' tax= ps.ms %>% vegan_tax() %>%as.data.frame()
-#' id = tax$Metabolite
-#' tax2 = ann.kegg2(id)
-#' head(tax2)
-#' @export
-ann.kegg2 = function(id,repath){
-  mk =db.ms.kegg
-  head(mk)
-  mk$allMetabolites = str_to_lower(mk$allMetabolites)
-
-  id2 = gsub("[ ][0-9]","",id)
-  id2 = str_to_lower(id2)
-  A = c()
-  B = c()
-  #
-
-  compoundM = mk[,1:2]
-  colnames(compoundM) = c("KEGG compound", "common names")
-  rownames(compoundM) = NULL
-
-
-  for (i in 1:length(id)) {
-    match= id2[i]
-    if (length(match) >= 1) {
-      target_matrix = compoundM
-      target_column = compoundM[, 2]
-      matchM = match_KEGG(match, target_column, target_matrix)
-
-      if (!is.null(matchM[[1]])) {
-        A[i] = matchM[[1]][1,1]
-        B[i] = matchM[[1]][1,2]
-      } else{
-        A[i] = ""
-        B[i] = ""
-      }
-
-    } else{
-
-    }
-  }
-
-  tax = data.frame(ID = id,keggID = A,matchname = B)
-  return(tax)
-}
 
 #' @title  Match KEGG metabolites based on input metabolite(s) ID, KEGG database
 #' @description

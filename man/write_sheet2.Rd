@@ -4,16 +4,24 @@
 \alias{write_sheet2}
 \title{Write (and overwrite) a worksheet in an Excel workbook}
 \usage{
-write_sheet2(wb, sheet_name, df, row_names = TRUE)
+write_sheet2(
+  wb,
+  sheet_name,
+  data,
+  row_names = TRUE,
+  suffix_separator = "_",
+  remove_plot_suffix = TRUE,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{wb}{An \code{openxlsx::Workbook} object.}
 
 \item{sheet_name}{Name of the worksheet to create/overwrite.}
 
-\item{df}{A data frame to write.}
-
 \item{row_names}{Logical, whether to write row names (default: \code{TRUE}).}
+
+\item{df}{A data frame to write.}
 }
 \value{
 Invisibly returns \code{NULL}; modifies \code{wb} in place.

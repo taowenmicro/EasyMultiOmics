@@ -1,6 +1,10 @@
 # ===================== 宏基因组物种分析（基于 EasyMultiOmics） =====================
 rm(list = ls())
 
+
+path.package()
+packageVersion("vegan")
+
 ## ===================== 0. 基础设置 & 加载包 =====================
 # BiocManager::install("MicrobiotaProcess")
 library(EasyMultiOmics)
@@ -22,16 +26,16 @@ library(fs)
 #                      "All files", "*"), ncol = 2, byrow = TRUE)
 # )
 # 方式二：直接指定路径
-# file_path <- "./data/ps_16s.rds"
-# ps.16s    <- readRDS(file_path)
-# ps.16s
+# file_path <- "./ps_16s.rds"
+# ps.micro    <- readRDS(file_path)
+ps.micro
 
 res <- infer_sequencing_type(ps = ps.micro)  # ps 是你的 phyloseq 对象
 res$label
 sample_sums(ps.micro)
 map <- sample_data(ps.micro)
 head(map)
-
+map$Group %>% table()
 
 
 ### 创建文件夹#--------
@@ -103,7 +107,7 @@ data_alpha$ID <- as.character(data_alpha$ID)
 head(data_alpha)
 
 # ANOVA + 多重比较
-result_alpha <- MuiaovMcomper2(data = data_alpha, num = 3:6)
+result_alpha <- MuiKwWlx2(data = data_alpha, num = 3:6)
 
 # 盒线图
 res_box <- EasyMultiOmics::FacetMuiPlotresultBox(
@@ -169,10 +173,10 @@ p1_0 <- res_box[[2]] %>%
   ggplot2::scale_color_manual(values = col.g)
 
 # ---- 保存 Alpha 图
-save_plot2(p1_1, mg_alpha_path, "alpha_diversity_box",    width = 12, height = 6)
-save_plot2(p1_2, mg_alpha_path, "alpha_diversity_bar",    width = 12, height = 6)
-save_plot2(p1_3, mg_alpha_path, "alpha_diversity_boxbar", width = 12, height = 6)
-save_plot2(p1_0, mg_alpha_path, "alpha_diversity_violin", width = 12, height = 6)
+save_plot2(p1_1, mg_alpha_path, "alpha_diversity_box",    width = 32, height = 6)
+save_plot2(p1_2, mg_alpha_path, "alpha_diversity_bar",    width = 32, height = 6)
+save_plot2(p1_3, mg_alpha_path, "alpha_diversity_boxbar", width = 32, height = 6)
+save_plot2(p1_0, mg_alpha_path, "alpha_diversity_violin", width = 32, height = 6)
 
 # ---- 保存 Alpha 表
 write_sheet2(mg_alpha_wb, "alpha_diversity_data", data_alpha)
@@ -353,11 +357,11 @@ res <- calc_group_pair_param(ps.micro)
 # res$n_param  # 按“每4个组合一个，不足4也算一个”得到的参数数目
 # res$groups   # 分组名称向量
 
-res_mantel <- mantal.metm(
+res_mantel <- EasyMultiOmics::mantal.micro(
   ps     = ps.micro,
   method = "spearman",
   group  = "Group",
-  ncol   = gnum,
+  ncol   = 3,
   nrow   = res$n_param
 )
 data_mantel <- res_mantel[[1]]
@@ -1405,8 +1409,9 @@ openxlsx::saveWorkbook(mg_network_wb, network_xlsx_path, overwrite = TRUE)
 
 ### ---------- 8.1 rf_network_from_phyloseq：随机森林网络 ----------
 library(ranger)
+library(igraph)
 rf_net <- rf_network_from_phyloseq(
-  ps           = ps.micro %>% filter_OTU_ps(20),
+  ps           = ps.micro %>% filter_OTU_ps(50),
   ntree        = 500,
   normalize    = TRUE,
   scale.method = "l1",
@@ -1419,7 +1424,7 @@ edges_all  <- rf_net$edges
 edges_filt <- edges_all %>% dplyr::filter(pval < 0.05)
 
 ## 转为 igraph / 邻接矩阵
-g_rf <- graph_from_data_frame(
+g_rf <- igraph::graph_from_data_frame(
   edges_filt[, c("target", "predictor", "importance")],
   directed = FALSE
 )
@@ -1447,6 +1452,7 @@ p_rf_net <- ggplot() +
         panel.grid.minor = element_blank(),
         panel.grid.major = element_blank())
 
+p_rf_net
 save_plot2(p_rf_net, mg_network_path, "rf_network_plot", width = 12, height = 10)
 
 ## 写 RF 网络表
