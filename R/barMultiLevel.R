@@ -21,6 +21,7 @@
 #'   \item{flow_data_list}{Alluvial plotting data for each group.}
 #' }
 #'
+#' @importFrom rlang .data
 #' @export
 barMultiLevel <- function(ps = NULL,
                           group = "Group",
@@ -185,17 +186,17 @@ barMultiLevel <- function(ps = NULL,
   # 6. Select Top N at each rank
   # -----------------------------
   get_top_taxa <- function(data, rank, Top) {
-    tmp <- dplyr::group_by(data, rlang::.data[[rank]])
+    tmp <- dplyr::group_by(data, .data[[rank]])
     tmp <- dplyr::summarise(
       tmp,
-      Total = sum(rlang::.data$Abundance, na.rm = TRUE),
+      Total = sum(.data$Abundance, na.rm = TRUE),
       .groups = "drop"
     )
-    tmp <- dplyr::arrange(tmp, dplyr::desc(rlang::.data$Total))
+    tmp <- dplyr::arrange(tmp, dplyr::desc(.data$Total))
     tmp <- dplyr::filter(
       tmp,
-      !is.na(rlang::.data[[rank]]),
-      rlang::.data[[rank]] != "Unknown"
+      !is.na(.data[[rank]]),
+      .data[[rank]] != "Unknown"
     )
     tmp <- dplyr::slice_head(tmp, n = Top)
 
@@ -328,20 +329,20 @@ barMultiLevel <- function(ps = NULL,
 
     group_otu_long <- dplyr::filter(
       otu_long,
-      rlang::.data$Group == g
+      .data$Group == g
     )
 
     group_data <- dplyr::group_by(
       group_otu_long,
-      rlang::.data$Kingdom_plot,
-      rlang::.data$Super_Class_plot,
-      rlang::.data$Class_plot,
-      rlang::.data$Sub_Class_plot
+      .data$Kingdom_plot,
+      .data$Super_Class_plot,
+      .data$Class_plot,
+      .data$Sub_Class_plot
     )
 
     group_data <- dplyr::summarise(
       group_data,
-      Abundance = sum(rlang::.data$Abundance, na.rm = TRUE),
+      Abundance = sum(.data$Abundance, na.rm = TRUE),
       .groups = "drop"
     )
 
@@ -383,13 +384,13 @@ barMultiLevel <- function(ps = NULL,
 
     stratum_abundance <- dplyr::group_by(
       flow_data,
-      rlang::.data$Rank,
-      rlang::.data$Taxon
+      .data$Rank,
+      .data$Taxon
     )
 
     stratum_abundance <- dplyr::summarise(
       stratum_abundance,
-      Total_Abundance = sum(rlang::.data$Abundance, na.rm = TRUE),
+      Total_Abundance = sum(.data$Abundance, na.rm = TRUE),
       .groups = "drop"
     )
 
@@ -404,30 +405,30 @@ barMultiLevel <- function(ps = NULL,
     p <- ggplot2::ggplot(
       flow_data,
       ggplot2::aes(
-        x = rlang::.data$Rank,
-        y = rlang::.data$Abundance,
-        alluvium = rlang::.data$flow_id,
-        stratum = rlang::.data$Taxon
+        x = .data$Rank,
+        y = .data$Abundance,
+        alluvium = .data$flow_id,
+        stratum = .data$Taxon
       )
     ) +
       ggalluvial::geom_flow(
-        ggplot2::aes(fill = rlang::.data$Kingdom_color),
+        ggplot2::aes(fill = .data$Kingdom_color),
         width = width,
         alpha = 0.6,
         curve_type = "cubic"
       ) +
       ggalluvial::geom_stratum(
-        ggplot2::aes(fill = rlang::.data$Taxon),
+        ggplot2::aes(fill = .data$Taxon),
         width = width,
         color = "white",
         linewidth = 0.3
       ) +
-      ggplot2::geom_text(
-        stat = "stratum",
+      ggalluvial::stat_stratum(
+        geom = "text",
         ggplot2::aes(
           label = ifelse(
-            rlang::.data$Total_Abundance > label_threshold,
-            as.character(rlang::.data$Taxon),
+            ggplot2::after_stat(count) > label_threshold,
+            as.character(ggplot2::after_stat(stratum)),
             ""
           )
         ),
@@ -507,22 +508,22 @@ barMultiLevel <- function(ps = NULL,
 
   summary_by_group <- dplyr::group_by(
     summary_by_group,
-    rlang::.data$Group,
-    rlang::.data$Rank,
-    rlang::.data$Taxon
+    .data$Group,
+    .data$Rank,
+    .data$Taxon
   )
 
   summary_by_group <- dplyr::summarise(
     summary_by_group,
-    Mean_Abundance = mean(rlang::.data$Abundance, na.rm = TRUE),
+    Mean_Abundance = mean(.data$Abundance, na.rm = TRUE),
     .groups = "drop"
   )
 
   summary_by_group <- dplyr::arrange(
     summary_by_group,
-    rlang::.data$Group,
-    rlang::.data$Rank,
-    dplyr::desc(rlang::.data$Mean_Abundance)
+    .data$Group,
+    .data$Rank,
+    dplyr::desc(.data$Mean_Abundance)
   )
 
   summary_total <- dplyr::select(
@@ -550,21 +551,21 @@ barMultiLevel <- function(ps = NULL,
 
   summary_total <- dplyr::group_by(
     summary_total,
-    rlang::.data$Rank,
-    rlang::.data$Taxon
+    .data$Rank,
+    .data$Taxon
   )
 
   summary_total <- dplyr::summarise(
     summary_total,
-    Total_Abundance = sum(rlang::.data$Abundance, na.rm = TRUE),
-    Mean_Abundance = mean(rlang::.data$Abundance, na.rm = TRUE),
+    Total_Abundance = sum(.data$Abundance, na.rm = TRUE),
+    Mean_Abundance = mean(.data$Abundance, na.rm = TRUE),
     .groups = "drop"
   )
 
   summary_total <- dplyr::arrange(
     summary_total,
-    rlang::.data$Rank,
-    dplyr::desc(rlang::.data$Total_Abundance)
+    .data$Rank,
+    dplyr::desc(.data$Total_Abundance)
   )
 
   # -----------------------------
